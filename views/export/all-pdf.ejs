@@ -6,124 +6,127 @@
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      font-size: 17px;
+      font-size: 16px;
       padding: 40px;
       color: #1a1a1a;
-      line-height: 1.7;
+      line-height: 1.6;
+      background: #fff;
     }
-  
+
     h1, h2, h3, h4 {
-      font-weight: 800;
+      font-weight: 700;
       margin-top: 0;
-      margin-bottom: 10px;
-      color: #0d47a1;
+      margin-bottom: 12px;
     }
-  
+
     h1 {
-      font-size: 34px;
-      border-bottom: 4px solid #0d47a1;
-      padding-bottom: 12px;
-      margin-bottom: 30px;
+      font-size: 30px;
+      color: #0d47a1;
+      border-bottom: 3px solid #0d47a1;
+      padding-bottom: 10px;
+      margin-bottom: 25px;
     }
-  
+
     h2 {
-      font-size: 28px;
-      margin-top: 40px;
+      font-size: 24px;
       color: #1565c0;
+      margin-top: 30px;
     }
-  
+
     h3 {
-      font-size: 24px;
+      font-size: 20px;
       color: #1976d2;
+      margin-top: 25px;
     }
-  
+
     h4 {
-      font-size: 24px;
-      color: #1a237e;
+      font-size: 18px;
+      color: #2e7d32;
     }
-  
+
     .section-title {
       background: #e3f2fd;
-      padding: 14px 18px;
-      margin-top: 35px;
-      border-left: 8px solid #1976d2;
-      font-size: 20px;
-      font-weight: 800;
+      padding: 12px 16px;
+      margin-top: 30px;
+      border-left: 6px solid #1976d2;
       page-break-inside: avoid;
     }
-  
+
     .subsection {
       page-break-inside: avoid;
       margin-top: 20px;
-      margin-bottom: 30px;
+      margin-bottom: 20px;
     }
-  
+
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 12px;
       margin-bottom: 30px;
-      font-size: 24px;
+      font-size: 14px;
     }
-  
+
     th, td {
-      border: 1px solid #bbb;
-      padding: 10px 14px;
+      border: 1px solid #ccc;
+      padding: 8px 12px;
       text-align: left;
       vertical-align: top;
     }
-  
+
     th {
-      background-color: #f0f4f8;
-      font-weight: bold;
+      background-color: #f1f8ff;
       color: #0d47a1;
-      font-size: 24px;
+      font-weight: 600;
     }
-  
+
     .team-table th {
       width: 25%;
     }
-  
+
     .kender-box {
-      margin-top: 25px;
-      border: 2px solid #a5d6a7;
-      padding: 18px;
-      border-left: 8px solid #388e3c;
-      background-color: #f1f8e9;
+      margin-top: 20px;
+      border: 1.5px solid #c8e6c9;
+      padding: 14px;
+      border-left: 6px solid #2e7d32;
+      background-color: #f9fff9;
       page-break-inside: avoid;
     }
-  
+
     .role-badge {
       display: inline-block;
-      font-size: 24px;
+      font-size: 13px;
       font-weight: bold;
       color: #fff;
-      padding: 5px 10px;
-      border-radius: 6px;
+      padding: 4px 10px;
+      border-radius: 4px;
       margin: 2px 6px 2px 0;
       line-height: 1.4;
       text-transform: capitalize;
     }
-  
+
     .Admin { background-color: #212121; }
-    .Zila { background-color: #d32f2f; }
-    .Ksheter { background-color: #1976d2; }
-    .Kender { background-color: #388e3c; }
+    .Zila { background-color: #c62828; }
+    .Ksheter { background-color: #1565c0; }
+    .Kender { background-color: #2e7d32; }
     .Shikshak { background-color: #0288d1; }
     .Karyakarta { background-color: #fbc02d; color: #000; }
-  
+
     .muted {
-      color: #555;
+      color: #444;
       font-style: italic;
-      font-size: 24px;
+      font-size: 14px;
     }
-  
-    /* Optional page break between Zilas */
+
+    hr {
+      border: none;
+      border-top: 1.5px dashed #bbb;
+      margin: 40px 0;
+    }
+
     .zila-wrapper {
       page-break-after: always;
     }
   </style>
-  
 </head>
 <body>
   <h1>🧘‍♂️ Bhartiya Yog Sansthan - Full Directory</h1>
@@ -137,9 +140,9 @@
     <% const relatedKsheter = ksheters.filter(k => k.zila.toString() === zila._id.toString()); %>
     <% const relatedKenders = kenders.filter(k => k.zila.toString() === zila._id.toString()); %>
     <% const zilaTeam = saadhaks.filter(s =>
-  s.zila && s.zila._id.toString() === zila._id.toString() &&
-  ['Zila Pradhan', 'Zila Mantri', 'Sangathan Mantri', 'Cashier'].some(r => s.role.includes(r))
-); %>
+      s.zila && s.zila._id.toString() === zila._id.toString() &&
+      ['Zila Pradhan', 'Zila Mantri', 'Sangathan Mantri', 'Cashier'].some(r => s.role.includes(r))
+    ); %>
 
     <div class="subsection">
       <h3>👥 Zila Team</h3>
@@ -166,9 +169,9 @@
     <% relatedKsheter.forEach(ksheter => { %>
       <% const ksheterKenders = relatedKenders.filter(k => k.ksheter.toString() === ksheter._id.toString()); %>
       <% const ksheterTeam = saadhaks.filter(s =>
-  s.ksheter && s.ksheter._id.toString() === ksheter._id.toString() &&
-  ['Ksheter Pradhan', 'Ksheter Mantri'].some(r => s.role.includes(r))
-); %>
+        s.ksheter && s.ksheter._id.toString() === ksheter._id.toString() &&
+        ['Ksheter Pradhan', 'Ksheter Mantri'].some(r => s.role.includes(r))
+      ); %>
 
       <div class="section-title">
         <h3>🏞️ <%= ksheter.name %> Ksheter</h3>
@@ -200,9 +203,9 @@
 
       <% ksheterKenders.forEach(kender => { %>
         <% const kenderTeam = saadhaks.filter(s =>
-        s.kender && s.kender._id.toString() === kender._id.toString() &&
-        ['Kender Pramukh', 'Seh Kender Pramukh', 'Shikshak', 'Karyakarta'].some(r => s.role.includes(r))
-      ); %>
+          s.kender && s.kender._id.toString() === kender._id.toString() &&
+          ['Kender Pramukh', 'Seh Kender Pramukh', 'Shikshak', 'Karyakarta'].some(r => s.role.includes(r))
+        ); %>
 
         <div class="kender-box">
           <h4>🏕️ <%= kender.name %></h4>
