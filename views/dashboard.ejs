@@ -1,0 +1,14 @@
+<%- include('./partials/header') %>
+<%- include('./partials/navbar') %>
+
+<section class="container mt-5 text-center">
+  <h2>Welcome, <%= user.name %> 👋</h2>
+  <p>Your mobile: <strong><%= user.mobile %></strong></p>
+
+  <div class="mt-4">
+    <a href="/attendance/mark" class="btn btn-success me-2">Mark Attendance</a>
+    <a href="/auth/logout" class="btn btn-danger">Logout</a>
+  </div>
+</section>
+
+<%- include('./partials/footer') %>

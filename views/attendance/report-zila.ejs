@@ -1,0 +1,26 @@
+<section class="container mt-4">
+    <h2>Attendance Report for Zila</h2>
+  
+    <% attendanceReports.forEach(report => { %>
+      <h3>Ksheter: <%= report.kender.name %></h3>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Saadhak Name</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% report.attendances.forEach((attendance, index) => { %>
+            <tr>
+              <td><%= index + 1 %></td>
+              <td><%= attendance.saadhak.name %></td>
+              <td><%= attendance.date %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% }) %>
+  </section>
+  

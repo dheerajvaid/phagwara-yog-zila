@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Full BYS Directory</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      font-size: 17px;
+      padding: 40px;
+      color: #1a1a1a;
+      line-height: 1.7;
+    }
+  
+    h1, h2, h3, h4 {
+      font-weight: 800;
+      margin-top: 0;
+      margin-bottom: 10px;
+      color: #0d47a1;
+    }
+  
+    h1 {
+      font-size: 34px;
+      border-bottom: 4px solid #0d47a1;
+      padding-bottom: 12px;
+      margin-bottom: 30px;
+    }
+  
+    h2 {
+      font-size: 28px;
+      margin-top: 40px;
+      color: #1565c0;
+    }
+  
+    h3 {
+      font-size: 24px;
+      color: #1976d2;
+    }
+  
+    h4 {
+      font-size: 24px;
+      color: #1a237e;
+    }
+  
+    .section-title {
+      background: #e3f2fd;
+      padding: 14px 18px;
+      margin-top: 35px;
+      border-left: 8px solid #1976d2;
+      font-size: 20px;
+      font-weight: 800;
+      page-break-inside: avoid;
+    }
+  
+    .subsection {
+      page-break-inside: avoid;
+      margin-top: 20px;
+      margin-bottom: 30px;
+    }
+  
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      margin-bottom: 30px;
+      font-size: 24px;
+    }
+  
+    th, td {
+      border: 1px solid #bbb;
+      padding: 10px 14px;
+      text-align: left;
+      vertical-align: top;
+    }
+  
+    th {
+      background-color: #f0f4f8;
+      font-weight: bold;
+      color: #0d47a1;
+      font-size: 24px;
+    }
+  
+    .team-table th {
+      width: 25%;
+    }
+  
+    .kender-box {
+      margin-top: 25px;
+      border: 2px solid #a5d6a7;
+      padding: 18px;
+      border-left: 8px solid #388e3c;
+      background-color: #f1f8e9;
+      page-break-inside: avoid;
+    }
+  
+    .role-badge {
+      display: inline-block;
+      font-size: 24px;
+      font-weight: bold;
+      color: #fff;
+      padding: 5px 10px;
+      border-radius: 6px;
+      margin: 2px 6px 2px 0;
+      line-height: 1.4;
+      text-transform: capitalize;
+    }
+  
+    .Admin { background-color: #212121; }
+    .Zila { background-color: #d32f2f; }
+    .Ksheter { background-color: #1976d2; }
+    .Kender { background-color: #388e3c; }
+    .Shikshak { background-color: #0288d1; }
+    .Karyakarta { background-color: #fbc02d; color: #000; }
+  
+    .muted {
+      color: #555;
+      font-style: italic;
+      font-size: 24px;
+    }
+  
+    /* Optional page break between Zilas */
+    .zila-wrapper {
+      page-break-after: always;
+    }
+  </style>
+  
+</head>
+<body>
+  <h1>🧘‍♂️ Bhartiya Yog Sansthan - Full Directory</h1>
+  <p><strong>Generated on:</strong> <%= new Date().toLocaleDateString() %></p>
+
+  <% zilas.forEach(zila => { %>
+    <div class="section-title">
+      <h2>🗺️ <%= zila.name %> Zila</h2>
+    </div>
+
+    <% const relatedKsheter = ksheters.filter(k => k.zila.toString() === zila._id.toString()); %>
+    <% const relatedKenders = kenders.filter(k => k.zila.toString() === zila._id.toString()); %>
+    <% const zilaTeam = saadhaks.filter(s =>
+  s.zila && s.zila._id.toString() === zila._id.toString() &&
+  ['Zila Pradhan', 'Zila Mantri', 'Sangathan Mantri', 'Cashier'].some(r => s.role.includes(r))
+); %>
+
+    <div class="subsection">
+      <h3>👥 Zila Team</h3>
+      <table class="team-table">
+        <thead>
+          <tr><th>Name</th><th>Roles</th><th>Mobile</th></tr>
+        </thead>
+        <tbody>
+          <% zilaTeam.forEach(s => { %>
+            <tr>
+              <td><%= s.name %></td>
+              <td>
+                <% s.role.forEach(r => { %>
+                  <span class="role-badge Zila"><%= r %></span>
+                <% }) %>
+              </td>
+              <td><%= s.mobile %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
+    <% relatedKsheter.forEach(ksheter => { %>
+      <% const ksheterKenders = relatedKenders.filter(k => k.ksheter.toString() === ksheter._id.toString()); %>
+      <% const ksheterTeam = saadhaks.filter(s =>
+  s.ksheter && s.ksheter._id.toString() === ksheter._id.toString() &&
+  ['Ksheter Pradhan', 'Ksheter Mantri'].some(r => s.role.includes(r))
+); %>
+
+      <div class="section-title">
+        <h3>🏞️ <%= ksheter.name %> Ksheter</h3>
+      </div>
+
+      <% if (ksheterTeam.length > 0) { %>
+        <div class="subsection">
+          <h4>👥 Ksheter Team</h4>
+          <table class="team-table">
+            <thead>
+              <tr><th>Name</th><th>Roles</th><th>Mobile</th></tr>
+            </thead>
+            <tbody>
+              <% ksheterTeam.forEach(s => { %>
+                <tr>
+                  <td><%= s.name %></td>
+                  <td>
+                    <% s.role.forEach(r => { %>
+                      <span class="role-badge Ksheter"><%= r %></span>
+                    <% }) %>
+                  </td>
+                  <td><%= s.mobile %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+
+      <% ksheterKenders.forEach(kender => { %>
+        <% const kenderTeam = saadhaks.filter(s =>
+        s.kender && s.kender._id.toString() === kender._id.toString() &&
+        ['Kender Pramukh', 'Seh Kender Pramukh', 'Shikshak', 'Karyakarta'].some(r => s.role.includes(r))
+      ); %>
+
+        <div class="kender-box">
+          <h4>🏕️ <%= kender.name %></h4>
+          <p class="muted"><strong>Address:</strong> <%= kender.address || '—' %></p>
+
+          <table class="team-table">
+            <thead>
+              <tr><th>Name</th><th>Roles</th><th>Mobile</th></tr>
+            </thead>
+            <tbody>
+              <% kenderTeam.forEach(s => { %>
+                <tr>
+                  <td><%= s.name %></td>
+                  <td>
+                    <% s.role.forEach(r => { %>
+                      <span class="role-badge 
+                        <%= r.includes('Kender') ? 'Kender' :
+                              r.includes('Shikshak') ? 'Shikshak' :
+                              r.includes('Karyakarta') ? 'Karyakarta' : '' %>">
+                        <%= r %>
+                      </span>
+                    <% }) %>
+                  </td>
+                  <td><%= s.mobile %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% }) %>
+    <% }) %>
+    <hr>
+  <% }) %>
+</body>
+</html>

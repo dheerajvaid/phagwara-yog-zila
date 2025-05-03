@@ -1,0 +1,88 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<section class="container mt-4">
+  <h4 class="fw-bold text-primary mb-3">➕ Add Kender</h4>
+
+  <% if (error) { %>
+    <div class="alert alert-danger"><%= error %></div>
+  <% } %>
+
+  <form action="/kender/add" method="POST">
+    <div class="row g-3">
+      <!-- Kender Name -->
+      <div class="col-md-6">
+        <label class="form-label">Kender Name</label>
+        <input type="text" name="name" class="form-control" required value="<%= formData?.name || '' %>">
+      </div>
+
+      <!-- Address -->
+      <div class="col-md-6">
+        <label class="form-label">Address</label>
+        <input type="text" name="address" class="form-control" required value="<%= formData?.address || '' %>">
+      </div>
+
+      <!-- Zila Dropdown -->
+      <div class="col-md-6">
+        <label class="form-label">Select Zila</label>
+        <select name="zila" id="zilaSelect" class="form-select" required <%= user.zila ? 'disabled' : '' %>>
+          <option value="">-- Select Zila --</option>
+          <% zilas.forEach(z => { %>
+            <option value="<%= z._id %>" <%= (formData?.zila == z._id || user.zila == z._id) ? 'selected' : '' %>><%= z.name %></option>
+          <% }) %>
+        </select>
+        <% if (user.zila) { %>
+          <input type="hidden" name="zila" value="<%= user.zila %>">
+        <% } %>
+      </div>
+
+      <!-- Ksheter Dropdown -->
+      <div class="col-md-6">
+        <label class="form-label">Select Ksheter</label>
+        <select name="ksheter" id="ksheterSelect" class="form-select" required <%= user.ksheter ? 'disabled' : '' %>>
+          <option value="">-- Select Ksheter --</option>
+          <% ksheters.forEach(k => { %>
+            <% if (!user.zila || k.zila == user.zila) { %>
+              <option value="<%= k._id %>" data-zila="<%= k.zila %>" <%= (formData?.ksheter == k._id || user.ksheter == k._id) ? 'selected' : '' %>>
+                <%= k.name %>
+              </option>
+            <% } %>
+          <% }) %>
+        </select>
+        <% if (user.ksheter) { %>
+          <input type="hidden" name="ksheter" value="<%= user.ksheter %>">
+        <% } %>
+      </div>
+
+      <div class="text-end mt-3">
+        <button class="btn btn-success">💾 Save Kender</button>
+      </div>
+    </div>
+  </form>
+</section>
+
+<!-- Script to dynamically populate Ksheter based on Zila -->
+<script>
+  const allKsheters = <%- JSON.stringify(ksheters) %>;
+  const zilaSelect = document.getElementById("zilaSelect");
+  const ksheterSelect = document.getElementById("ksheterSelect");
+
+  function filterKsheterOptions() {
+    const selectedZila = zilaSelect.value;
+
+    ksheterSelect.innerHTML = '<option value="">-- Select Ksheter --</option>';
+
+    const related = allKsheters.filter(k => k.zila === selectedZila);
+    related.forEach(k => {
+      const isSelected = "<%= formData?.ksheter %>" === k._id;
+      ksheterSelect.innerHTML += `<option value="${k._id}" ${isSelected ? 'selected' : ''}>${k.name}</option>`;
+    });
+  }
+
+  if (!<%= !!user.zila %>) {
+    zilaSelect.addEventListener("change", filterKsheterOptions);
+    window.addEventListener("DOMContentLoaded", filterKsheterOptions);
+  }
+</script>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,25 @@
+<section class="container mt-4">
+    <h2>Filtered Attendance Report</h2>
+    <a href="/attendance/reports/filter" class="btn btn-secondary mb-2">Back</a>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Saadhak Name</th>
+          <th>Status</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% records.forEach((r, index) => { %>
+          <tr>
+            <td><%= index + 1 %></td>
+            <td><%= r.saadhak?.name || 'N/A' %></td>
+            <td><%= r.status %></td>
+            <td><%= new Date(r.date).toLocaleDateString() %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </section>
+  

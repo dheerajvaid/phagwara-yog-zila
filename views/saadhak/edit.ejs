@@ -1,0 +1,193 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<section class="container mt-4">
+  <h4 class="mb-4 fw-bold text-primary">🖊️ Edit Saadhak</h4>
+
+  <% if (error) { %>
+    <div class="alert alert-danger"><%= error %></div>
+  <% } %>
+
+  <form action="/saadhak/edit/<%= saadhak._id %>" method="POST" class="row g-3">
+
+    <!-- Role -->
+    <div class="col-md-4">
+      <label class="form-label">Select Role *</label>
+      <select name="role" class="form-select" id="roleSelect" required>
+        <option value="">-- Select --</option>
+        <% allowedRoles.forEach(r => { %>
+          <option value="<%= r %>" <%= saadhak.role.includes(r) ? 'selected' : '' %>><%= r %></option>
+        <% }) %>
+      </select>
+    </div>
+
+    <!-- Name -->
+    <div class="col-md-4">
+      <label class="form-label">Full Name *</label>
+      <input type="text" name="name" class="form-control" required value="<%= saadhak.name %>">
+    </div>
+
+    <!-- Mobile -->
+    <div class="col-md-4">
+      <label class="form-label">Mobile *</label>
+      <input type="text" name="mobile" class="form-control" required value="<%= saadhak.mobile %>">
+    </div>
+
+    <!-- Zila -->
+<div class="col-md-4 zila-field d-none">
+  <label class="form-label">Zila</label>
+  <select name="zila" id="zilaSelect" class="form-select" <%= user.zila ? 'disabled' : '' %>>
+    <option value="">-- Select Zila --</option>
+    <% zilas.forEach(z => { %>
+      <option value="<%= z._id %>" <%= (saadhak.zila?.toString() === z._id.toString() || user.zila?.toString() === z._id.toString()) ? 'selected' : '' %>>
+        <%= z.name %>
+      </option>
+    <% }) %>
+  </select>
+  <% if (user.zila) { %>
+    <input type="hidden" name="zila" value="<%= user.zila %>">
+  <% } %>
+</div>
+
+<!-- Ksheter -->
+<div class="col-md-4 ksheter-field d-none">
+  <label class="form-label">Ksheter</label>
+  <select name="ksheter" id="ksheterSelect" class="form-select" <%= user.ksheter ? 'disabled' : '' %>>
+    <option value="">-- Select Ksheter --</option>
+    <% ksheters.forEach(k => { %>
+      <% if (!user.zila || k.zila?.toString() === user.zila?.toString()) { %>
+        <option value="<%= k._id %>" <%= (saadhak.ksheter?.toString() === k._id.toString() || user.ksheter?.toString() === k._id.toString()) ? 'selected' : '' %>>
+          <%= k.name %>
+        </option>
+      <% } %>
+    <% }) %>
+  </select>
+  <% if (user.ksheter) { %>
+    <input type="hidden" name="ksheter" value="<%= user.ksheter %>">
+  <% } %>
+</div>
+
+    <!-- Kender -->
+    <div class="col-md-4 kender-field d-none">
+      <label class="form-label">Kender</label>
+      <select name="kender" id="kenderSelect" class="form-select" <%= user.kender ? 'disabled' : '' %>>
+        <option value="">-- Select Kender --</option>
+        <% kenders.forEach(k => { %>
+          <% if (!user.ksheter || k.ksheter == user.ksheter) { %>
+            <option value="<%= k._id %>" <%= (saadhak.kender == k._id || user.kender == k._id) ? 'selected' : '' %>><%= k.name %></option>
+          <% } %>
+        <% }) %>
+      </select>
+      <% if (user.kender) { %>
+        <input type="hidden" name="kender" value="<%= user.kender %>">
+      <% } %>
+    </div>
+
+    <!-- DOB -->
+    <div class="col-md-4">
+      <label class="form-label">DOB</label>
+      <input type="date" name="dob" class="form-control" value="<%= saadhak.dob ? saadhak.dob.toISOString().substring(0,10) : '' %>">
+    </div>
+
+    <!-- Gender -->
+    <div class="col-md-4">
+      <label class="form-label">Gender</label>
+      <select name="gender" class="form-select">
+        <option value="">--</option>
+        <option value="Male" <%= saadhak.gender === 'Male' ? 'selected' : '' %>>Male</option>
+        <option value="Female" <%= saadhak.gender === 'Female' ? 'selected' : '' %>>Female</option>
+      </select>
+    </div>
+
+    <!-- Marital Status -->
+    <div class="col-md-4">
+      <label class="form-label">Marital Status</label>
+      <select name="maritalStatus" class="form-select">
+        <option value="">--</option>
+        <option value="Married" <%= saadhak.maritalStatus === 'Married' ? 'selected' : '' %>>Married</option>
+        <option value="Unmarried" <%= saadhak.maritalStatus === 'Unmarried' ? 'selected' : '' %>>Unmarried</option>
+      </select>
+    </div>
+
+    <!-- Marriage Date -->
+    <div class="col-md-4">
+      <label class="form-label">Marriage Date</label>
+      <input type="date" name="marriageDate" class="form-control" value="<%= saadhak.marriageDate ? saadhak.marriageDate.toISOString().substring(0,10) : '' %>">
+    </div>
+
+    <!-- Address -->
+    <div class="col-md-6">
+      <label class="form-label">Address</label>
+      <input type="text" name="address" class="form-control" value="<%= saadhak.address || '' %>">
+    </div>
+
+    <!-- Living Area -->
+    <div class="col-md-6">
+      <label class="form-label">Living Area</label>
+      <input type="text" name="livingArea" class="form-control" value="<%= saadhak.livingArea || '' %>">
+    </div>
+
+    <div class="col-12 text-end">
+      <button class="btn btn-primary">💾 Save Changes</button>
+    </div>
+  </form>
+</section>
+
+<script>
+  const allKsheters = <%- JSON.stringify(ksheters) %>;
+  const allKenders = <%- JSON.stringify(kenders) %>;
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const roleSelect = document.getElementById('roleSelect');
+    const zilaField = document.querySelector('.zila-field');
+    const ksheterField = document.querySelector('.ksheter-field');
+    const kenderField = document.querySelector('.kender-field');
+
+    function toggleFields(role) {
+      if (!role) return;
+      if (['Admin'].includes(role)) {
+        zilaField.classList.add('d-none');
+        ksheterField.classList.add('d-none');
+        kenderField.classList.add('d-none');
+      } else if (['Zila Pradhan', 'Zila Mantri', 'Cashier', 'Sangathan Mantri'].includes(role)) {
+        zilaField.classList.remove('d-none');
+        ksheterField.classList.add('d-none');
+        kenderField.classList.add('d-none');
+      } else if (['Ksheter Pradhan', 'Ksheter Mantri'].includes(role)) {
+        zilaField.classList.remove('d-none');
+        ksheterField.classList.remove('d-none');
+        kenderField.classList.add('d-none');
+      } else {
+        zilaField.classList.remove('d-none');
+        ksheterField.classList.remove('d-none');
+        kenderField.classList.remove('d-none');
+      }
+    }
+
+    roleSelect.addEventListener('change', () => toggleFields(roleSelect.value));
+    toggleFields(roleSelect.value);
+
+    document.getElementById('zilaSelect')?.addEventListener('change', function () {
+      const zilaId = this.value;
+      const filteredKsheters = allKsheters.filter(k => k.zila === zilaId);
+      const ksheterSelect = document.getElementById('ksheterSelect');
+      ksheterSelect.innerHTML = '<option value="">-- Select Ksheter --</option>';
+      filteredKsheters.forEach(k => {
+        ksheterSelect.innerHTML += `<option value="${k._id}">${k.name}</option>`;
+      });
+      document.getElementById('kenderSelect').innerHTML = '<option value="">-- Select Kender --</option>';
+    });
+
+    document.getElementById('ksheterSelect')?.addEventListener('change', function () {
+      const ksheterId = this.value;
+      const filteredKenders = allKenders.filter(k => k.ksheter === ksheterId);
+      const kenderSelect = document.getElementById('kenderSelect');
+      kenderSelect.innerHTML = '<option value="">-- Select Kender --</option>';
+      filteredKenders.forEach(k => {
+        kenderSelect.innerHTML += `<option value="${k._id}">${k.name}</option>`;
+      });
+    });
+  });
+</script>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,18 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-5">
+  <h3>Login with Mobile</h3>
+  <% if (error) { %>
+    <div class="alert alert-danger"><%= error %></div>
+  <% } %>
+  <form action="/auth/login" method="POST">
+    <div class="mb-3">
+      <label for="mobile" class="form-label">Mobile Number</label>
+      <input type="text" name="mobile" id="mobile" class="form-control" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Next</button>
+  </form>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,17 @@
+<section class="container mt-4">
+  <h2>Mark Attendance for Kender</h2>
+  <form action="/attendance/mark-kender/<%= kenderId %>" method="POST">
+    <div class="mb-3">
+      <label class="form-label">Select Saadhaks</label><br>
+      <% saadhaks.forEach(s => { %>
+        <input type="checkbox" name="saadhaks" value="<%= s._id %>">
+        <label><%= s.name %> - <%= s.role %></label><br>
+      <% }) %>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Select Date</label>
+      <input type="date" name="date" class="form-control" value="<%= new Date().toISOString().split('T')[0] %>" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Mark Attendance</button>
+  </form>
+</section>

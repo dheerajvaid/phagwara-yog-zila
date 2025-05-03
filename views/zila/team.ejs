@@ -1,0 +1,101 @@
+<%
+function getRoleBadge(role) {
+  const roles = {
+    'Zila Pradhan': { icon: '👑', color: 'bg-danger', desc: 'Overall head of Zila. Top authority for decision-making.' },
+    'Zila Mantri': { icon: '📋', color: 'bg-primary', desc: 'Handles Zila-level documentation and communication.' },
+    'Sangathan Mantri': { icon: '🔗', color: 'bg-success', desc: 'Coordinates between Ksheter and Zila teams.' },
+    'Cashier': { icon: '💰', color: 'bg-warning text-dark', desc: 'Manages finances and records for the Zila.' }
+  };
+  return roles[role] || { icon: '🧘‍♂️', color: 'bg-secondary', desc: 'Standard role or undefined.' };
+}
+%>
+
+
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<section class="container mt-5">
+  <h2 class="mb-4">Zila Team Role Management</h2>
+
+  <div class="row mb-4">
+    <div class="col-md-12">
+      <h5>All Zila Team Members</h5>
+      <% if (saadhaks.length === 0) { %>
+        <div class="alert alert-warning">No Zila team members found.</div>
+      <% } else { %>
+        <ul class="list-group mb-4">
+            <% saadhaks.forEach(s => { %>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                  <strong><%= s.name %></strong>
+                  <% s.role.forEach(r => { 
+                    const tag = getRoleBadge(r);
+               %>
+                 <span 
+                   class="badge rounded-pill <%= tag.color %> ms-2"
+                   style="cursor: pointer;"
+                   onclick="showRoleModal('<%= r %>', '<%= tag.icon %>', `<%= tag.desc %>`)"
+                 >
+                   <%= tag.icon %> <%= r %>
+                 </span>
+               <% }) %>
+                </div>
+              </li>
+            <% }) %>
+          </ul>
+          
+      <% } %>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-12">
+      <h5>Assign or Remove Zila Roles</h5>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <% ZILA_ROLES.forEach(role => { %>
+              <th><%= role %></th>
+            <% }) %>
+          </tr>
+        </thead>
+        <tbody>
+          <% allSaadhaks.forEach(saadhak => { %>
+            <tr>
+              <td><%= saadhak.name %></td>
+              <% ZILA_ROLES.forEach(role => { %>
+                <td>
+                  <form action="/zila/team/update/<%= saadhak._id %>" method="POST">
+                    <input type="hidden" name="role" value="<%= role %>">
+                    <button type="submit" class="btn btn-sm <%= saadhak.role.includes(role) ? 'btn-danger' : 'btn-outline-success' %>">
+                        <%= saadhak.role.includes(role) ? '❌ Remove' : '✅ Assign' %>
+                      </button>
+                  </form>
+                </td>
+              <% }) %>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+<!-- Role Description Modal -->
+<div class="modal fade" id="roleDescModal" tabindex="-1" aria-labelledby="roleDescLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="roleDescLabel">Role Description</h5>
+        <button type="button" class="btn-close bg-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p id="modalRoleIcon" style="font-size: 2rem;"></p>
+        <h5 id="modalRoleName"></h5>
+        <p id="modalRoleDesc" class="mt-2 text-muted"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

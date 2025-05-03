@@ -1,0 +1,13 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<section class="container mt-5">
+  <h2>Verify OTP</h2>
+  <form action="/auth/verify-otp" method="POST">
+    <input type="hidden" name="mobile" value="<%= mobile %>">
+    <input type="text" name="code" class="form-control mb-3" placeholder="Enter OTP" required>
+    <button class="btn btn-success">Verify</button>
+  </form>
+</section>
+
+<%- include('../partials/footer') %>

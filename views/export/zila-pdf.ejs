@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title><%= zila.name %> Zila Directory</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 30px; }
+    h1, h2, h3, h4, h5 { color: #2c3e50; margin-top: 20px; }
+    .section { margin-bottom: 30px; }
+    .team-member { margin-bottom: 6px; }
+    .kender-box { margin-left: 20px; margin-bottom: 15px; }
+    hr { margin: 20px 0; }
+  </style>
+</head>
+<body>
+  <h1>🧘‍♂️ Bhartiya Yog Sansthan</h1>
+  <h2><%= zila.name %> Zila Directory</h2>
+  <p><strong>Generated on:</strong> <%= new Date().toLocaleDateString() %></p>
+
+  <div class="section">
+    <h3>👥 Zila Team</h3>
+    <% zilaTeam.forEach(member => { %>
+      <div class="team-member">
+        <strong><%= member.name %></strong> — <%= member.role.join(', ') %> — 📞 <%= member.mobile %>
+      </div>
+    <% }) %>
+  </div>
+
+  <% ksheters.forEach(ksheter => { %>
+    <div class="section">
+      <h3>🏞️ <%= ksheter.name %></h3>
+
+      <% const team = teamByKsheter[ksheter._id.toString()] || []; %>
+      <% if (team.length) { %>
+        <h4>👥 Ksheter Team</h4>
+        <% team.forEach(member => { %>
+          <div class="team-member">
+            <strong><%= member.name %></strong> — <%= member.role.join(', ') %> — 📞 <%= member.mobile %>
+          </div>
+        <% }) %>
+      <% } %>
+
+      <% const kenders = kendersByKsheter[ksheter._id.toString()] || []; %>
+      <% kenders.forEach(kender => { %>
+        <div class="kender-box">
+          <h5>🏡 <%= kender.name %></h5>
+          <% if (kender.address) { %>
+            <p><strong>📍 Address:</strong> <%= kender.address %></p>
+          <% } %>
+
+          <% const kTeam = teamByKender[kender._id.toString()] || []; %>
+          <% if (kTeam.length) { %>
+            <h5>👥 Kender Team</h5>
+            <% kTeam.forEach(member => { %>
+              <div class="team-member">
+                <strong><%= member.name %></strong> — <%= member.role.join(', ') %> — 📞 <%= member.mobile %>
+              </div>
+            <% }) %>
+          <% } %>
+        </div>
+      <% }) %>
+    </div>
+    <hr>
+  <% }) %>
+</body>
+</html>

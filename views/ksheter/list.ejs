@@ -1,0 +1,90 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<section class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="fw-bold text-primary">🏞️ Ksheter Management</h4>
+    <% if (user.roles.includes('Admin') || user.roles.includes('Zila Pradhan') || user.roles.includes('Zila Mantri')) { %>
+      <a href="/ksheter/add" class="btn btn-sm btn-success">➕ Add Ksheter</a>
+    <% } %>
+  </div>
+
+  <!-- ✅ Zila Filter -->
+  <form method="GET" action="/ksheter/manage" class="row g-2 mb-3">
+    <div class="col-md-4">
+      <% if (user.roles.includes('Admin')) { %>
+        <select name="zila" class="form-select" onchange="this.form.submit()">
+          <option value="">-- All Zilas --</option>
+          <% zilas.forEach(z => { %>
+            <option value="<%= z._id %>" <%= selectedZilaId == z._id ? 'selected' : '' %>><%= z.name %></option>
+          <% }) %>
+        </select>
+      <% } else if (user.zila) { %>
+        <% const zila = zilas.find(z => z._id.toString() === user.zila.toString()); %>
+        <input type="hidden" name="zila" value="<%= zila._id %>">
+        <input type="text" class="form-control" value="<%= zila.name %>" disabled>
+      <% } %>
+    </div>
+  </form>
+
+  <% if (ksheters.length === 0) { %>
+    <div class="alert alert-warning text-center shadow-sm">
+      <p class="mb-1">No Ksheter found for selected Zila.</p>
+      <% if (user.roles.includes('Admin') || user.roles.includes('Zila Pradhan') || user.roles.includes('Zila Mantri')) { %>
+        <a href="/ksheter/add" class="btn btn-primary btn-sm mt-2">➕ Add Ksheter</a>
+      <% } %>
+    </div>
+  <% } else { %>
+    <div class="table-responsive shadow-sm rounded">
+      <table class="table table-hover align-middle">
+        <thead class="table-dark">
+          <tr>
+            <th>#</th>
+            <th>Ksheter Name</th>
+            <th>Zila</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% ksheters.forEach((k, index) => { %>
+            <tr>
+              <td><%= index + 1 %></td>
+              <td>
+                <a href="/kender/by-ksheter/<%= k._id %>" class="fw-bold text-decoration-none text-primary">
+                  <%= k.name %>
+                </a>
+              </td>
+              <td><span class="badge bg-info text-dark"><%= k.zila.name %></span></td>
+              <td class="text-end">
+                <a href="/ksheter/edit/<%= k._id %>" class="btn btn-sm btn-outline-primary me-1">🖊️</a>
+                <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal<%= k._id %>">🗑️</button>
+
+                <!-- Delete Modal -->
+                <div class="modal fade" id="deleteModal<%= k._id %>" tabindex="-1" aria-labelledby="deleteLabel<%= k._id %>" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                      <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title" id="deleteLabel<%= k._id %>">Confirm Deletion</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-body">
+                        Are you sure you want to delete <strong><%= k.name %></strong>? This action cannot be undone.
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                        <a href="/ksheter/delete/<%= k._id %>?zila=<%= selectedZilaId %>" class="btn btn-danger btn-sm">Yes, Delete</a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>
+
+<%- include('../partials/footer') %>

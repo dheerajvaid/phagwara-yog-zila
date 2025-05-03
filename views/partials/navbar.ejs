@@ -1,0 +1,52 @@
+<!-- views/partials/navbar.ejs -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow-sm">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold" href="/">🧘‍♂️ Yog Sansthan</a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="mainNavbar">
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link" href="/explore">📂 Explore BYS</a>
+        </li>
+        <% if (user) { %>
+
+          <% if (user.roles.includes('Admin')) { %>
+            <li class="nav-item"><a class="nav-link" href="/admin/panel">🛠️ Admin Panel</a></li>
+            <%- include('zila') %>
+            <%- include('ksheter') %>
+            <%- include('kender') %>
+            <%- include('saadhak') %>
+            <li class="nav-item"><a class="nav-link" href="/roles/manage">🎖️ Role Management</a></li>
+          <% } else { %>
+            <% if (user.roles.includes('Zila Pradhan') || user.roles.includes('Zila Mantri')) { %>
+              <%- include('ksheter') %>
+              <%- include('kender') %>
+              <%- include('saadhak') %>
+            <% } %>
+            <% if (user.roles.includes('Ksheter Pradhan') || user.roles.includes('Ksheter Mantri')) { %>
+              <%- include('kender') %>
+              <%- include('saadhak') %>
+            <% } %>
+            <% if (user.roles.includes('Kender Pramukh') || user.roles.includes('Seh Kender Pramukh')) { %>
+              <%- include('saadhak') %>
+            <% } %>
+
+          <% } %>
+
+          <li class="nav-item">
+            <a class="nav-link text-danger" href="/auth/logout">🚪 Logout</a>
+          </li>
+
+        <% } else { %>
+          <li class="nav-item">
+            <a class="nav-link" href="/auth/login">🔑 Login</a>
+          </li>
+        <% } %>
+      </ul>
+    </div>
+  </div>
+</nav>

@@ -1,0 +1,40 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<section class="container mt-4">
+  <h4 class="fw-bold text-primary mb-3">➕ Add Ksheter</h4>
+
+  <% if (error) { %>
+    <div class="alert alert-danger"><%= error %></div>
+  <% } %>
+
+  <form action="/ksheter/add" method="POST">
+    <div class="row g-3">
+      <!-- Zila Dropdown -->
+      <div class="col-md-6">
+        <label class="form-label">Select Zila</label>
+        <select name="zila" id="zilaSelect" class="form-select" <%= user.zila ? 'disabled' : '' %> required>
+          <option value="">-- Select Zila --</option>
+          <% zilas.forEach(z => { %>
+            <option value="<%= z._id %>" <%= (formData?.zila == z._id || user.zila == z._id) ? 'selected' : '' %>><%= z.name %></option>
+          <% }) %>
+        </select>
+        <% if (user.zila) { %>
+          <input type="hidden" name="zila" value="<%= user.zila %>">
+        <% } %>
+      </div>
+
+      <!-- Ksheter Name -->
+      <div class="col-md-6">
+        <label class="form-label">Ksheter Name</label>
+        <input type="text" name="name" class="form-control" required value="<%= formData?.name || '' %>">
+      </div>
+    </div>
+
+    <div class="text-end mt-3">
+      <button type="submit" class="btn btn-success">💾 Save Ksheter</button>
+    </div>
+  </form>
+</section>
+
+<%- include('../partials/footer') %>

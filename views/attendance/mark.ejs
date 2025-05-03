@@ -1,0 +1,16 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+<!-- views/attendance/mark.ejs -->
+<section class="container mt-4">
+  <h2>Mark Attendance</h2>
+  <form action="/attendance/mark" method="POST">
+    <label>Select Saadhaks:</label><br>
+    <% saadhaks.forEach(saadhak => { %>
+      <input type="checkbox" name="selectedSaadhaks" value="<%= saadhak._id %>">
+      <%= saadhak.name %><br>
+    <% }) %>
+    <button type="submit">Mark Attendance</button>
+  </form>
+  
+</section>
+<%- include('../partials/footer') %>

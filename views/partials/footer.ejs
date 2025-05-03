@@ -1,0 +1,43 @@
+<footer class="bg-dark text-light text-center py-3 mt-5">
+  <div class="container">
+    <p class="mb-0">© <%= new Date().getFullYear() %> Bhartiya Yog Sansthan, Phagwara Zila. All rights reserved.</p>
+  </div>
+</footer>
+
+<!-- Bootstrap Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Auto-close navbar on mobile -->
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const isMobile = () => window.innerWidth < 992;
+
+    if (isMobile()) {
+      document.querySelectorAll('.nav-item.dropdown .dropdown-toggle').forEach(toggle => {
+        toggle.addEventListener('click', function (e) {
+          e.preventDefault(); // override default behavior
+
+          const menu = this.nextElementSibling;
+
+          // Toggle the current dropdown
+          menu.classList.toggle('show');
+
+          // Hide others
+          document.querySelectorAll('.dropdown-menu.show').forEach(m => {
+            if (m !== menu) m.classList.remove('show');
+          });
+        });
+      });
+
+      // Close dropdowns if clicked outside
+      document.addEventListener('click', function (e) {
+        if (!e.target.closest('.nav-item.dropdown')) {
+          document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+            menu.classList.remove('show');
+          });
+        }
+      });
+    }
+  });
+</script>
+</body>

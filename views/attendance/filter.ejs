@@ -1,0 +1,23 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<section class="container mt-4">
+  <h2>Filter Attendance Report</h2>
+  <form action="/attendance/reports/filter" method="POST">
+    <div class="mb-3">
+      <label>Select Date</label>
+      <input type="date" name="date" class="form-control">
+    </div>
+    <div class="mb-3">
+      <label>Select Kender</label>
+      <select name="kender" class="form-select">
+        <option value="">-- All Kenders --</option>
+        <% kenders.forEach(k => { %>
+          <option value="<%= k._id %>"><%= k.name %></option>
+        <% }) %>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Filter</button>
+  </form>
+</section>
+<%- include('../partials/footer') %>

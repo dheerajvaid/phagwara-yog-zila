@@ -1,0 +1,64 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<section class="container mt-5">
+  <h2 class="mb-4">Universal Role Management Panel</h2>
+  
+  <form class="row mb-4" method="GET" action="/roles/manage">
+    <div class="col-md-4">
+      <label class="form-label">Filter by Ksheter</label>
+      <select name="ksheter" class="form-select" onchange="this.form.submit()">
+        <option value="">-- All Ksheter --</option>
+        <% allKsheter.forEach(k => { %>
+          <option value="<%= k._id %>" <%= selectedKsheter == k._id ? 'selected' : '' %>><%= k.name %></option>
+        <% }) %>
+      </select>
+    </div>
+  
+    <div class="col-md-4">
+      <label class="form-label">Filter by Kender</label>
+      <select name="kender" class="form-select" onchange="this.form.submit()">
+        <option value="">-- All Kenders --</option>
+        <% allKenders.forEach(k => { %>
+          <option value="<%= k._id %>" <%= selectedKender == k._id ? 'selected' : '' %>><%= k.name %> (<%= k.ksheter?.name %>)</option>
+        <% }) %>
+      </select>
+    </div>
+  </form>
+  
+  <p class="text-muted">Filtering <%= saadhaks.length %> Saadhaks...</p>
+  
+  <table class="table table-striped table-hover">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <% ALL_ROLES.forEach(role => { %>
+          <th><%= ROLE_META[role].icon %></th>
+        <% }) %>
+      </tr>
+    </thead>
+    <tbody>
+      <% saadhaks.forEach(saadhak => { %>
+        <tr>
+          <td><strong><%= saadhak.name %></strong></td>
+          <% ALL_ROLES.forEach(role => { 
+               const meta = ROLE_META[role];
+          %>
+            <td>
+              <form action="/roles/update/<%= saadhak._id %>" method="POST">
+                <input type="hidden" name="role" value="<%= role %>">
+                <button type="submit"
+                        class="btn btn-sm <%= saadhak.role.includes(role) ? 'btn-danger' : 'btn-outline-secondary' %>"
+                        title="<%= meta.desc %>">
+                  <%= saadhak.role.includes(role) ? '❌' : meta.icon %>
+                </button>
+              </form>
+            </td>
+          <% }) %>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</section>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,23 @@
+<section class="container mt-4">
+  <h2>Attendance List</h2>
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Saadhak Name</th>
+        <th>Role</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% attendance.forEach((a, index) => { %>
+        <tr>
+          <td><%= index + 1 %></td>
+          <td><%= a.saadhak.name %></td>
+          <td><%= a.saadhak.role %></td>
+          <td><%= new Date(a.date).toLocaleDateString() %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</section>

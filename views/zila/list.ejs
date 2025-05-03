@@ -1,0 +1,71 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<section class="container mt-5">
+  <h2 class="mb-4">All Zilas</h2>
+
+  <% if (zilas.length === 0) { %>
+    <div class="alert alert-info text-center">
+      <p>No Zilas have been added yet.</p>
+      <% if (user && user.roles.includes('Admin')) { %>
+        <a href="/zila/add" class="btn btn-success mt-2">➕ Add First Zila</a>
+      <% } %>
+    </div>
+  <% } else { %>
+    <% if (user.roles.includes('Admin')) { %>
+      <a href="/zila/add" class="btn btn-success mb-3">➕ Add New Zila</a>
+    <% } %>
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Zila Name</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% zilas.forEach((zila, index) => { %>
+          <tr>
+            <td><%= index + 1 %></td>
+            <td>
+              <a href="/ksheter/manage?zila=<%= zila._id %>" class="fw-bold text-decoration-none text-primary">
+                <%= zila.name %>
+              </a>
+            </td>
+            <% if (user.roles.includes('Admin')) { %>
+              <td>
+                <a href="/zila/edit/<%= zila._id %>" class="btn btn-sm btn-outline-primary">🖊️ Edit</a>
+                <!-- Trigger Delete Modal -->
+<button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal<%= zila._id %>">
+  🗑️ Delete
+</button>
+
+<!-- Modal -->
+<div class="modal fade" id="deleteModal<%= zila._id %>" tabindex="-1" aria-labelledby="deleteModalLabel<%= zila._id %>" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow-sm">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="deleteModalLabel<%= zila._id %>">Confirm Deletion</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to delete <strong><%= zila.name %></strong>?<br/>
+        This cannot be undone.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <a href="/zila/delete/<%= zila._id %>" class="btn btn-danger btn-sm">Yes, Delete</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+              </td>
+            <% } %>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  <% } %>
+</section>
+
+<%- include('../partials/footer') %>

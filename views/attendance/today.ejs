@@ -1,0 +1,30 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+<!-- views/attendance/today.ejs -->
+<section class="container mt-4">
+    <h2>Today's Attendance</h2>
+  
+    <% if (saadhaks.length === 0) { %>
+      <p><%= message %></p>
+    <% } else { %>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Saadhak Name</th>
+            <th>Attendance Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% saadhaks.forEach((attendance, index) => { %>
+            <tr>
+              <td><%= index + 1 %></td>
+              <td><%= attendance.saadhak.name %></td>
+              <td><%= attendance.status === 'Present' ? 'Present' : 'Absent' %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+  </section>
+  <%- include('../partials/footer') %>

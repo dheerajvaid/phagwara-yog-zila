@@ -1,0 +1,145 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<section class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="fw-bold text-primary">🏕️ Kender Management</h4>
+    <% if (user.roles.includes('Admin') || user.roles.includes('Zila Pradhan') || user.roles.includes('Zila Mantri') || user.roles.includes('Ksheter Pradhan') || user.roles.includes('Ksheter Mantri')) { %>
+      <a href="/kender/add" class="btn btn-sm btn-success">➕ Add Kender</a>
+    <% } %>
+  </div>
+
+  <!-- 🔽 Filter Dropdowns -->
+  <div class="row g-3 mb-3">
+    <div class="col-md-4">
+      <select id="zilaFilter" class="form-select" <%= user.zila ? 'disabled' : '' %>>
+        <option value="">All Zilas</option>
+        <% zilas.forEach(z => { %>
+          <option value="<%= z._id %>" <%= user.zila == z._id ? 'selected' : '' %>><%= z.name %></option>
+        <% }) %>
+      </select>
+      <% if (user.zila) { %><input type="hidden" id="hiddenZila" value="<%= user.zila %>"><% } %>
+    </div>
+
+    <div class="col-md-4">
+      <select id="ksheterFilter" class="form-select" <%= user.ksheter ? 'disabled' : '' %>>
+        <option value="">All Ksheters</option>
+        <% if (user.zila) { %>
+          <% ksheters.forEach(k => { %>
+            <% if (k.zila == user.zila) { %>
+              <option value="<%= k._id %>" data-zila="<%= k.zila %>" <%= user.ksheter == k._id ? 'selected' : '' %>><%= k.name %></option>
+            <% } %>
+          <% }) %>
+        <% } %>
+      </select>
+      <% if (user.ksheter) { %><input type="hidden" id="hiddenKsheter" value="<%= user.ksheter %>"><% } %>
+    </div>
+  </div>
+
+  <% if (kenders.length === 0) { %>
+    <div class="alert alert-warning text-center shadow-sm">
+      <p class="mb-1">No Kender has been added yet.</p>
+      <% if (user.roles.includes('Admin') || user.roles.includes('Zila Pradhan') || user.roles.includes('Zila Mantri')) { %>
+        <a href="/kender/add" class="btn btn-primary btn-sm mt-2">Add First Kender</a>
+      <% } %>
+    </div>
+  <% } else { %>
+    <div class="table-responsive shadow-sm rounded">
+      <table class="table table-bordered table-hover align-middle">
+        <thead class="table-dark">
+          <tr>
+            <th>#</th>
+            <th>Kender Name</th>
+            <th>Ksheter</th>
+            <th>Zila</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="kenderTableBody">
+          <% kenders.forEach((k, index) => { %>
+            <tr data-zila="<%= k.zila?._id %>" data-ksheter="<%= k.ksheter?._id %>">
+              <td><%= index + 1 %></td>
+              <td><strong><%= k.name %></strong></td>
+              <td><span class="badge bg-info text-dark"><%= k.ksheter?.name || '❓' %></span></td>
+              <td><span class="badge bg-secondary"><%= k.zila?.name || '❓' %></span></td>
+              <td class="text-end">
+                <a href="/kender/edit/<%= k._id %>" class="btn btn-sm btn-outline-primary me-1">🖊️</a>
+                <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal<%= k._id %>">🗑️</button>
+
+                <!-- Delete Modal -->
+                <div class="modal fade" id="deleteModal<%= k._id %>" tabindex="-1">
+                  <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                      <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title">Confirm Deletion</h5>
+                        <button class="btn-close" data-bs-dismiss="modal"></button>
+                      </div>
+                      <div class="modal-body">
+                        Are you sure you want to delete <strong><%= k.name %></strong>?
+                      </div>
+                      <div class="modal-footer">
+                        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                        <a href="/kender/delete/<%= k._id %>" class="btn btn-danger btn-sm">Yes, Delete</a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>
+
+<script>
+  const allKenders = <%- JSON.stringify(kenders) %>;
+  const allKsheters = <%- JSON.stringify(ksheters) %>;
+
+  const zilaFilter = document.getElementById("zilaFilter");
+  const ksheterFilter = document.getElementById("ksheterFilter");
+  const tableBody = document.getElementById("kenderTableBody");
+
+  function renderKenders() {
+    const selectedZila = zilaFilter.value;
+    const selectedKsheter = ksheterFilter.value;
+
+    const rows = Array.from(tableBody.querySelectorAll("tr"));
+    rows.forEach(row => {
+      const matchZila = !selectedZila || row.dataset.zila === selectedZila;
+      const matchKsheter = !selectedKsheter || row.dataset.ksheter === selectedKsheter;
+      row.style.display = matchZila && matchKsheter ? "" : "none";
+    });
+  }
+
+  zilaFilter?.addEventListener("change", function () {
+    const selectedZila = this.value;
+    ksheterFilter.innerHTML = '<option value="">All Ksheters</option>';
+    const filtered = allKsheters.filter(k => k.zila === selectedZila);
+    filtered.forEach(k => {
+      ksheterFilter.innerHTML += `<option value="${k._id}">${k.name}</option>`;
+    });
+    renderKenders();
+  });
+
+  ksheterFilter?.addEventListener("change", renderKenders);
+
+  window.addEventListener("DOMContentLoaded", () => {
+    renderKenders();
+
+    if (document.getElementById("hiddenZila")) {
+      zilaFilter.value = document.getElementById("hiddenZila").value;
+      zilaFilter.disabled = true;
+
+      const filtered = allKsheters.filter(k => k.zila === zilaFilter.value);
+      ksheterFilter.innerHTML = '<option value="">All Ksheters</option>';
+      filtered.forEach(k => {
+        const isSelected = document.getElementById("hiddenKsheter")?.value === k._id;
+        ksheterFilter.innerHTML += `<option value="${k._id}" ${isSelected ? "selected" : ""}>${k.name}</option>`;
+      });
+    }
+  });
+</script>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,72 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<section class="container mt-4 mb-5">
+  <h2 class="mb-4 text-center">🔧 Admin Control Panel</h2>
+
+  <div class="row g-3">
+
+    <div class="col-6 col-md-4">
+      <div class="card h-100 shadow-sm border-0">
+        <div class="card-body text-center">
+          <h5 class="card-title">👥 Saadhak</h5>
+          <p class="card-text small">View and manage Saadhaks</p>
+          <a href="/saadhak/list" class="btn btn-outline-primary btn-sm">Open</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-4">
+      <div class="card h-100 shadow-sm border-0">
+        <div class="card-body text-center">
+          <h5 class="card-title">🗺️ Zila</h5>
+          <p class="card-text small">Zila-level control</p>
+          <a href="/zila/manage" class="btn btn-outline-primary btn-sm">Open</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-4">
+      <div class="card h-100 shadow-sm border-0">
+        <div class="card-body text-center">
+          <h5 class="card-title">🏞️ Ksheter</h5>
+          <p class="card-text small">View and manage Ksheter</p>
+          <a href="/ksheter/manage" class="btn btn-outline-primary btn-sm">Open</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-4">
+      <div class="card h-100 shadow-sm border-0">
+        <div class="card-body text-center">
+          <h5 class="card-title">🏕️ Kender</h5>
+          <p class="card-text small">View and manage Kendras</p>
+          <a href="/kender/manage" class="btn btn-outline-primary btn-sm">Open</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-4">
+      <div class="card h-100 shadow-sm border-0">
+        <div class="card-body text-center">
+          <h5 class="card-title">🛡️ Roles</h5>
+          <p class="card-text small">Assign roles to Saadhaks</p>
+          <a href="/roles/manage" class="btn btn-outline-primary btn-sm">Open</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-4">
+      <div class="card h-100 shadow-sm border-0">
+        <div class="card-body text-center">
+          <h5 class="card-title">📅 Attendance</h5>
+          <p class="card-text small">View attendance reports</p>
+          <a href="/attendance/reports/today" class="btn btn-outline-primary btn-sm">Open</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<%- include('../partials/footer') %>

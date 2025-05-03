@@ -1,0 +1,56 @@
+<%- include('../partials/header') %> <%- include('../partials/navbar') %>
+<section class="container my-4">
+  
+ 
+  <h2 class="text-center mb-4">🗺️ Explore Bhartiya Yog Sansthan</h2>
+
+  <div class="mb-3 text-center">
+    <a href="/export/pdf/all" class="btn btn-success btn-sm float-end">
+        📘 Export Full Directory PDF
+      </a>
+    <input
+      type="text"
+      id="searchInput"
+      class="form-control"
+      placeholder="🔍 Search Zila by name..."
+    />
+  </div>
+
+  <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    <% zilas.forEach(zila => { %>
+    <div class="col">
+      <div class="card border-success shadow-sm h-100">
+        <div class="card-body text-center">
+          <h5 class="card-title"><%= zila.name %> Zila</h5>
+          <p class="card-text text-muted">
+            Tap below to view Ksheter, Kendras & Team
+          </p>
+          <a href="/explore/zila/<%= zila._id %>" class="btn btn-success"
+            >🔍 View Details</a
+          >
+        </div>
+      </div>
+    </div>
+    <% }) %>
+  </div>
+</section>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const searchInput = document.getElementById("searchInput");
+    const cards = document.querySelectorAll(".card");
+
+    searchInput.addEventListener("keyup", () => {
+      const query = searchInput.value.toLowerCase();
+
+      cards.forEach((card) => {
+        const name = card.querySelector(".card-title").innerText.toLowerCase();
+        card.parentElement.style.display = name.includes(query)
+          ? "block"
+          : "none";
+      });
+    });
+  });
+</script>
+
+<%- include('../partials/footer') %>

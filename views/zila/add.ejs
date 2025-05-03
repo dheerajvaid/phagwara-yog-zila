@@ -1,0 +1,25 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<section class="container mt-5">
+  <h2 class="mb-4">Add New Zila</h2>
+  <% if (typeof error !== 'undefined') { %>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <%= error %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  <% } %>
+  <form action="/zila/add" method="POST" class="row g-3">
+    <div class="col-md-6">
+      <label class="form-label">Zila Name</label>
+      <input type="text" name="name" class="form-control" required>
+    </div>
+
+    <div class="col-12">
+      <button type="submit" class="btn btn-success">Save</button>
+      <a href="/zila/manage" class="btn btn-secondary ms-2">Back</a>
+    </div>
+  </form>
+</section>
+
+<%- include('../partials/footer') %>

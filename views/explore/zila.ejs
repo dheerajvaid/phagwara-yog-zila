@@ -1,0 +1,83 @@
+<%- include('../partials/header') %> <%- include('../partials/navbar') %>
+<section class="container my-4">
+  
+  
+  <h2 class="mb-4 text-center text-success"><%= zila.name %> Zila</h2>
+  <div class="mb-3 text-center">
+    <a
+    href="/export/pdf/zila/<%= zila._id %>"
+    class="btn btn-outline-dark btn-sm float-end"
+  >
+    📄 Export Zila PDF
+  </a>
+    <input
+      type="text"
+      id="searchInput"
+      class="form-control"
+      placeholder="🔍 Search Ksheter by name..."
+    />
+  </div>
+
+  <h4 class="mb-3">👥 Zila Team</h4>
+  <% if (zilaTeam.length === 0) { %>
+  <p class="text-muted">No team added for this Zila yet.</p>
+  <% } else { %>
+  <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3 mb-4">
+    <% zilaTeam.forEach(member => { %>
+    <div class="col">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title mb-1"><%= member.name %></h5>
+          <% member.role.forEach(r => { %>
+          <span class="badge bg-<%= getBadgeColor(r) %> me-1"><%= r %></span>
+          <% }) %>
+          <!-- <span class="badge bg-primary"><%= member.role.join(', ') %></span> -->
+          <p class="mt-2 text-muted">📞 <%= member.mobile %></p>
+        </div>
+      </div>
+    </div>
+    <% }) %>
+  </div>
+  <% } %>
+
+  <h4 class="mt-4 mb-3">🗺️ Ksheter under this Zila</h4>
+  <% if (ksheters.length === 0) { %>
+  <p class="text-muted">No Ksheter added for this Zila yet.</p>
+  <% } else { %>
+  <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    <% ksheters.forEach(k => { %>
+    <div class="col">
+      <div class="card border-info h-100 shadow-sm">
+        <div class="card-body text-center">
+          <h5 class="card-title"><%= k.name %> Ksheter</h5>
+          <a
+            href="/explore/ksheter/<%= k._id %>"
+            class="btn btn-outline-info mt-2"
+            >Explore</a
+          >
+        </div>
+      </div>
+    </div>
+    <% }) %>
+  </div>
+  <% } %>
+</section>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const searchInput = document.getElementById("searchInput");
+    const cards = document.querySelectorAll(".card");
+
+    searchInput.addEventListener("keyup", () => {
+      const query = searchInput.value.toLowerCase();
+
+      cards.forEach((card) => {
+        const name = card.querySelector(".card-title").innerText.toLowerCase();
+        card.parentElement.style.display = name.includes(query)
+          ? "block"
+          : "none";
+      });
+    });
+  });
+</script>
+<%- include('../partials/footer') %>

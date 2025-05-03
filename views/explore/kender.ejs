@@ -1,0 +1,78 @@
+<%- include('../partials/header') %> <%- include('../partials/navbar') %>
+
+<section class="container my-4">
+  
+    <a
+    href="/export/pdf/kender/<%= kender._id %>"
+    class="btn btn-outline-dark btn-sm float-end"
+  >
+    📄 Export Kender PDF
+  </a><h6></h6>
+  <h2 class="text-center text-primary mb-3"><%= kender.name %> Kender</h2>
+  
+  <p class="text-center text-muted mb-2">
+    Under <strong><%= kender.ksheter.name %> Ksheter</strong> /
+    <strong><%= kender.zila.name %> Zila</strong>
+  </p>
+
+  <% if (kender.address) { %>
+  <p class="text-center text-muted">📍 <%= kender.address %></p>
+  <% } %> <% if (kender.mapLink) { %>
+  <p class="text-center">
+    <a
+      href="<%= kender.mapLink %>"
+      target="_blank"
+      class="btn btn-outline-dark btn-sm"
+      >📍 View on Google Map</a
+    >
+  </p>
+  <% } %>
+
+  <h4 class="mt-4">👥 Kender Team</h4>
+  <% if (kenderTeam.length === 0) { %>
+  <p class="text-muted">No team data available for this Kender.</p>
+  <% } else { %>
+  <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+    <% kenderTeam.forEach(member => { %>
+    <div class="col">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h5 class="card-title"><%= member.name %></h5>
+          <% member.role.forEach(r => { %>
+          <span class="badge bg-<%= getBadgeColor(r) %> me-1"><%= r %></span>
+          <% }) %>
+          <p class="mt-2 text-muted">📞 <%= member.mobile %></p>
+        </div>
+      </div>
+    </div>
+    <% }) %>
+  </div>
+  <% } %>
+
+  <div class="mt-4 text-center">
+    <a
+      href="/explore/ksheter/<%= kender.ksheter._id %>"
+      class="btn btn-secondary"
+      >⬅️ Back to <%= kender.ksheter.name %> Ksheter</a
+    >
+  </div>
+</section>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const searchInput = document.getElementById("searchInput");
+    const cards = document.querySelectorAll(".card");
+
+    searchInput.addEventListener("keyup", () => {
+      const query = searchInput.value.toLowerCase();
+
+      cards.forEach((card) => {
+        const name = card.querySelector(".card-title").innerText.toLowerCase();
+        card.parentElement.style.display = name.includes(query)
+          ? "block"
+          : "none";
+      });
+    });
+  });
+</script>
+
+<%- include('../partials/footer') %>

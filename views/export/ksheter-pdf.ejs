@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title><%= ksheter.name %> Ksheter Directory</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 30px; }
+    h1, h2, h3 { color: #2c3e50; }
+    .section { margin-bottom: 30px; }
+    .team-member { margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+  <h1>🧘‍♂️ Bhartiya Yog Sansthan</h1>
+  <h2><%= ksheter.name %> Ksheter Directory</h2>
+  <p><strong>Zila:</strong> <%= ksheter.zila.name %></p>
+  <p><strong>Date:</strong> <%= new Date().toLocaleDateString() %></p>
+
+  <div class="section">
+    <h3>👥 Ksheter Team</h3>
+    <% if (team.length === 0) { %>
+      <p>No team members found.</p>
+    <% } else { %>
+      <% team.forEach(member => { %>
+        <div class="team-member">
+          <strong><%= member.name %></strong> — <%= member.role.join(', ') %> — 📞 <%= member.mobile %>
+        </div>
+      <% }) %>
+    <% } %>
+  </div>
+
+  <div class="section">
+    <h3>🏡 Kenders under this Ksheter</h3>
+    <% if (kenders.length === 0) { %>
+      <p>No Kenders found.</p>
+    <% } else { %>
+      <% kenders.forEach(k => { %>
+        <p>• <strong><%= k.name %></strong> — <%= k.address || 'No address' %></p>
+      <% }) %>
+    <% } %>
+  </div>
+</body>
+</html>

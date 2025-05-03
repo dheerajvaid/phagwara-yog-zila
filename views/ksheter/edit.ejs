@@ -1,0 +1,44 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<section class="container mt-4">
+  <div class="card shadow-sm rounded">
+    <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">🖊️ Edit Ksheter</h5>
+      <a href="/ksheter/manage" class="btn btn-sm btn-dark">🔙 Back</a>
+    </div>
+
+    <div class="card-body">
+      <% if (error) { %>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <%= error %>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      <% } %>
+
+      <form action="/ksheter/edit/<%= ksheter._id %>" method="POST" class="row g-3">
+        <div class="col-12">
+          <label for="name" class="form-label fw-semibold">Ksheter Name</label>
+          <input type="text" name="name" id="name" class="form-control" value="<%= ksheter.name %>" required>
+        </div>
+
+        <div class="col-12">
+          <label for="zila" class="form-label fw-semibold">Select Zila</label>
+          <select name="zila" id="zila" class="form-select" required>
+            <% zilas.forEach(z => { %>
+              <option value="<%= z._id %>" <%= z._id.toString() === ksheter.zila.toString() ? 'selected' : '' %>>
+                <%= z.name %>
+              </option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="col-12 text-end">
+          <button type="submit" class="btn btn-success">💾 Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<%- include('../partials/footer') %>
