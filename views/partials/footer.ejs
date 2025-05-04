@@ -11,21 +11,21 @@
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     const isMobile = () => window.innerWidth < 992;
-
+   
     if (isMobile()) {
-      document.querySelectorAll('.nav-item.dropdown .dropdown-toggle').forEach(toggle => {
+      document.querySelectorAll('.dropdown-menu').forEach(toggle => {
         toggle.addEventListener('click', function (e) {
-          e.preventDefault(); // override default behavior
-
-          const menu = this.nextElementSibling;
+          // e.preventDefault(); // override default behavior
+          
+          const menu = this;
 
           // Toggle the current dropdown
           menu.classList.toggle('show');
 
           // Hide others
-          document.querySelectorAll('.dropdown-menu.show').forEach(m => {
-            if (m !== menu) m.classList.remove('show');
-          });
+          // document.querySelectorAll('.dropdown-menu.show').forEach(m => {
+          //   if (m !== menu) m.classList.remove('show');
+          // });
         });
       });
 
@@ -41,3 +41,4 @@
   });
 </script>
 </body>
+</html>

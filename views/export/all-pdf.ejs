@@ -1,243 +1,166 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Full BYS Directory</title>
+  <meta charset="UTF-8" />
+  <title>BYS Phagwara Zila Directory</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <!-- Font and Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      font-size: 16px;
-      padding: 40px;
-      color: #1a1a1a;
-      line-height: 1.6;
-      background: #fff;
+    @page {
+      size: A4 portrait;
+      margin: 15mm;
     }
 
-    h1, h2, h3, h4 {
-      font-weight: 700;
-      margin-top: 0;
-      margin-bottom: 12px;
+    body {
+      font-family: 'Roboto', sans-serif;
+      font-size: 11pt;
+      color: #000;
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+      padding: 0;
     }
 
     h1 {
-      font-size: 30px;
-      color: #0d47a1;
-      border-bottom: 3px solid #0d47a1;
-      padding-bottom: 10px;
-      margin-bottom: 25px;
+      font-size: 20pt;
+      margin-bottom: 10px;
     }
 
     h2 {
-      font-size: 24px;
-      color: #1565c0;
-      margin-top: 30px;
+      font-size: 16pt;
+      margin-top: 20px;
+      margin-bottom: 10px;
     }
 
     h3 {
-      font-size: 20px;
-      color: #1976d2;
-      margin-top: 25px;
+      font-size: 13pt;
+      margin-top: 15px;
+      margin-bottom: 6px;
     }
 
-    h4 {
-      font-size: 18px;
-      color: #2e7d32;
-    }
-
-    .section-title {
-      background: #e3f2fd;
-      padding: 12px 16px;
-      margin-top: 30px;
-      border-left: 6px solid #1976d2;
-      page-break-inside: avoid;
-    }
-
-    .subsection {
-      page-break-inside: avoid;
-      margin-top: 20px;
+    .section {
       margin-bottom: 20px;
+      page-break-inside: avoid;
+    }
+
+    .divider {
+      margin: 15px 0;
+      border-top: 2px solid #ccc;
+    }
+
+    .member {
+      margin: 4px 0;
+    }
+
+    .role-badge {
+      background: #eee;
+      padding: 2px 6px;
+      font-size: 9pt;
+      border-radius: 4px;
+    }
+
+    .address {
+      font-size: 10pt;
+      margin-bottom: 4px;
+      color: #333;
+    }
+
+    .photo {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+      border-radius: 4px;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 12px;
-      margin-bottom: 30px;
-      font-size: 14px;
+      font-size: 10pt;
+      margin-top: 8px;
     }
 
     th, td {
-      border: 1px solid #ccc;
-      padding: 8px 12px;
+      border: 1px solid #999;
+      padding: 6px;
       text-align: left;
-      vertical-align: top;
     }
 
-    th {
-      background-color: #f1f8ff;
-      color: #0d47a1;
-      font-weight: 600;
-    }
-
-    .team-table th {
-      width: 25%;
-    }
-
-    .kender-box {
-      margin-top: 20px;
-      border: 1.5px solid #c8e6c9;
-      padding: 14px;
-      border-left: 6px solid #2e7d32;
-      background-color: #f9fff9;
-      page-break-inside: avoid;
-    }
-
-    .role-badge {
-      display: inline-block;
-      font-size: 13px;
-      font-weight: bold;
-      color: #fff;
-      padding: 4px 10px;
-      border-radius: 4px;
-      margin: 2px 6px 2px 0;
-      line-height: 1.4;
-      text-transform: capitalize;
-    }
-
-    .Admin { background-color: #212121; }
-    .Zila { background-color: #c62828; }
-    .Ksheter { background-color: #1565c0; }
-    .Kender { background-color: #2e7d32; }
-    .Shikshak { background-color: #0288d1; }
-    .Karyakarta { background-color: #fbc02d; color: #000; }
-
-    .muted {
-      color: #444;
-      font-style: italic;
-      font-size: 14px;
-    }
-
-    hr {
-      border: none;
-      border-top: 1.5px dashed #bbb;
-      margin: 40px 0;
-    }
-
-    .zila-wrapper {
-      page-break-after: always;
+    .icon {
+      margin-right: 5px;
     }
   </style>
 </head>
+
 <body>
-  <h1>🧘‍♂️ Bhartiya Yog Sansthan - Full Directory</h1>
-  <p><strong>Generated on:</strong> <%= new Date().toLocaleDateString() %></p>
+  <h1>Bhartiya Yog Sansthan - Phagwara Zila Directory</h1>
 
-  <% zilas.forEach(zila => { %>
-    <div class="section-title">
-      <h2>🗺️ <%= zila.name %> Zila</h2>
-    </div>
-
-    <% const relatedKsheter = ksheters.filter(k => k.zila.toString() === zila._id.toString()); %>
-    <% const relatedKenders = kenders.filter(k => k.zila.toString() === zila._id.toString()); %>
-    <% const zilaTeam = saadhaks.filter(s =>
-      s.zila && s.zila._id.toString() === zila._id.toString() &&
-      ['Zila Pradhan', 'Zila Mantri', 'Sangathan Mantri', 'Cashier'].some(r => s.role.includes(r))
-    ); %>
-
-    <div class="subsection">
-      <h3>👥 Zila Team</h3>
-      <table class="team-table">
-        <thead>
-          <tr><th>Name</th><th>Roles</th><th>Mobile</th></tr>
-        </thead>
-        <tbody>
-          <% zilaTeam.forEach(s => { %>
-            <tr>
-              <td><%= s.name %></td>
-              <td>
-                <% s.role.forEach(r => { %>
-                  <span class="role-badge Zila"><%= r %></span>
-                <% }) %>
-              </td>
-              <td><%= s.mobile %></td>
-            </tr>
-          <% }) %>
-        </tbody>
-      </table>
-    </div>
-
-    <% relatedKsheter.forEach(ksheter => { %>
-      <% const ksheterKenders = relatedKenders.filter(k => k.ksheter.toString() === ksheter._id.toString()); %>
-      <% const ksheterTeam = saadhaks.filter(s =>
-        s.ksheter && s.ksheter._id.toString() === ksheter._id.toString() &&
-        ['Ksheter Pradhan', 'Ksheter Mantri'].some(r => s.role.includes(r))
-      ); %>
-
-      <div class="section-title">
-        <h3>🏞️ <%= ksheter.name %> Ksheter</h3>
-      </div>
-
-      <% if (ksheterTeam.length > 0) { %>
-        <div class="subsection">
-          <h4>👥 Ksheter Team</h4>
-          <table class="team-table">
-            <thead>
-              <tr><th>Name</th><th>Roles</th><th>Mobile</th></tr>
-            </thead>
-            <tbody>
-              <% ksheterTeam.forEach(s => { %>
-                <tr>
-                  <td><%= s.name %></td>
-                  <td>
-                    <% s.role.forEach(r => { %>
-                      <span class="role-badge Ksheter"><%= r %></span>
-                    <% }) %>
-                  </td>
-                  <td><%= s.mobile %></td>
-                </tr>
-              <% }) %>
-            </tbody>
-          </table>
-        </div>
-      <% } %>
-
-      <% ksheterKenders.forEach(kender => { %>
-        <% const kenderTeam = saadhaks.filter(s =>
-          s.kender && s.kender._id.toString() === kender._id.toString() &&
-          ['Kender Pramukh', 'Seh Kender Pramukh', 'Shikshak', 'Karyakarta'].some(r => s.role.includes(r))
-        ); %>
-
-        <div class="kender-box">
-          <h4>🏕️ <%= kender.name %></h4>
-          <p class="muted"><strong>Address:</strong> <%= kender.address || '—' %></p>
-
-          <table class="team-table">
-            <thead>
-              <tr><th>Name</th><th>Roles</th><th>Mobile</th></tr>
-            </thead>
-            <tbody>
-              <% kenderTeam.forEach(s => { %>
-                <tr>
-                  <td><%= s.name %></td>
-                  <td>
-                    <% s.role.forEach(r => { %>
-                      <span class="role-badge 
-                        <%= r.includes('Kender') ? 'Kender' :
-                              r.includes('Shikshak') ? 'Shikshak' :
-                              r.includes('Karyakarta') ? 'Karyakarta' : '' %>">
-                        <%= r %>
-                      </span>
-                    <% }) %>
-                  </td>
-                  <td><%= s.mobile %></td>
-                </tr>
-              <% }) %>
-            </tbody>
-          </table>
+  <!-- Zila Team -->
+  <div class="section">
+    <h2><i class="fas fa-users icon"></i>Zila Team</h2>
+    <% zilas.forEach(zila => { %>
+      <% saadhaks.filter(s => s.zila == zila._id).forEach(member => { %>
+        <div class="member">
+          <strong><%= member.name %></strong> – 
+          <span class="role-badge"><%= member.roles.join(', ') %></span> – 
+          📞 <%= member.mobile %>
         </div>
       <% }) %>
     <% }) %>
-    <hr>
+  </div>
+
+  <!-- Ksheter Loop -->
+  <% ksheters.forEach(ksheter => { %>
+    <div class="section">
+      <h2><i class="fas fa-map icon"></i><%= ksheter.name %></h2>
+
+      <!-- Ksheter Team -->
+      <% saadhaks.filter(s => s.ksheter == ksheter._id && !s.kender).forEach(member => { %>
+        <div class="member">
+          <strong><%= member.name %></strong> – 
+          <span class="role-badge"><%= member.roles.join(', ') %></span> – 
+          📞 <%= member.mobile %>
+        </div>
+      <% }) %>
+
+      <!-- Kenders under this Ksheter -->
+      <% kenders.filter(k => k.ksheter == ksheter._id).forEach(kender => { %>
+        <div class="divider"></div>
+        <h3><i class="fas fa-spa icon"></i><%= kender.name %></h3>
+        <div class="address">📍 <%= kender.address %></div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Photo</th>
+              <th>Name</th>
+              <th>Role(s)</th>
+              <th>Mobile</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% saadhaks.filter(s => s.kender == kender._id).forEach(member => { %>
+              <tr>
+                <td>
+                  <% if (member.photo) { %>
+                    <img src="<%= member.photo %>" class="photo" />
+                  <% } else { %>
+                    -
+                  <% } %>
+                </td>
+                <td><%= member.name %></td>
+                <td><%= member.roles.join(', ') %></td>
+                <td><%= member.mobile %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% }) %>
+    </div>
   <% }) %>
 </body>
 </html>

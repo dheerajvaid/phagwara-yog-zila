@@ -21,7 +21,6 @@ const ROLE_PRIORITY = [
   "Karyakarta",
 ];
 
-
 exports.exportAllPDF = async (req, res) => {
   try {
     const zilas = await Zila.find().sort({ name: 1 });
@@ -56,15 +55,23 @@ exports.exportAllPDF = async (req, res) => {
         saadhaks,
       }
     );
+    
 
-    const options = { format: "A4", border: "10mm" };
+    const options = {
+      format: "A4",
+      orientation: "portrait",
+      border: "10mm",
+      type: "pdf",
+      timeout: 30000,
+    };
 
     pdf.create(html, options).toBuffer((err, buffer) => {
       if (err) {
         console.error("PDF Error:", err);
         return res.status(500).send("PDF generation failed.");
       }
-      res.contentType("application/pdf");
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", 'inline; filename="directory.pdf"');
       res.send(buffer);
     });
   } catch (err) {
