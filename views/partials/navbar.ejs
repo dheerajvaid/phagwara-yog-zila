@@ -20,19 +20,23 @@
             <%- include('ksheter') %>
             <%- include('kender') %>
             <%- include('saadhak') %>
+            <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
             <li class="nav-item"><a class="nav-link" href="/roles/manage">🎖️ Role Management</a></li>
           <% } else { %>
             <% if (user.roles.includes('Zila Pradhan') || user.roles.includes('Zila Mantri')) { %>
               <%- include('ksheter') %>
               <%- include('kender') %>
               <%- include('saadhak') %>
+              <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
             <% } %>
             <% if (user.roles.includes('Ksheter Pradhan') || user.roles.includes('Ksheter Mantri')) { %>
               <%- include('kender') %>
               <%- include('saadhak') %>
+              <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
             <% } %>
             <% if (user.roles.includes('Kender Pramukh') || user.roles.includes('Seh Kender Pramukh')) { %>
               <%- include('saadhak') %>
+              <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
             <% } %>
 
           <% } %>

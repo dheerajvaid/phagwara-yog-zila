@@ -20,6 +20,7 @@ const adminRoutes = require('./routes/adminRoutes');
 const apiRoutes = require('./routes/apiRoutes');
 const exploreRoutes = require('./routes/exploreRoutes');
 const exportRoutes = require('./routes/exportRoutes');
+const passwordResetRoutes = require('./routes/passwordResetRoutes');
 
 // Load environment variables from .env file
 dotenv.config();
@@ -76,6 +77,7 @@ app.use('/attendance', attendanceRoutes);
 app.use('/', exploreRoutes); // Keep it public!
  // 👈 This is required
  app.use('/', exportRoutes);
+ app.use('/', passwordResetRoutes);
  
 // Start the server
 const port = process.env.PORT || 3000;

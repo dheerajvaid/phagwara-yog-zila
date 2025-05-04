@@ -1,0 +1,98 @@
+<!-- =================== VIEW: views/resetPassword/list.ejs =================== -->
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-4">
+  <h2 class="mb-4">Reset Saadhak Password</h2>
+
+  <% if (saadhaks.length === 0) { %>
+    <p>No Saadhaks found.</p>
+  <% } else { %>
+    <!-- Search Input -->
+    <div class="mb-3">
+      <input type="text" id="searchInput" class="form-control" placeholder="Search by name or mobile...">
+    </div>
+
+    <table class="table table-bordered table-striped" id="saadhakTable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Mobile</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% saadhaks.forEach(saadhak => {
+             const isReset = !saadhak.password;
+        %>
+          <tr>
+            <td class="saadhak-name"><%= saadhak.name %></td>
+            <td class="saadhak-mobile"><%= saadhak.mobile %></td>
+            <td>
+              <button 
+                class="btn <%= isReset ? 'btn-success' : 'btn-warning' %> btn-sm"
+                data-bs-toggle="modal"
+                data-bs-target="#confirmModal"
+                data-id="<%= saadhak._id %>"
+                data-name="<%= saadhak.name %>"
+                title="<%= isReset ? 'Password already reset' : 'Click to reset password' %>">
+                Reset Password
+              </button>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  <% } %>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form method="POST" id="resetForm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="confirmModalLabel">Confirm Reset</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          Are you sure you want to reset the password for <strong id="saadhakName"></strong>?<br>
+          They will be asked to create a new password on next login.
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger">Yes, Reset</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  const confirmModal = document.getElementById('confirmModal');
+  confirmModal.addEventListener('show.bs.modal', event => {
+    const button = event.relatedTarget;
+    const saadhakId = button.getAttribute('data-id');
+    const saadhakName = button.getAttribute('data-name');
+
+    document.getElementById('saadhakName').textContent = saadhakName;
+    document.getElementById('resetForm').action = `/reset-password/reset/${saadhakId}`;
+  });
+
+  // Search functionality
+  document.getElementById('searchInput').addEventListener('keyup', function () {
+    const value = this.value.toLowerCase();
+    const rows = document.querySelectorAll('#saadhakTable tbody tr');
+    rows.forEach(row => {
+      const name = row.querySelector('.saadhak-name').textContent.toLowerCase();
+      const mobile = row.querySelector('.saadhak-mobile').textContent.toLowerCase();
+      if (name.includes(value) || mobile.includes(value)) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  });
+</script>
+
+<%- include('../partials/footer') %>
