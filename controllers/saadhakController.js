@@ -7,6 +7,8 @@ const {
   validateName,
   validateDOB,
 } = require("../utils/validators");
+const { formatName } = require('../utils/formatters');
+
 const { ALL_ROLES } = require("../utils/roles");
 const { all } = require("../routes/kenderRoutes");
 
@@ -260,7 +262,7 @@ exports.createSaadhak = async (req, res) => {
 
     // Save Saadhak
     const saadhak = new Saadhak({
-      name: name.trim(),
+      name: formatName(name.trim()),
       mobile,
       dob,
       gender,
@@ -539,7 +541,7 @@ exports.updateSaadhak = async (req, res) => {
 
     // Update
     await Saadhak.findByIdAndUpdate(saadhakId, {
-      name: name.trim(),
+      name: formatName(name.trim()),
       mobile,
       dob,
       gender,

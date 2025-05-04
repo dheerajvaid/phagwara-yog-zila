@@ -67,14 +67,16 @@
   <% } %>
 </div>
 
-    <!-- Kender -->
+<!-- Kender -->
     <div class="col-md-4 kender-field d-none">
+      
       <label class="form-label">Kender</label>
       <select name="kender" id="kenderSelect" class="form-select" <%= user.kender ? 'disabled' : '' %>>
         <option value="">-- Select Kender --</option>
         <% kenders.forEach(k => { %>
+          
           <% if (!user.ksheter || k.ksheter == user.ksheter) { %>
-            <option value="<%= k._id %>" <%= (saadhak.kender == k._id || user.kender == k._id) ? 'selected' : '' %>><%= k.name %></option>
+            <option value="<%= k._id %>" <%= (saadhak.kender.equals(k._id) || user.kender.equals(k._id)) ? 'selected' : '' %>><%= k.name %></option>
           <% } %>
         <% }) %>
       </select>
