@@ -21,6 +21,131 @@ const ROLE_PRIORITY = [
   "Karyakarta",
 ];
 
+exports.exportZilaPDF = async (req, res) => {
+  const zila = await Zila.findById(req.params.id);
+  const zilaTeam = await Saadhak.find({
+    zila: zila._id,
+    role: {
+      $in: ["Zila Pradhan", "Zila Mantri", "Sangathan Mantri", "Cashier"],
+    },
+  });
+
+  const ksheters = await Ksheter.find({ zila: zila._id });
+  const kenders = await Kender.find({ zila: zila._id });
+
+  const allTeam = await Saadhak.find({ zila: zila._id });
+
+  // Group data
+  const teamByKsheter = {};
+  const kendersByKsheter = {};
+  const teamByKender = {};
+
+  ksheters.forEach((k) => {
+    teamByKsheter[k._id] = allTeam.filter(
+      (s) =>
+        s.ksheter?.toString() === k._id.toString() &&
+        s.role.some((r) => r.includes("Ksheter"))
+    );
+    kendersByKsheter[k._id] = kenders.filter(
+      (ken) => ken.ksheter?.toString() === k._id.toString()
+    );
+  });
+
+  kenders.forEach((k) => {
+    teamByKender[k._id] = allTeam.filter(
+      (s) =>
+        s.kender?.toString() === k._id.toString() &&
+        ["Kender Pramukh", "Seh Kender Pramukh", "Shikshak", "Karyakarta"].some(
+          (role) => s.role.includes(role)
+        )
+    );
+  });
+
+  const html = await ejs.renderFile(
+    path.join(__dirname, "../views/export/zila-pdf.ejs"),
+    {
+      zila,
+      zilaTeam,
+      ksheters,
+      teamByKsheter,
+      kendersByKsheter,
+      teamByKender,
+    }
+  );
+
+  const browser = await puppeteer.launch({
+    headless: "new",
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  });
+
+  const page = await browser.newPage();
+  await page.setContent(html, { waitUntil: "networkidle0" });
+
+  const pdf = await page.pdf({ format: "A4", printBackground: true });
+  await browser.close();
+
+  res.contentType("application/pdf");
+  res.send(pdf);
+};
+
+exports.exportKsheterPDF = async (req, res) => {
+  const ksheter = await Ksheter.findById(req.params.id).populate("zila");
+  const kenders = await Kender.find({ ksheter: ksheter._id });
+  const team = await Saadhak.find({
+    ksheter: ksheter._id,
+    role: { $in: ["Ksheter Pradhan", "Ksheter Mantri"] },
+  });
+
+  const html = await ejs.renderFile(
+    path.join(__dirname, "../views/export/ksheter-pdf.ejs"),
+    {
+      ksheter,
+      kenders,
+      team,
+    }
+  );
+
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  await page.setContent(html, { waitUntil: "networkidle0" });
+
+  const pdf = await page.pdf({ format: "A4", printBackground: true });
+  await browser.close();
+
+  res.contentType("application/pdf");
+  res.send(pdf);
+};
+
+exports.exportKenderPDF = async (req, res) => {
+  const kender = await Kender.findById(req.params.id)
+    .populate("ksheter")
+    .populate("zila");
+  const team = await Saadhak.find({
+    kender: kender._id,
+    role: {
+      $in: ["Kender Pramukh", "Seh Kender Pramukh", "Shikshak", "Karyakarta"],
+    },
+  });
+
+  const html = await ejs.renderFile(
+    path.join(__dirname, "../views/export/kender-pdf.ejs"),
+    {
+      kender,
+      team,
+    }
+  );
+
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  await page.setContent(html, { waitUntil: "networkidle0" });
+
+  const pdf = await page.pdf({ format: "A4", printBackground: true });
+  await browser.close();
+
+  res.contentType("application/pdf");
+  res.send(pdf);
+};
+
 exports.exportAllPDF = async (req, res) => {
   try {
     const zilas = await Zila.find().sort({ name: 1 });
@@ -55,23 +180,15 @@ exports.exportAllPDF = async (req, res) => {
         saadhaks,
       }
     );
-    
 
-    const options = {
-      format: "A4",
-      orientation: "portrait",
-      border: "10mm",
-      type: "pdf",
-      timeout: 30000,
-    };
+    const options = { format: "A4", border: "10mm" };
 
     pdf.create(html, options).toBuffer((err, buffer) => {
       if (err) {
         console.error("PDF Error:", err);
         return res.status(500).send("PDF generation failed.");
       }
-      res.setHeader("Content-Type", "application/pdf");
-      res.setHeader("Content-Disposition", 'inline; filename="directory.pdf"');
+      res.contentType("application/pdf");
       res.send(buffer);
     });
   } catch (err) {
