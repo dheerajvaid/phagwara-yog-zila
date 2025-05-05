@@ -331,10 +331,14 @@ exports.showEditForm = async (req, res) => {
   try {
     const user = req.session.user;
     const saadhak = await Saadhak.findById(req.params.id);
+    
+    // console.log(req.session.user);
 
     const zilas = await Zila.find().sort({ name: 1 });
     const ksheters = await Ksheter.find({ zila: saadhak.zila }).sort({ name: 1 });
     const kenders = await Kender.find({ ksheter: saadhak.ksheter }).sort({ name: 1 });
+
+    // console.log(kenders);
 
     // ✅ Determine allowedRoles based on the logged-in user
     let allowedRoles = ["Saadhak"];
@@ -349,6 +353,10 @@ exports.showEditForm = async (req, res) => {
     } else if (user.roles.includes("Kender Pramukh") || user.roles.includes("Seh Kender Pramukh")) {
       allowedRoles = ["Saadhak", "Karyakarta", "Shikshak"];
     }
+
+    // console.log(kenders);
+    // console.log("------");
+    // console.log(saadhak);
 
     res.render("saadhak/edit", {
       saadhak,

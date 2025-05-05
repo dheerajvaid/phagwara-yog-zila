@@ -1,0 +1,52 @@
+<% if (activeMeeting && !hasRead) { %>
+    <div class="modal fade" id="meetingModal" tabindex="-1" aria-labelledby="meetingModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <form method="POST" action="/meetings/<%= activeMeeting._id %>/read">
+            <div class="modal-header bg-info text-white">
+              <h5 class="modal-title" id="meetingModalLabel">📢 Important Meeting Notification</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <p><strong>Title:</strong> <%= activeMeeting.title %></p>
+              <p><strong>Date:</strong> <%= activeMeeting.day %> (<%= activeMeeting.date.toDateString() %>)</p>
+              <p><strong>Time:</strong> <%= activeMeeting.time %></p>
+              <p><strong>Mode:</strong> <%= activeMeeting.mode %></p>
+              <% if (activeMeeting.mode === 'Online') { %>
+                <p><strong>Zoom Details:</strong> <%= activeMeeting.zoomDetails %></p>
+              <% } else { %>
+                <p><strong>Place:</strong> <%= activeMeeting.place %></p>
+              <% } %>
+              <p><strong>Agenda:</strong> <%= activeMeeting.agenda %></p>
+  
+              <hr>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" required id="readCheckbox">
+                <label class="form-check-label" for="readCheckbox">
+                  I have read the meeting details.
+                </label>
+              </div>
+  
+              <div class="mt-3">
+                <label>Will you join the meeting?</label>
+                <select name="joining" class="form-select" required>
+                  <option value="">-- Select --</option>
+                  <option value="true">Yes</option>
+                  <option value="false">No</option>
+                </select>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-primary" type="submit">Submit Response</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  
+    <script>
+      const meetingModal = new bootstrap.Modal(document.getElementById('meetingModal'));
+      meetingModal.show();
+    </script>
+  <% } %>
+  
