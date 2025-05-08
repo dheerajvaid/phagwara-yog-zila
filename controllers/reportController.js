@@ -65,6 +65,7 @@ exports.teamSummary = async (req, res) => {
       }
     });
   });
+//   console.log(summary);
   res.render("report/summary", {
     summary,
     ksheterTotals,
