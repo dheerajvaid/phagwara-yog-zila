@@ -1,16 +1,322 @@
-<%- include('../partials/header') %>
-<%- include('../partials/navbar') %>
-<!-- views/attendance/mark.ejs -->
+<%- include('../partials/header') %> <%- include('../partials/navbar') %>
+
 <section class="container mt-4">
-  <h2>Mark Attendance</h2>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="fw-bold text-primary">📋 Mark Attendance</h4>
+    <!-- <a href="/saadhak/add" class="btn btn-sm btn-success">➕ Add Saadhak</a> -->
+  </div>
+
+  <!-- 🔍 Filter + Search -->
+  <div class="row mb-3">
+    <div class="col-md-3">
+      <label>Zila</label>
+      <select id="zilaFilter" class="form-select">
+        <option value="">All Zila</option>
+        <% zilas.forEach(z => { %>
+        <option value="<%= z._id %>"><%= z.name %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label>Ksheter</label>
+      <select id="ksheterFilter" class="form-select">
+        <option value="">All Ksheter</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label>Kender</label>
+      <select id="kenderFilter" class="form-select">
+        <option value="">All Kender</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label>Search</label>
+      <input
+        type="text"
+        id="searchInput"
+        class="form-control"
+        placeholder="Search Saadhak..."
+      />
+    </div>
+    <!-- ✅ Column Selection -->
+    <div class="mb-3">
+      <button id="resetBtn" class="btn btn-sm btn-outline-secondary float-end">
+        🔄 Reset
+      </button>
+    </div>
+  </div>
   <form action="/attendance/mark" method="POST">
-    <label>Select Saadhaks:</label><br>
-    <% saadhaks.forEach(saadhak => { %>
-      <input type="checkbox" name="selectedSaadhaks" value="<%= saadhak._id %>">
-      <%= saadhak.name %><br>
-    <% }) %>
-    <button type="submit">Mark Attendance</button>
+    <div
+      id="selectedCount"
+      class="fw-semibold text-dark sticky-top py-3 px-4 shadow-sm d-none rounded-bottom"
+      style="
+        background: #e6f0fa;
+        z-index: 1050;
+        top: 0;
+        font-size: 1.1rem;
+        border-bottom: 2px solid #007bff;
+      "
+    >
+      <!-- Content filled by JS -->
+    </div>
+
+    <!-- ✅ Table -->
+    <div class="table-responsive">
+      <table class="table table-bordered align-middle">
+        <thead class="table-dark">
+          <tr>
+            <th>#</th>
+            <th class="name-col">Name</th>
+            <th class="mobile-col">Mobile</th>
+            <!-- <th class="role-col">Role</th>
+          <th class="zila-col">Zila</th>
+          <th class="ksheter-col">Ksheter</th>
+          <th class="kender-col">Kender</th> -->
+          </tr>
+        </thead>
+        <tbody id="saadhakTableBody"></tbody>
+      </table>
+    </div>
+
+    <div>
+      <button type="submit" class="btn btn-primary mt-3">
+        ✅ Submit Attendance
+      </button>
+    </div>
   </form>
-  
 </section>
+
+<script>
+            const allSaadhaks = <%- JSON.stringify(saadhaks) %>;
+            const allKsheters = <%- JSON.stringify(ksheters) %>;
+            const allKenders = <%- JSON.stringify(kenders) %>;
+            const user = <%- JSON.stringify(user) %>;
+            const selectedSaadhakIds = new Set();
+
+            document.addEventListener("DOMContentLoaded", function () {
+              const zilaFilter = document.getElementById("zilaFilter");
+              const ksheterFilter = document.getElementById("ksheterFilter");
+              const kenderFilter = document.getElementById("kenderFilter");
+              const searchInput = document.getElementById("searchInput");
+              const resetBtn = document.getElementById("resetBtn");
+              const tableBody = document.getElementById("saadhakTableBody");
+
+
+
+            document.addEventListener("change", function (e) {
+              if (e.target.name === "selectedSaadhaks") {
+              const id = e.target.value;
+
+              if (e.target.checked) {
+                selectedSaadhakIds.add(id);
+              } else {
+                selectedSaadhakIds.delete(id);
+              }
+
+              updateSelectedCount();
+              styleSelectedRows();
+            }
+          });
+
+    searchInput.addEventListener("input", function(){
+                renderTable();
+                styleSelectedRows();
+              });
+
+    function styleSelectedRows() {
+    const allRows = document.querySelectorAll("#saadhakTableBody tr");
+    allRows.forEach(row => {
+      const checkbox = row.querySelector('input[name="selectedSaadhaks"]');
+      if (checkbox) {
+        if (selectedSaadhakIds.has(checkbox.value)) {
+
+          checkbox.checked = true;
+          row.classList.add("fw-bold");
+          row.style.fontSize = "1.05rem";
+        } else {
+          checkbox.checked = false;
+          row.classList.remove("fw-bold");
+          row.style.fontSize = "";
+        }
+      }
+    });
+  }
+              // Populate dependent dropdowns
+              function populateKsheter(zilaId) {
+                ksheterFilter.innerHTML = '<option value="">All Ksheter</option>';
+                const filtered = allKsheters.filter(k => k.zila === zilaId);
+                filtered.forEach(k => {
+                  ksheterFilter.innerHTML += `<option value="${k._id}">${k.name}</option>`;
+                });
+              }
+
+              resetBtn?.addEventListener("click", () => {
+                searchInput.value = "";
+
+                if (user.roles.includes("Admin")) {
+                  zilaFilter.value = "";
+                  ksheterFilter.innerHTML = '<option value="">All Ksheter</option>';
+                  kenderFilter.innerHTML = '<option value="">All Kender</option>';
+                } else if (user.zila && user.ksheter && user.kender) {
+                  zilaFilter.value = user.zila;
+                  populateKsheter(user.zila);
+                  ksheterFilter.value = user.ksheter;
+                  populateKender(user.ksheter);
+                  kenderFilter.value = user.kender;
+                } else if (user.zila && user.ksheter) {
+                  zilaFilter.value = user.zila;
+                  populateKsheter(user.zila);
+                  ksheterFilter.value = user.ksheter;
+                  kenderFilter.innerHTML = '<option value="">All Kender</option>';
+                } else if (user.zila) {
+                  zilaFilter.value = user.zila;
+                  populateKsheter(user.zila);
+                  ksheterFilter.value = '';
+                  kenderFilter.innerHTML = '<option value="">All Kender</option>';
+                }
+
+                renderTable();
+
+              });
+
+              function populateKender(ksheterId) {
+                kenderFilter.innerHTML = '<option value="">All Kender</option>';
+                const filtered = allKenders.filter(k => k.ksheter === ksheterId);
+                filtered.forEach(k => {
+                  kenderFilter.innerHTML += `<option value="${k._id}">${k.name}</option>`;
+                });
+              }
+
+              // Apply role-based restrictions on filters
+              if (user.zila) {
+                zilaFilter.value = user.zila;
+                zilaFilter.disabled = true;
+                populateKsheter(user.zila);
+              }
+
+              if (user.ksheter) {
+                ksheterFilter.value = user.ksheter;
+                ksheterFilter.disabled = true;
+                populateKender(user.ksheter);
+              }
+
+              if (user.kender) {
+                kenderFilter.value = user.kender;
+                kenderFilter.disabled = true;
+              }
+
+              function renderTable() {
+                const selectedZila = zilaFilter.value;
+                const selectedKsheter = ksheterFilter.value;
+                const selectedKender = kenderFilter.value;
+                const searchTerm = searchInput.value.trim().toLowerCase();
+
+                const filtered = allSaadhaks.filter(s => {
+                  const matchZila = !selectedZila || (s.zila && s.zila._id === selectedZila);
+                  const matchKsheter = !selectedKsheter || (s.ksheter && s.ksheter._id === selectedKsheter);
+                  const matchKender = !selectedKender || (s.kender && s.kender._id === selectedKender);
+
+                  const inSearch =
+                    s.name?.toLowerCase().includes(searchTerm) ||
+                    s.mobile?.includes(searchTerm) ||
+                    (Array.isArray(s.role) && s.role.join(',').toLowerCase().includes(searchTerm)) ||
+                    s.zila?.name?.toLowerCase().includes(searchTerm) ||
+                    s.ksheter?.name?.toLowerCase().includes(searchTerm) ||
+                    s.kender?.name?.toLowerCase().includes(searchTerm);
+
+                  return matchZila && matchKsheter && matchKender && inSearch;
+                });
+
+                tableBody.innerHTML = "";
+
+                if (filtered.length === 0) {
+                  tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No matching records found.</td></tr>';
+                  return;
+                }
+
+                filtered.forEach((s, index) => {
+                  const badgeColor = s.role?.includes('Admin') ? 'dark' :
+                                    s.role?.some(r => r.includes('Zila')) ? 'danger' :
+                                    s.role?.some(r => r.includes('Ksheter')) ? 'primary' :
+                                    s.role?.some(r => r.includes('Kender')) ? 'success' :
+                                    s.role?.includes('Shikshak') ? 'info' :
+                                    s.role?.includes('Karyakarta') ? 'warning' : 'secondary';
+
+                  const rolesHtml = Array.isArray(s.role)
+                    ? s.role.map(r => `<span class="badge bg-${badgeColor} me-1">${r}</span>`).join(' ')
+                    : '';
+
+                  tableBody.innerHTML += `
+                    <tr>
+                      <td>${index + 1}</td>
+                      <td><input type="checkbox" name="selectedSaadhaks" value="${s._id}">
+                        ${s.name}
+                      </td>
+                      <td class="mobile-col">${s.mobile || ''}</td>
+
+
+                    </tr>
+                  `;
+                });
+
+                updateSelectedCount();
+              }
+
+              // Live update dropdown changes
+              zilaFilter.addEventListener("change", function () {
+                populateKsheter(this.value);
+                kenderFilter.innerHTML = '<option value="">All Kender</option>';
+                renderTable();
+              });
+
+              ksheterFilter.addEventListener("change", function () {
+                populateKender(this.value);
+                renderTable();
+              });
+
+              kenderFilter.addEventListener("change", renderTable);
+              Object.values(checkboxFields).forEach(cb => cb.addEventListener("change", renderTable));
+              renderTable();
+      // Update count label
+        function updateSelectedCount() {
+          const selected = document.querySelectorAll('input[name="selectedSaadhaks"]:checked');
+          const label = document.getElementById("selectedCount");
+          if (selected.length > 0) {
+            label.textContent = `${selected.length} Present`;
+            label.classList.remove("d-none");
+          } else {
+            label.classList.add("d-none");
+            label.textContent = '';
+          }
+        }
+
+        // Highlight selected row
+        function styleSelectedRows() {
+          const allRows = document.querySelectorAll("#saadhakTableBody tr");
+          allRows.forEach(row => {
+            const checkbox = row.querySelector('input[name="selectedSaadhaks"]');
+            if (checkbox && checkbox.checked) {
+              row.classList.add("fw-bold");
+              row.style.fontSize = "1.05rem";
+            } else {
+              row.classList.remove("fw-bold");
+              row.style.fontSize = "";
+            }
+          });
+        }
+
+        // Prevent form submit if none selected (wrap form in your EJS page)
+        document.querySelector("form")?.addEventListener("submit", function (e) {
+          const selected = document.querySelectorAll('input[name="selectedSaadhaks"]:checked');
+          if (selected.length === 0) {
+            e.preventDefault();
+            alert("Please select at least one Saadhak to mark attendance.");
+          }
+        });
+
+      // Reset
+
+            });
+</script>
+
 <%- include('../partials/footer') %>

@@ -1,17 +1,56 @@
-const Attendance = require('../models/Attendance');
-const Saadhak = require('../models/Saadhak');
-const Kender = require('../models/Kender');
+const Saadhak = require("../models/Saadhak");
+const Zila = require("../models/Zila");
+const Ksheter = require("../models/Ksheter");
+const Kender = require("../models/Kender");
+const Attendance = require("../models/Attendance");
+const {
+  validateMobile,
+  validateName,
+  validateDOB,
+} = require("../utils/validators");
+const { formatName } = require('../utils/formatters');
 
+const { ALL_ROLES } = require("../utils/roles");
 // Show attendance marking form
 exports.showMarkAttendanceForm = async (req, res) => {
   try {
-    const saadhaks = await Saadhak.find().sort({ name: 1 });
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD for default input value
-    res.render('attendance/mark', { saadhaks, today });
-  } catch (err) {
-    console.error('Error loading mark attendance form:', err);
-    res.status(500).send('Server Error');
-  }
+      const user = req.session.user;
+  
+      let query = {};
+  
+      if (!user.roles.includes("Admin")) {
+        if (user.roles.includes("Zila Pradhan") || user.roles.includes("Zila Mantri")) {
+          query.zila = user.zila;
+        }
+        if (user.roles.includes("Ksheter Pradhan") || user.roles.includes("Ksheter Mantri")) {
+          query.ksheter = user.ksheter;
+        }
+        if (user.roles.includes("Kender Pramukh") || user.roles.includes("Seh Kender Pramukh")) {
+          query.kender = user.kender;
+        }
+      }
+  
+      const saadhaks = await Saadhak.find(query)
+        .populate("zila")
+        .populate("ksheter")
+        .populate("kender")
+        .sort({ name: 1 });
+  
+      const zilas = await Zila.find().sort({ name: 1 });
+      const ksheters = await Ksheter.find().sort({ name: 1 });
+      const kenders = await Kender.find().sort({ name: 1 });
+  
+      res.render("attendance/mark", {
+        saadhaks,
+        zilas,
+        ksheters,
+        kenders,
+        user,
+      });
+    } catch (err) {
+      console.error("❌ Error listing Saadhaks:", err);
+      res.status(500).send("Server Error");
+    }
 };
 
 // Handle attendance submission

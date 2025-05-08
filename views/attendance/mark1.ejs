@@ -1,0 +1,60 @@
+<%- include("../partials/header") %>
+
+<div class="container mt-4">
+  <h3 class="mb-3">📋 Mark Attendance</h3>
+
+  <form action="/attendance/mark" method="POST">
+    <div class="mb-3 row">
+      <label for="date" class="col-sm-2 col-form-label fw-bold">Attendance Date:</label>
+      <div class="col-sm-4">
+        <input type="date" id="date" name="date" value="<%= today %>" class="form-control" max="<%= today %>">
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-bordered table-striped align-middle text-center">
+        <thead class="table-dark">
+          <tr>
+            <th>Select</th>
+            <th>Name</th>
+            <th>Mobile</th>
+            <th>Role</th>
+            <th>Zila</th>
+            <th>Ksheter</th>
+            <th>Kender</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% saadhaks.forEach(s => { %>
+            <tr class="<%= markedIds.includes(s._id.toString()) ? 'table-success' : '' %>">
+              <td>
+                <input
+                  type="checkbox"
+                  name="selectedSaadhaks"
+                  value="<%= s._id %>"
+                  <%= markedIds.includes(s._id.toString()) ? 'checked disabled' : '' %>
+                />
+              </td>
+              <td><%= s.name %></td>
+              <td><%= s.mobile %></td>
+              <td>
+                <% s.roles.forEach(role => { %>
+                  <span class="badge bg-primary"><%= role %></span>
+                <% }) %>
+              </td>
+              <td><%= s.zila || '-' %></td>
+              <td><%= s.ksheter || '-' %></td>
+              <td><%= s.kender || '-' %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mt-3 text-center">
+      <button type="submit" class="btn btn-success px-4">✅ Submit Attendance</button>
+    </div>
+  </form>
+</div>
+
+<%- include("../partials/footer") %>

@@ -1,0 +1,146 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container my-4">
+  <h2 class="mb-3">Saadhak Attendance List</h2>
+
+  <!-- Filter Bar -->
+  <form id="filterForm" method="GET" action="/saadhaks/attendance">
+    <div class="row mb-3 g-2">
+      <div class="col-md-3">
+        <select class="form-select" name="zila" id="filterZila" onchange="updateKsheterDropdown()">
+          <option value="">All Zilas</option>
+          <% zilas.forEach(z => { %>
+            <option value="<%= z._id %>" <%= selectedZila == z._id ? 'selected' : '' %>><%= z.name %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <select class="form-select" name="ksheter" id="filterKsheter" onchange="updateKenderDropdown()">
+          <option value="">All Ksheters</option>
+          <% ksheters.forEach(k => { %>
+            <option value="<%= k._id %>" <%= selectedKsheter == k._id ? 'selected' : '' %>><%= k.name %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <select class="form-select" name="kender" id="filterKender">
+          <option value="">All Kenders</option>
+          <% kenders.forEach(k => { %>
+            <option value="<%= k._id %>" <%= selectedKender == k._id ? 'selected' : '' %>><%= k.name %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <input type="text" name="search" class="form-control" placeholder="Search Saadhak" value="<%= search || '' %>">
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Filter</button>
+  </form>
+
+  <!-- Toggle Columns -->
+  <div class="form-check form-check-inline mt-3">
+    <input class="form-check-input" type="checkbox" checked id="showMobile" onclick="toggleColumn('mobileCol')">
+    <label class="form-check-label">Mobile</label>
+  </div>
+  <div class="form-check form-check-inline">
+    <input class="form-check-input" type="checkbox" checked id="showRoles" onclick="toggleColumn('roleCol')">
+    <label class="form-check-label">Roles</label>
+  </div>
+  <!-- Add more as needed -->
+
+  <!-- Attendance Table -->
+  <form method="POST" action="/attendance/mark">
+    <div class="table-responsive mt-3">
+      <table class="table table-striped align-middle">
+        <thead>
+          <tr>
+            <th><input type="checkbox" id="selectAll" onclick="toggleAll(this)"></th>
+            <th>Name</th>
+            <th class="mobileCol">Mobile</th>
+            <th class="roleCol">Roles</th>
+            <th class="zilaCol">Zila</th>
+            <th class="ksheterCol">Ksheter</th>
+            <th class="kenderCol">Kender</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% saadhaks.forEach((s, index) => { %>
+            <tr>
+              <td><input type="checkbox" name="attendance[]" value="<%= s._id %>" class="selectRow" onchange="updateSelectedCount()"></td>
+              <td><a href="/saadhaks/<%= s._id %>"><%= s.name %></a></td>
+              <td class="mobileCol"><%= s.mobile %></td>
+              <td class="roleCol">
+                <% s.roles.forEach(r => { %>
+                  <span class="badge bg-secondary"><%= r %></span>
+                <% }) %>
+              </td>
+              <td class="zilaCol"><%= s.zila?.name %></td>
+              <td class="ksheterCol"><%= s.ksheter?.name %></td>
+              <td class="kenderCol"><%= s.kender?.name %></td>
+              <td>
+                <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal<%= index %>">Delete</button>
+              </td>
+            </tr>
+
+            <!-- Modal -->
+            <div class="modal fade" id="deleteModal<%= index %>" tabindex="-1" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">Confirm Delete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                  </div>
+                  <div class="modal-body">Are you sure you want to delete <strong><%= s.name %></strong>?</div>
+                  <div class="modal-footer">
+                    <form method="POST" action="/saadhaks/<%= s._id %>?_method=DELETE">
+                      <button type="submit" class="btn btn-danger">Delete</button>
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Selected Count -->
+    <div class="my-3">
+      <span id="selectedCount">0</span> selected
+      <button type="submit" class="btn btn-success">Mark Attendance</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  function toggleColumn(className) {
+    document.querySelectorAll('.' + className).forEach(el => {
+      el.style.display = el.style.display === 'none' ? '' : 'none';
+    });
+  }
+
+  function toggleAll(checkbox) {
+    document.querySelectorAll('.selectRow').forEach(cb => {
+      cb.checked = checkbox.checked;
+    });
+    updateSelectedCount();
+  }
+
+  function updateSelectedCount() {
+    const count = document.querySelectorAll('.selectRow:checked').length;
+    document.getElementById('selectedCount').innerText = count;
+  }
+
+  function updateKsheterDropdown() {
+    // Add your AJAX or page reload logic to filter Ksheter by Zila
+  }
+
+  function updateKenderDropdown() {
+    // Add your AJAX or page reload logic to filter Kender by Ksheter
+  }
+</script>
+
+<%- include('../partials/footer') %>

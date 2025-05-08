@@ -12,7 +12,6 @@ const zilaRoutes = require('./routes/zilaRoutes');
 const ksheterRoutes = require('./routes/ksheterRoutes');
 const kenderRoutes = require('./routes/kenderRoutes');
 const saadhakRoutes = require('./routes/saadhakRoutes');
-const attendanceRoutes = require('./routes/attendanceRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const authRoutes = require('./routes/authRoutes');
 const roleRoutes = require('./routes/roleRoutes');
@@ -21,6 +20,8 @@ const apiRoutes = require('./routes/apiRoutes');
 const exploreRoutes = require('./routes/exploreRoutes');
 const exportRoutes = require('./routes/exportRoutes');
 const passwordResetRoutes = require('./routes/passwordResetRoutes');
+const attendanceRoutes = require('./routes/attendanceRoutes');
+const reportRoutes = require('./routes/reportRoutes');
 
 // Load environment variables from .env file
 dotenv.config();
@@ -78,6 +79,7 @@ app.use('/', exploreRoutes); // Keep it public!
  // 👈 This is required
  app.use('/', exportRoutes);
  app.use('/', passwordResetRoutes);
+ app.use('/report', reportRoutes);
  
 // Start the server
 const port = process.env.PORT || 3000;
