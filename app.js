@@ -16,7 +16,7 @@ const dashboardRoutes = require('./routes/dashboardRoutes');
 const authRoutes = require('./routes/authRoutes');
 const roleRoutes = require('./routes/roleRoutes');
 const adminRoutes = require('./routes/adminRoutes');
-const apiRoutes = require('./routes/apiRoutes');
+// const apiRoutes = require('./routes/apiRoutes');
 const exploreRoutes = require('./routes/exploreRoutes');
 const exportRoutes = require('./routes/exportRoutes');
 const passwordResetRoutes = require('./routes/passwordResetRoutes');
@@ -66,7 +66,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/', adminRoutes);
-app.use('/api', apiRoutes);
+// app.use('/api', apiRoutes);
 app.use('/', roleRoutes);
 app.use('/auth', authRoutes);
 app.use(dashboardRoutes);

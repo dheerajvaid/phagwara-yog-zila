@@ -9,6 +9,13 @@
     <% } %>
   </div>
 
+  <% if (error) { %>
+  <div class="alert alert-warning alert-dismissible fade show" role="alert">
+    <%= error %>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+  <% } %>
+
   <!-- ✅ Zila Filter -->
   <form method="GET" action="/ksheter/manage" class="row g-2 mb-3">
     <div class="col-md-4">

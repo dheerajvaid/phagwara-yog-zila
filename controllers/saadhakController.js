@@ -302,6 +302,7 @@ exports.listSaadhaks = async (req, res) => {
         query.kender = user.kender;
       }
     }
+    
 
     const saadhaks = await Saadhak.find(query)
       .populate("zila")
@@ -313,6 +314,10 @@ exports.listSaadhaks = async (req, res) => {
     const ksheters = await Ksheter.find().sort({ name: 1 });
     const kenders = await Kender.find().sort({ name: 1 });
 
+    console.log(user.zila);
+    console.log(user.Ksheter);
+    console.log(user.Kender);
+    
     res.render("saadhak/list", {
       saadhaks,
       zilas,

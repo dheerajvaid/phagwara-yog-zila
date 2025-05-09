@@ -16,7 +16,7 @@
 
           <% if (user.roles.includes('Admin')) { %>
             <li class="nav-item"><a class="nav-link" href="/admin/panel">🛠️ Admin Panel</a></li>
-            <%- include('attendance') %>
+           
             <%- include('zila') %>
             <%- include('ksheter') %>
             <%- include('kender') %>
@@ -24,26 +24,26 @@
             <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
             <li class="nav-item"><a class="nav-link" href="/roles/manage">🎖️ Role Management</a></li>
           <% } else { %>
-            <% if (user.roles.includes('Zila Pradhan') || user.roles.includes('Zila Mantri')) { %>
-              <%- include('attendance') %>
+            <% if (user.roles.includes('Zila Pradhan') || user.roles.includes('Zila Mantri') || user.roles.includes('Sangathan Mantri') || user.roles.includes('Cashier')) { %>
+              
               <%- include('ksheter') %>
               <%- include('kender') %>
               <%- include('saadhak') %>
               <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
             <% } %>
             <% if (user.roles.includes('Ksheter Pradhan') || user.roles.includes('Ksheter Mantri')) { %>
-              <%- include('attendance') %>
+              
               <%- include('kender') %>
               <%- include('saadhak') %>
               <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
             <% } %>
             <% if (user.roles.includes('Kender Pramukh') || user.roles.includes('Seh Kender Pramukh')) { %>
-              <%- include('attendance') %>
+              
               <%- include('saadhak') %>
               <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
             <% } %>
             <% if (user.roles.includes('Saadhak')) { %>
-              <%- include('attendance') %>
+              
               <%- include('saadhak') %>
               <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
             <% } %>
