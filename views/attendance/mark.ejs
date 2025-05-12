@@ -1,9 +1,9 @@
-<%- include('../partials/header') %> <%- include('../partials/navbar') %>
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
 
 <section class="container mt-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="fw-bold text-primary text-color-red">📋 Mark Attendance</h4>
-    
   </div>
 
   <!-- 🔍 Filter + Search -->
@@ -13,7 +13,7 @@
       <select id="zilaFilter" class="form-select">
         <option value="">All Zila</option>
         <% zilas.forEach(z => { %>
-        <option value="<%= z._id %>"><%= z.name %></option>
+          <option value="<%= z._id %>" <%= (user.zila === z._id) ? 'selected' : '' %>><%= z.name %></option>
         <% }) %>
       </select>
     </div>
@@ -31,37 +31,25 @@
     </div>
     <div class="col-md-3">
       <label>Search</label>
-      <input
-        type="text"
-        id="searchInput"
-        class="form-control"
-        placeholder="Search Saadhak..."
-      />
+      <input type="text" id="searchInput" class="form-control" placeholder="Search Saadhak...">
     </div>
     <div class="mb-3">
-      <button id="resetBtn" class="btn btn-sm btn-outline-secondary float-end">
+      <button id="resetBtn" class="btn btn-sm btn-outline-secondary float-end mt-2">
         🔄 Reset
       </button>
     </div>
   </div>
 
   <form action="/attendance/mark" method="POST">
-    <div
-      id="selectedCount"
-      class="fw-semibold text-dark sticky-top py-3 px-4 shadow-sm d-none rounded-bottom"
-      style="
-        background: #e6f0fa;
-        z-index: 1050;
-        top: 0;
-        font-size: 1.1rem;
-        color: red;
-        border-bottom: 2px solid #007bff;
-      "
-    >
-      <!-- Filled by JS -->
+    <div id="selectedCount" class="fw-semibold text-dark sticky-top py-3 px-4 shadow-sm d-none rounded-bottom"
+      style="background: #e6f0fa; z-index: 1050; top: 0; font-size: 1.1rem; color: red; border-bottom: 2px solid #007bff;">
     </div>
 
-    <!-- ✅ Table -->
+    <div class="form-group">
+  <label for="attendanceDate" class="form-label fw-bold text-primary">📅 Select Date (Past 15 Days Only)</label>
+  <input type="date" class="form-control form-control-sm w-auto" id="attendanceDate" name="attendanceDate" required />
+</div>
+
     <div class="table-responsive">
       <table class="table table-bordered align-middle">
         <thead class="table-dark">
@@ -69,10 +57,6 @@
             <th>#</th>
             <th class="name-col">Name</th>
             <th class="mobile-col">Mobile</th>
-            <!-- <th class="role-col">Role</th>
-            <th class="zila-col">Zila</th>
-            <th class="ksheter-col">Ksheter</th>
-            <th class="kender-col">Kender</th> -->
           </tr>
         </thead>
         <tbody id="saadhakTableBody"></tbody>
@@ -88,75 +72,41 @@
 </section>
 
 <script>
-      const allSaadhaks = <%- JSON.stringify(saadhaks) %>;
-      const allKsheters = <%- JSON.stringify(ksheters) %>;
-      const allKenders = <%- JSON.stringify(kenders) %>;
-      const user = <%- JSON.stringify(user) %>;
-      const markedSaadhakIds = <%- JSON.stringify(markedSaadhakIds || []) %>;
+  const allSaadhaks = <%- JSON.stringify(saadhaks) %>;
+  const allKsheters = <%- JSON.stringify(ksheters) %>;
+  const allKenders = <%- JSON.stringify(kenders) %>;
+  const user = <%- JSON.stringify(user) %>;
+  const markedSaadhakIds = <%- JSON.stringify(markedSaadhakIds || []) %>;
+  const totalDaysCount = <%- totalDaysCount %>;
 
+  document.addEventListener("DOMContentLoaded", function () {
+    const zilaFilter = document.getElementById("zilaFilter");
+    const ksheterFilter = document.getElementById("ksheterFilter");
+    const kenderFilter = document.getElementById("kenderFilter");
+    const searchInput = document.getElementById("searchInput");
+    const resetBtn = document.getElementById("resetBtn");
+    const tableBody = document.getElementById("saadhakTableBody");
+    const attendanceDateInput = document.getElementById("attendanceDate");
 
-      document.addEventListener("DOMContentLoaded", function () {
-        const zilaFilter = document.getElementById("zilaFilter");
-        const ksheterFilter = document.getElementById("ksheterFilter");
-        const kenderFilter = document.getElementById("kenderFilter");
-        const searchInput = document.getElementById("searchInput");
-        const resetBtn = document.getElementById("resetBtn");
-        const tableBody = document.getElementById("saadhakTableBody");
+const today = new Date();
+const fifteenDaysAgo = new Date(today);
+fifteenDaysAgo.setDate(today.getDate() - 15);
 
+// Format to YYYY-MM-DD
+const formatDate = (d) => d.toISOString().split("T")[0];
 
-        function renderTable() {
-    const selectedZila = zilaFilter.value;
-    const selectedKsheter = ksheterFilter.value;
-    const selectedKender = kenderFilter.value;
-    const searchTerm = searchInput.value.trim().toLowerCase();
+attendanceDateInput.max = formatDate(today);
+attendanceDateInput.min = formatDate(fifteenDaysAgo);
+attendanceDateInput.value = formatDate(today); // Default to today
 
-    const filtered = allSaadhaks.filter(s => {
-      const matchZila = !selectedZila || (s.zila && s.zila._id === selectedZila);
-      const matchKsheter = !selectedKsheter || (s.ksheter && s.ksheter._id === selectedKsheter);
-      const matchKender = !selectedKender || (s.kender && s.kender._id === selectedKender);
+// Optional: auto-refresh data if you want to fetch new info per selected date
+attendanceDateInput.addEventListener("change", () => {
+  // Here you can reload or fetch attendance data if needed
+  // Example: renderTable(attendanceDateInput.value);
+});
 
-      const inSearch =
-        s.name?.toLowerCase().includes(searchTerm) ||
-        s.mobile?.includes(searchTerm) ||
-        (Array.isArray(s.role) && s.role.join(',').toLowerCase().includes(searchTerm)) ||
-        s.zila?.name?.toLowerCase().includes(searchTerm) ||
-        s.ksheter?.name?.toLowerCase().includes(searchTerm) ||
-        s.kender?.name?.toLowerCase().includes(searchTerm);
-
-      return matchZila && matchKsheter && matchKender && inSearch;
-    });
-
-    tableBody.innerHTML = "";
-
-    if (filtered.length === 0) {
-      tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No matching records found.</td></tr>';
-      return;
-    }
-
-    filtered.forEach((s, index) => {
-      const isMarked = markedSaadhakIds.includes(s._id.toString());
-
-      const row = `
-        <tr class="saadhak-row ${isMarked ? 'fw-bold text-danger' : ''}">
-          <td>${index + 1}</td>
-          <td>
-            <input
-              type="checkbox"
-              name="selectedSaadhaks"
-              value="${s._id}"
-              class="saadhak-checkbox"
-              ${isMarked ? 'checked' : ''} />${s.name}</td>
-          <td class="mobile-col">${s.mobile || ''}</td>
-        </tr>
-      `;
-      tableBody.innerHTML += row;
-    });
-
-    updateSelectedCount();
-  }
-
-  function populateKsheter(zilaId) {
-      ksheterFilter.innerHTML = '<option value="">Select Ksheter</option>';
+    function populateKsheter(zilaId) {
+      ksheterFilter.innerHTML = '<option value="">All Ksheter</option>';
       const filtered = allKsheters.filter(k => k.zila === zilaId);
       filtered.forEach(k => {
         ksheterFilter.innerHTML += `<option value="${k._id}">${k.name}</option>`;
@@ -164,88 +114,157 @@
     }
 
     function populateKender(ksheterId) {
-      kenderFilter.innerHTML = '<option value="">Select Kender</option>';
+      kenderFilter.innerHTML = '<option value="">All Kender</option>';
       const filtered = allKenders.filter(k => k.ksheter === ksheterId);
       filtered.forEach(k => {
         kenderFilter.innerHTML += `<option value="${k._id}">${k.name}</option>`;
       });
     }
-        function updateSelectedCount() {
-          const selected = document.querySelectorAll('input[name="selectedSaadhaks"]:checked');
-          const label = document.getElementById("selectedCount");
-          if (selected.length > 0) {
-            label.textContent = `${selected.length} Present`;
-            label.classList.remove("d-none");
-          } else {
-            label.classList.add("d-none");
-            label.textContent = '';
-          }
-        }
 
-        resetBtn?.addEventListener("click", () => {
-          searchInput.value = "";
+    function renderTable() {
+      const selectedZila = zilaFilter.value;
+      const selectedKsheter = ksheterFilter.value;
+      const selectedKender = kenderFilter.value;
+      const searchTerm = searchInput.value.trim().toLowerCase();
 
-          if (user.roles.includes("Admin")) {
-            zilaFilter.value = "";
-            ksheterFilter.innerHTML = '<option value="">All Ksheter</option>';
-            kenderFilter.innerHTML = '<option value="">All Kender</option>';
-          } else if (user.zila && user.ksheter && user.kender) {
-            zilaFilter.value = user.zila;
-            populateKsheter(user.zila);
-            ksheterFilter.value = user.ksheter;
-            populateKender(user.ksheter);
-            kenderFilter.value = user.kender;
-          } else if (user.zila && user.ksheter) {
-            zilaFilter.value = user.zila;
-            populateKsheter(user.zila);
-            ksheterFilter.value = user.ksheter;
-            kenderFilter.innerHTML = '<option value="">All Kender</option>';
-          } else if (user.zila) {
-            zilaFilter.value = user.zila;
-            populateKsheter(user.zila);
-            ksheterFilter.value = '';
-            kenderFilter.innerHTML = '<option value="">All Kender</option>';
-          }
+      const filtered = allSaadhaks.filter(s => {
+        const matchZila = !selectedZila || (s.zila && s.zila._id === selectedZila);
+        const matchKsheter = !selectedKsheter || (s.ksheter && s.ksheter._id === selectedKsheter);
+        const matchKender = !selectedKender || (s.kender && s.kender._id === selectedKender);
+        const inSearch =
+          s.name?.toLowerCase().includes(searchTerm) ||
+          s.mobile?.includes(searchTerm) ||
+          (Array.isArray(s.roles) && s.roles.join(',').toLowerCase().includes(searchTerm)) ||
+          s.zila?.name?.toLowerCase().includes(searchTerm) ||
+          s.ksheter?.name?.toLowerCase().includes(searchTerm) ||
+          s.kender?.name?.toLowerCase().includes(searchTerm);
 
-          renderTable();
-        });
+        return matchZila && matchKsheter && matchKender && inSearch;
+      });
 
-        document.addEventListener("change", function (e) {
-          if (e.target.name === "selectedSaadhaks") {
-            const row = e.target.closest("tr");
+      tableBody.innerHTML = "";
 
-            if (e.target.checked) {
-      row.classList.add("fw-bold");
-      row.querySelectorAll("td").forEach(td => td.style.color = "red");
-    } else {
-      row.classList.remove("fw-bold");
-      row.querySelectorAll("td").forEach(td => td.style.color = "");
+      if (filtered.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">No matching records found.</td></tr>';
+        return;
+      }
+
+      filtered.forEach((s, index) => {
+        const isMarked = markedSaadhakIds.includes(s._id.toString());
+        const today = new Date();
+const year = today.getFullYear();
+const month = today.getMonth(); // 0-indexed
+const currentDay = today.getDate();
+
+// const presentCount = saadhak.attendance?.filter(a => a.status === 'present').length || 0;
+
+let attendanceStrip = '';
+let day;
+for (day = 1; day <= currentDay; day++) {
+  const checkDate = new Date(year, month, day);
+  checkDate.setHours(0, 0, 0, 0);
+
+  const isPresent = (s.attendanceDates || []).some(d => {
+    const dt = new Date(d);
+    dt.setHours(0, 0, 0, 0);
+    return dt.getTime() === checkDate.getTime();
+  });
+
+  attendanceStrip += `
+    <div 
+      class="d-inline-block text-white text-center me-1 mb-1" 
+      style="width: 24px; height: 24px; font-size: 0.75rem; line-height: 24px; border-radius: 4px; background-color: ${isPresent ? '#28a745' : '#dc3545'};">
+      ${day}
+    </div>`;
+}
+
+const row = `
+  <tr class="saadhak-row ${isMarked ? 'fw-bold text-danger' : ''}">
+    <td>${index + 1}</td>
+    <td>
+      <input type="checkbox" name="selectedSaadhaks" value="${s._id}" class="saadhak-checkbox" ${isMarked ? 'checked' : ''} />
+      <strong>${s.name}</strong>
+      <div class="text-muted small">(${s.attendanceDates.length}/${day-1} days present)</div>
+      <div class="d-flex flex-wrap mt-1">${attendanceStrip}</div>
+    </td>
+    <td>${s.mobile || ''}</td>
+  </tr>
+`;
+
+tableBody.innerHTML += row;
+      });
+
+      updateSelectedCount();
     }
 
-        updateSelectedCount();
-            styleSelectedRows();
-          }
+    function updateSelectedCount() {
+      const selected = document.querySelectorAll('input[name="selectedSaadhaks"]:checked');
+      const label = document.getElementById("selectedCount");
+      if (selected.length > 0) {
+        label.textContent = `${selected.length} Present`;
+        label.classList.remove("d-none");
+      } else {
+        label.classList.add("d-none");
+        label.textContent = '';
+      }
+    }
 
-          if (e.target === zilaFilter) {
-            populateKsheter(zilaFilter.value);
-            ksheterFilter.value = '';
-            kenderFilter.innerHTML = '<option value="">All Kender</option>';
-            renderTable();
-          }
+    zilaFilter.addEventListener("change", () => {
+      populateKsheter(zilaFilter.value);
+      ksheterFilter.value = "";
+      kenderFilter.innerHTML = '<option value="">All Kender</option>';
+      renderTable();
+    });
 
-          if (e.target === ksheterFilter) {
-            populateKender(ksheterFilter.value);
-            kenderFilter.value = '';
-            renderTable();
-          }
+    ksheterFilter.addEventListener("change", () => {
+      populateKender(ksheterFilter.value);
+      kenderFilter.value = "";
+      renderTable();
+    });
 
-          if (e.target === kenderFilter) {
-            renderTable();
-          }
-        });
+    kenderFilter.addEventListener("change", renderTable);
+    searchInput.addEventListener("input", renderTable);
+    tableBody.addEventListener("change", updateSelectedCount);
 
-        searchInput.addEventListener("input", renderTable);
-        
-        renderTable();
-      });
+    resetBtn.addEventListener("click", () => {
+      searchInput.value = "";
+
+      if (Array.isArray(user.roles) && user.roles.includes("Admin")) {
+        zilaFilter.value = "";
+        ksheterFilter.innerHTML = '<option value="">All Ksheter</option>';
+        kenderFilter.innerHTML = '<option value="">All Kender</option>';
+      } else {
+        if (user.zila) {
+          zilaFilter.value = user.zila;
+          populateKsheter(user.zila);
+        }
+        if (user.ksheter) {
+          ksheterFilter.value = user.ksheter;
+          populateKender(user.ksheter);
+        }
+        if (user.kender) {
+          kenderFilter.value = user.kender;
+        }
+      }
+
+      renderTable();
+    });
+
+    // Initial population
+    if (user.zila) {
+      zilaFilter.value = user.zila;
+      populateKsheter(user.zila);
+    }
+    if (user.ksheter) {
+      ksheterFilter.value = user.ksheter;
+      populateKender(user.ksheter);
+    }
+    if (user.kender) {
+      kenderFilter.value = user.kender;
+    }
+
+    renderTable();
+  });
 </script>
+
+<%- include('../partials/footer') %>

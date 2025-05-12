@@ -18,8 +18,12 @@
     "git": "^0.1.5",
     "html-pdf": "^3.0.1",
     "moment": "^2.30.1",
+    "moment-timezone": "^0.5.48",
     "mongodb": "^6.16.0",
     "mongoose": "^8.14.1",
     "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "prettier-plugin-ejs": "^1.0.3"
   }
 }

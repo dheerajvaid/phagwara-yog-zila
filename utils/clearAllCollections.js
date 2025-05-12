@@ -2,10 +2,13 @@ const mongoose = require('mongoose');
 require('dotenv').config(); // Loads MONGODB_URI from .env
 
 // Import all models
-const Zila = require('../models/Zila');
-const Ksheter = require('../models/Ksheter');
-const Kender = require('../models/Kender');
-const Saadhak = require('../models/Saadhak');
+// const Zila = require('../models/Zila');
+// const Ksheter = require('../models/Ksheter');
+// const Kender = require('../models/Kender');
+// const Saadhak = require('../models/Saadhak');
+
+const Attendance = require('../models/Attendance');
+
 
 // Add more models below if needed
 // const SomeOtherModel = require('../models/SomeOtherModel');
@@ -24,17 +27,19 @@ async function clearDatabasePreservingSaadhak() {
     console.log('✅ Connected to MongoDB');
 
     // 🔥 Delete everything from each collection except the Saadhak with mobile 9316161666
-    await Zila.deleteMany({});
-    await Ksheter.deleteMany({});
-    await Kender.deleteMany({});
+    // await Zila.deleteMany({});
+    // await Ksheter.deleteMany({});
+    // await Kender.deleteMany({});
+    await Attendance.deleteMany({});
     
     // Preserve Saadhak with mobile = 9316161666
-    await Saadhak.deleteMany({ mobile: { $ne: '9316161666' } });
+    // await Saadhak.deleteMany({ mobile: { $ne: '9316161666' } });
 
     // Optional: If you have more collections, add below
     // await SomeOtherModel.deleteMany({});
 
-    console.log('✅ Cleared all data except Saadhak with mobile 9316161666');
+    // console.log('✅ Cleared all data except Saadhak with mobile 9316161666');
+    console.log("done");
     mongoose.connection.close();
     process.exit(0);
   } 

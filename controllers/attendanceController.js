@@ -4,7 +4,6 @@ const Ksheter = require("../models/Ksheter");
 const Kender = require("../models/Kender");
 const Attendance = require("../models/Attendance");
 
-
 // Show attendance marking form
 exports.showMarkAttendanceForm = async (req, res) => {
   try {
@@ -39,21 +38,44 @@ exports.showMarkAttendanceForm = async (req, res) => {
       .populate("zila")
       .populate("ksheter")
       .populate("kender")
-      .sort({ name: 1 });
+      .sort({ name: 1 })
+      .lean(); // Make sure we can attach properties
 
-    const zilas = await Zila.find().sort({ name: 1 });
-    const ksheters = await Ksheter.find().sort({ name: 1 });
-    const kenders = await Kender.find().sort({ name: 1 });
+    const zilas = !user.zila
+      ? await Zila.find().sort({ name: 1 })
+      : await Zila.find({ _id: user.zila }).sort({ name: 1 });
+    const ksheters = !user.ksheter
+      ? await Ksheter.find().sort({ name: 1 })
+      : await Ksheter.find({ _id: user.ksheter }).sort({ name: 1 });
+    const kenders = !user.kender
+      ? await Kender.find().sort({ name: 1 })
+      : await Kender.find({ _id: user.kender }).sort({ name: 1 });
+
     const todaysAttendance = await Attendance.find({
       date: today,
       status: "Present",
     }).select("saadhak");
-    const markedSaadhakIds = todaysAttendance.map(a => a.saadhak.toString());
+    const markedSaadhakIds = todaysAttendance.map((a) => a.saadhak.toString());
 
-    console.log(user.zila);
-    console.log(user.Ksheter);
-    console.log(user.Kender);
-    
+    // ✅ Add monthly attendance dates to each saadhak
+    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+    const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+    const totalDays = await Attendance.distinct("date", {
+      date: { $gte: monthStart, $lt: monthEnd },
+    });
+
+    for (let saadhak of saadhaks) {
+      const monthlyAttendance = await Attendance.find({
+        saadhak: saadhak._id,
+        date: { $gte: monthStart, $lt: monthEnd },
+        status: "Present",
+      })
+        .select("date")
+        .lean();
+
+      saadhak.attendanceDates = monthlyAttendance.map((a) => a.date);
+    }
+
     res.render("attendance/mark", {
       saadhaks,
       zilas,
@@ -61,6 +83,7 @@ exports.showMarkAttendanceForm = async (req, res) => {
       kenders,
       user,
       markedSaadhakIds,
+      totalDaysCount: totalDays.length,
     });
   } catch (err) {
     console.error("❌ Error listing Saadhaks:", err);
@@ -75,18 +98,22 @@ exports.markAttendance = async (req, res) => {
     today.setHours(0, 0, 0, 0); // Normalize to start of day
 
     let selectedSaadhaks = req.body.selectedSaadhaks;
+    const attendanceDate = new Date(req.body.attendanceDate);
+    attendanceDate.setHours(0, 0, 0, 0);
+
     if (!selectedSaadhaks) {
-      return res.status(400).send("No saadhaks selected");
+      selectedSaadhaks = []; // No saadhaks selected means delete all attendance for today
     }
 
     if (!Array.isArray(selectedSaadhaks)) {
       selectedSaadhaks = [selectedSaadhaks];
     }
 
+    // 1. Mark selected saadhaks as Present
     for (let saadhakId of selectedSaadhaks) {
       const existingAttendance = await Attendance.findOne({
         saadhak: saadhakId,
-        date: today,
+        date: attendanceDate,
       });
 
       if (existingAttendance) {
@@ -95,12 +122,18 @@ exports.markAttendance = async (req, res) => {
       } else {
         const attendance = new Attendance({
           saadhak: saadhakId,
-          date: today,
+          date: attendanceDate,
           status: "Present",
         });
         await attendance.save();
       }
     }
+
+    // 2. Remove attendance records for today where saadhak is NOT in selectedSaadhaks
+    await Attendance.deleteMany({
+      date: today,
+      saadhak: { $nin: selectedSaadhaks },
+    });
 
     res.redirect("/attendance/today");
   } catch (err) {
@@ -112,21 +145,39 @@ exports.markAttendance = async (req, res) => {
 // Show today's attendance
 exports.viewTodayAttendance = async (req, res) => {
   try {
+    const user = req.session.user;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const attendanceRecords = await Attendance.find({ date: today }).populate(
-      "saadhak"
-    );
+    const attendanceRecords = await Attendance.find({
+      date: today,
+      status: "Present", // optional
+    })
+      .populate({
+        path: "saadhak",
+        match: { kender: user.kender },
+      })
+      .then((records) => records.filter((record) => record.saadhak));
+    
+    const kender = await Kender.findById(user.kender).sort({ name: 1 });  
+    
+    
 
     if (attendanceRecords.length === 0) {
       return res.render("attendance/today", {
         saadhaks: [],
         message: "No attendance marked for today",
+        kenderName: kender.name,
+        attendanceDateFormatted: new Date().toLocaleDateString("en-IN"),
       });
     }
 
-    res.render("attendance/today", { saadhaks: attendanceRecords });
+    res.render("attendance/today", {
+      saadhaks: attendanceRecords,
+      message: "No attendance marked for today",
+      kenderName: kender.name,
+      attendanceDateFormatted: new Date().toLocaleDateString("en-IN"),
+    });
   } catch (err) {
     console.error("Error fetching today's attendance:", err);
     res.status(500).send("Server Error");
