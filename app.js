@@ -22,6 +22,7 @@ const exportRoutes = require('./routes/exportRoutes');
 const passwordResetRoutes = require('./routes/passwordResetRoutes');
 const attendanceRoutes = require('./routes/attendanceRoutes');
 const reportRoutes = require('./routes/reportRoutes');
+const flash = require("connect-flash");
 
 // Load environment variables from .env file
 dotenv.config();
@@ -54,6 +55,8 @@ app.use(session({
     ttl: 24 * 60 * 60 * 365 // 365 day expiration
   })
 }));
+
+app.use(flash());
 
 app.use((req, res, next) => {
   res.locals.user = req.session.user || null; // ✅ Prevents undefined

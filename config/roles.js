@@ -15,8 +15,8 @@ module.exports = {
     "Zila Mantri",
     "Sangathan Mantri",
     "Cashier",
-    "Kshetriya Pradhan",
-    "Kshetriya Mantri"
+    "Ksheter Pradhan",
+    "Ksheter Mantri"
   ],
 
   kenderRoles: [

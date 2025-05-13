@@ -15,16 +15,20 @@ const roleHierarchy = {
 
 function canManage(allowedRoles) {
   return (req, res, next) => {
-    const userRoles = req.session.user?.roles || [];
+    // console.log(allowedRoles);
+    
 
+    const userRoles = req.session.user?.roles || [];
+    // console.log(userRoles);
     // Admins bypass checks
     if (userRoles.includes('Admin')) return next();
 
     // Check if any of the user roles is allowed
     const hasAccess = userRoles.some(role => allowedRoles.includes(role));
+    // console.log(hasAccess);
 
     if (hasAccess) {
-      console.log('✅ Role authorized');
+      // console.log('✅ Role authorized');
       next();
     } else {
       console.log('❌ Role access denied');

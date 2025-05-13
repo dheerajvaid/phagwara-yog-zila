@@ -40,5 +40,25 @@
     }
   });
 </script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Attach to all menu or nav links
+    document.querySelectorAll("a").forEach(link => {
+      link.addEventListener("click", function (e) {
+        const href = this.getAttribute("href");
+
+        // Skip anchors, JavaScript:void(0), or modal links
+        if (href && !href.startsWith("#") && !href.startsWith("javascript:")) {
+          document.getElementById("loadingSpinner").style.display = "block";
+        }
+      });
+    });
+
+    // Optionally hide spinner after load
+    window.addEventListener("load", function () {
+      document.getElementById("loadingSpinner").style.display = "none";
+    });
+  });
+</script>
 </body>
 </html>
