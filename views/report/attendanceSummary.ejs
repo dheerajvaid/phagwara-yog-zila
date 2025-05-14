@@ -1,0 +1,104 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-4">
+  <!-- Heading -->
+  <h3 class="text-center mb-3">Attendance Summary Report</h3>
+
+  <!-- Date Filter -->
+  <form method="GET" class="text-center mb-4">
+    <input type="date" name="date" value="<%= selectedDate %>" onchange="this.form.submit()" class="form-control d-inline w-auto">
+  </form>
+
+  <!-- Export Button -->
+  <div class="text-center mb-3">
+    <button id="exportSummaryBtn" class="btn btn-success btn-sm">Download Summary as Image</button>
+  </div>
+
+  <!-- Exportable Area -->
+  <div id="summaryExportWrapper" class="bg-white p-3 border rounded shadow-sm" style="max-width: 1000px; margin: auto;">
+    <% for (let zila in summary) { 
+         const ksheters = Object.keys(summary[zila]);
+    %>
+    <div class="mb-4">
+      <h5 class="text-dark fw-bold border-bottom pb-1"><%= zila %></h5>
+
+      <% ksheters.forEach((ksheter, index) => { 
+           const isLast = index === ksheters.length - 1;
+      %>
+      <div class="mb-3 ms-3">
+        <h6 class="text-dark fw-bold border-bottom pb-1"><%= ksheter %></h6>
+
+        <table class="table table-bordered table-sm ms-4 mt-2">
+          <thead class="table-light">
+            <tr>
+              <th style="width: 70%">Kender Name</th>
+              <th style="width: 30%">Present Count</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% for (let kender in summary[zila][ksheter]) { %>
+            <tr>
+              <td><%= kender %></td>
+              <td><%= summary[zila][ksheter][kender] %></td>
+            </tr>
+            <% } %>
+            <tr class="table-warning fw-bold">
+              <td>Total</td>
+              <td><%= ksheterTotals[zila][ksheter] %></td>
+            </tr>
+
+            <% if (isLast) { %>
+            <tr class="table-primary fw-bold">
+              <td>Zila Total</td>
+              <td><%= zilaTotals[zila] %></td>
+            </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+      <% }); %>
+    </div>
+    <% } %>
+
+    <!-- Optional Footer or Watermark -->
+    <div id="summaryWatermark" style="display: none; text-align: center; font-size: 0.75rem; margin-top: 1rem;">
+      ~ Exported from Bhartiya Yog Sansthan (R) Attendance App
+    </div>
+  </div>
+</div>
+
+<!-- Export Script -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script>
+  document.getElementById('exportSummaryBtn').addEventListener('click', () => {
+    const exportArea = document.getElementById('summaryExportWrapper');
+    const watermark = document.getElementById('summaryWatermark');
+    watermark.style.display = 'block'; // show watermark
+
+    setTimeout(() => {
+      html2canvas(exportArea, { scale: 2 }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `attendance_summary_<%= selectedDate %>.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        watermark.style.display = 'none'; // hide again
+      });
+    }, 300);
+  });
+</script>
+
+<!-- Optional Styling -->
+<style>
+  #summaryExportWrapper table td,
+  #summaryExportWrapper table th {
+    font-size: 0.85rem;
+    padding: 6px 8px;
+  }
+
+  #summaryExportWrapper {
+    background-color: #fff;
+  }
+</style>
+
+<%- include('../partials/footer') %>

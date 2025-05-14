@@ -5,4 +5,6 @@ const { requireLogin } = require('../middleware/authMiddleware');
 
 router.get('/summary', requireLogin, reportController.teamSummary);
 
+router.get('/attendance-summary', reportController.attendanceSummary);
+
 module.exports = router;

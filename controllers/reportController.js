@@ -2,6 +2,9 @@ const Saadhak = require("../models/Saadhak");
 const Zila = require("../models/Zila");
 const Ksheter = require("../models/Ksheter");
 const Kender = require("../models/Kender");
+const Attendance = require("../models/Attendance");
+
+
 
 exports.teamSummary = async (req, res) => {
   const user = req.session.user;
@@ -71,5 +74,70 @@ exports.teamSummary = async (req, res) => {
     ksheterTotals,
     zilaTotals,
     user: req.session.user,
+  });
+};
+
+
+exports.attendanceSummary = async (req, res) => {
+  const user = req.session.user;
+  const dateStr = req.query.date || new Date().toISOString().split("T")[0]; // default today
+  const date = new Date(dateStr);
+  const nextDate = new Date(date);
+  nextDate.setDate(date.getDate() + 1);
+
+  const query = {};
+
+  if (!user.roles.includes("Admin")) {
+    if (user.zila) query.zila = user.zila;
+    if (user.ksheter) query.ksheter = user.ksheter;
+    if (user.kender) query.kender = user.kender;
+  }
+
+  // Get Present attendance records
+  const attendance = await Attendance.find({
+    date: { $gte: date, $lt: nextDate },
+    status: "Present"
+  })
+    .populate({
+      path: "saadhak",
+      match: query,
+      populate: ["zila", "ksheter", "kender"]
+    });
+
+  const summary = {};
+  const ksheterTotals = {};
+  const zilaTotals = {};
+
+  attendance.forEach((a) => {
+    const s = a.saadhak;
+    if (!s || !s.zila || !s.ksheter || !s.kender) return;
+
+    const zilaName = s.zila.name;
+    const ksheterName = s.ksheter.name;
+    const kenderName = s.kender.name;
+
+    summary[zilaName] = summary[zilaName] || {};
+    summary[zilaName][ksheterName] = summary[zilaName][ksheterName] || {};
+    summary[zilaName][ksheterName][kenderName] =
+      summary[zilaName][ksheterName][kenderName] || 0;
+    summary[zilaName][ksheterName][kenderName]++;
+
+    // Ksheter total
+    ksheterTotals[zilaName] = ksheterTotals[zilaName] || {};
+    ksheterTotals[zilaName][ksheterName] =
+      ksheterTotals[zilaName][ksheterName] || 0;
+    ksheterTotals[zilaName][ksheterName]++;
+
+    // Zila total
+    zilaTotals[zilaName] = zilaTotals[zilaName] || 0;
+    zilaTotals[zilaName]++;
+  });
+
+  res.render("report/attendanceSummary", {
+    summary,
+    ksheterTotals,
+    zilaTotals,
+    selectedDate: dateStr,
+    user
   });
 };
