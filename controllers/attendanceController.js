@@ -17,7 +17,7 @@ exports.showMarkAttendanceForm = async (req, res) => {
     start.setHours(0, 0, 0, 0); // today at 00:00:00
 
     const end = new Date();
-    end.setHours(23, 59, 59, 999); // today at 23:59:59.999
+    end.setHours(24, 0, 0, 0); // today at 23:59:59.999
 
     let query = {};
 
@@ -161,7 +161,7 @@ exports.markAttendance = async (req, res) => {
     // console.log(selectedSaadhaks);
 
     const attendanceDate = new Date(req.body.attendanceDate);
-    attendanceDate.setHours(0, 0, 0, 0);
+    attendanceDate.setHours(10, 0, 0, 0);
 
     const start = new Date(attendanceDate);
     start.setHours(0, 0, 0, 0); // today at 00:00:00

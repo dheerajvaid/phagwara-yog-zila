@@ -26,11 +26,35 @@ async function clearDatabasePreservingSaadhak() {
 
     console.log('✅ Connected to MongoDB');
 
+   
+  try {
+    const records = await Attendance.find({});
+
+    for (const record of records) {
+      const originalDate = new Date(record.date);
+      const updatedDate = new Date(
+        originalDate.getFullYear(),
+        originalDate.getMonth(),
+        originalDate.getDate(),
+        10, 0, 0, 0 // set to 10:00:00.000
+      );
+
+      record.date = updatedDate;
+      await record.save();
+      console.log(`Updated ${record._id} → ${updatedDate.toISOString()}`);
+    }
+
+    console.log('✅ All attendance date times updated.');
+    mongoose.disconnect();
+  } catch (err) {
+    console.error('❌ Error updating attendance records:', err);
+    mongoose.disconnect();
+  }
     // 🔥 Delete everything from each collection except the Saadhak with mobile 9316161666
     // await Zila.deleteMany({});
     // await Ksheter.deleteMany({});
     // await Kender.deleteMany({});
-    await Attendance.deleteMany({});
+    // await Attendance.deleteMany({});
     
     // Preserve Saadhak with mobile = 9316161666
     // await Saadhak.deleteMany({ mobile: { $ne: '9316161666' } });
@@ -44,4 +68,5 @@ async function clearDatabasePreservingSaadhak() {
     process.exit(0);
   } 
 
-clearDatabasePreservingSaadhak();
+  // updateAttendanceTimes();
+ clearDatabasePreservingSaadhak();
