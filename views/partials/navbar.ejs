@@ -12,6 +12,9 @@
         <li class="nav-item">
           <a class="nav-link" href="/explore">📂 Explore BYS</a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/shivir/register">📝 Shivir Registration</a>
+        </li>
         <% if (user) { %>
 
           <% if (user.roles.includes('Admin')) { %>
@@ -21,6 +24,7 @@
             <%- include('ksheter') %>
             <%- include('kender') %>
             <%- include('saadhak') %>
+            <%- include('shivir') %>
             <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
             <li class="nav-item"><a class="nav-link" href="/roles/manage">🎖️ Role Management</a></li>
           <% } else { %>
@@ -29,12 +33,14 @@
               <%- include('ksheter') %>
               <%- include('kender') %>
               <%- include('saadhak') %>
+              <%- include('shivir') %>
               <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
             <% } %>
             <% if (user.roles.includes('Ksheter Pradhan') || user.roles.includes('Ksheter Mantri')) { %>
               
               <%- include('kender') %>
               <%- include('saadhak') %>
+              <%- include('shivir') %>
               <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
             <% } %>
             <% if (user.roles.includes('Kender Pramukh') || user.roles.includes('Seh Kender Pramukh')) { %>

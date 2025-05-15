@@ -1,0 +1,151 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-4 mb-5">
+  <div class="text-center mb-4">
+    <img src="/images/logo.jpg" alt="BYS Logo" style="max-height: 80px;" />
+    <h1 class="mt-2 fw-bold text-danger">हड्डी रोग निवारण योग शिविर</h1>
+    <h5 class="mt-2 mb-1 text-primary fw-bold">अर्बन एवेन्यू पार्क, अर्बन एस्टेट, फगवाड़ा</h5>
+    <p class="fw-bold mt-1 mb-1 text-primary">21 मई - 25 मई (2025) - 5 दिवसीय</p>
+    <p class="fw-bold mt-1 mb-1">70092-85481, 93161-61666, 98724-64463, 98150-69381</p>
+  </div>
+
+  <% if (success) { %>
+    <div class="alert alert-success text-center"><%= success %></div>
+  <% } %>
+  <% if (error) { %>
+    <div class="alert alert-danger text-center"><%= error %></div>
+  <% } %>
+
+  <form action="/shivir/register" method="POST" class="shadow-lg p-4 bg-light rounded">
+    <div class="mb-3">
+      <label for="name" class="form-label fw-bold">Full Name *</label>
+      <input type="text" name="name" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="mobile" class="form-label fw-bold">Mobile Number (Don't Add Space or "-")*</label>
+      <input type="tel" name="mobile" class="form-control" required pattern="[0-9]{10}" title="Enter 10-digit mobile number">
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label fw-bold">Gender *</label><br>
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" name="gender" value="Male" required>
+        <label class="form-check-label">Male</label>
+      </div>
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" name="gender" value="Female" required>
+        <label class="form-check-label">Female</label>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label for="age" class="form-label fw-bold">Age *</label>
+      <input type="number" name="age" class="form-control" required min="5" max="120">
+    </div>
+
+    <div class="mb-3">
+      <label for="address" class="form-label fw-bold">Full Address *</label>
+      <textarea name="address" class="form-control" rows="3" required></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label for="disease" class="form-label fw-bold">Any Disease (Optional)</label>
+      <input type="text" name="disease" class="form-control">
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label fw-bold">Are you already a Bhartiya Yog Sansthan Member? *</label><br>
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" name="bysMember" value="Yes" required>
+        <label class="form-check-label">Yes</label>
+      </div>
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" name="bysMember" value="No" required>
+        <label class="form-check-label">No</label>
+      </div>
+    </div>
+
+    <div class="text-center">
+      <button class="btn btn-primary px-4 py-2 rounded-pill fw-bold" type="submit">Register</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const mobileInput = document.querySelector('input[name="mobile"]');
+    const form = document.querySelector('form');
+    const submitBtn = form.querySelector('button[type="submit"]');
+
+    const messageBox = document.createElement('div');
+    messageBox.classList.add('form-text'); // Bootstrap style
+    mobileInput.parentElement.appendChild(messageBox);
+
+    let isChecking = false;
+
+    mobileInput.addEventListener('blur', () => {
+      const mobile = mobileInput.value.trim();
+      if (mobile.length === 10 && /^[0-9]{10}$/.test(mobile)) {
+        // Start checking
+        isChecking = true;
+        submitBtn.disabled = true;
+        messageBox.innerHTML = 'Checking...';
+        messageBox.classList.remove('text-danger', 'text-success');
+        mobileInput.classList.remove('is-valid', 'is-invalid');
+
+        fetch('/shivir/check-mobile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mobile })
+        })
+        .then(res => res.json())
+        .then(data => {
+          isChecking = false;
+          submitBtn.disabled = false;
+
+          if (data.exists) {
+            // Already registered
+            messageBox.innerHTML = '⚠️ This mobile number is already registered.';
+            messageBox.classList.add('text-danger');
+            messageBox.classList.remove('text-success');
+            mobileInput.classList.add('is-invalid');
+            mobileInput.classList.remove('is-valid');
+          } else {
+            // Available
+            messageBox.innerHTML = '✔️ Mobile number is available.';
+            messageBox.classList.add('text-success');
+            messageBox.classList.remove('text-danger');
+            mobileInput.classList.add('is-valid');
+            mobileInput.classList.remove('is-invalid');
+          }
+        })
+        .catch(err => {
+          isChecking = false;
+          submitBtn.disabled = false;
+          console.error('Check failed', err);
+          messageBox.innerHTML = '❌ Error checking number. Try again.';
+          messageBox.classList.add('text-danger');
+          mobileInput.classList.add('is-invalid');
+        });
+      } else {
+        // Reset if format is wrong
+        messageBox.innerHTML = '';
+        mobileInput.classList.remove('is-valid', 'is-invalid');
+      }
+    });
+
+    form.addEventListener('submit', function (e) {
+      if (isChecking || mobileInput.classList.contains('is-invalid')) {
+        e.preventDefault();
+        alert('Please fix the mobile number before submitting.');
+        mobileInput.focus();
+      }
+    });
+  });
+</script>
+
+
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,76 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="fw-bold text-primary">Shivir Registrations</h2>
+    <button class="btn btn-success" onclick="downloadCSV()">Export CSV</button>
+
+    <iframe id="downloadFrame" style="display: none;"></iframe>
+  </div>
+
+  <table class="table table-bordered table-striped table-hover">
+  <thead class="table-dark text-center">
+    <tr>
+      <th>Name</th>
+      <th>Mobile</th>
+      <th>Gender</th>
+      <th>Age</th>
+      <th>Address</th>
+      <th>BYS Member</th>
+      <th>Registered At</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% registrations.forEach(reg => { %>
+      <tr>
+        <td><%= reg.name %></td>
+        <td><%= reg.mobile %></td>
+        <td><%= reg.gender %></td>
+        <td><%= reg.age %></td>
+        <td><%= reg.address %></td>
+        <td><%= reg.bysMember %></td>
+        <td><%= moment(reg.registeredAt).format('DD-MM-YYYY hh:mm A') %></td>
+        <td>
+          <form action="/shivir/delete/<%= reg._id %>" method="POST" onsubmit="return confirm('Are you sure you want to delete this registration?');">
+            <button class="btn btn-sm btn-danger">Delete</button>
+          </form>
+        </td>
+      </tr>
+    <% }); %>
+  </tbody>
+</table>
+
+</div>
+
+<script>
+  async function downloadCSV() {
+    try {
+      // Show spinner
+      document.getElementById('loadingSpinner').style.display = 'block';
+
+      const response = await fetch('/shivir/registrations/export'); // Your backend route
+
+      if (!response.ok) throw new Error('Network error');
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'shivir-registrations.csv';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      alert('Failed to download CSV');
+      console.error(error);
+    } finally {
+      // Always hide spinner
+      document.getElementById('loadingSpinner').style.display = 'none';
+    }
+  }
+</script>
+
+<%- include('../partials/footer') %>

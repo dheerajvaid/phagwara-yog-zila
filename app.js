@@ -23,6 +23,7 @@ const passwordResetRoutes = require('./routes/passwordResetRoutes');
 const attendanceRoutes = require('./routes/attendanceRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 const flash = require("connect-flash");
+const shivirRoutes = require('./routes/shivir');
 
 // Load environment variables from .env file
 dotenv.config();
@@ -83,6 +84,7 @@ app.use('/', exploreRoutes); // Keep it public!
  app.use('/', exportRoutes);
  app.use('/', passwordResetRoutes);
  app.use('/report', reportRoutes);
+ app.use('/shivir', shivirRoutes);
  
 // Start the server
 const port = process.env.PORT || 3000;
