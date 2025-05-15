@@ -9,6 +9,8 @@ const messages = require("../utils/motivationalMessages");
 exports.showMarkAttendanceForm = async (req, res) => {
   try {
     const user = req.session.user;
+    console.log("User Role in Session: " + user.roles);
+    console.log("User ID in Session: " + user.id);
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -44,9 +46,14 @@ exports.showMarkAttendanceForm = async (req, res) => {
       ) {
         query.kender = user.kender;
       }
+      if (
+        user.roles.includes("Saadhak")
+      ) {
+        query._id = user.id;
+      }
     }
-
-    // console.log(query);
+    
+    console.log(query);
 
     const saadhaks = await Saadhak.find(query)
       .populate("zila")
@@ -152,6 +159,8 @@ exports.showMarkAttendanceForm = async (req, res) => {
 // Handle attendance submission
 exports.markAttendance = async (req, res) => {
   try {
+    const user = req.session.user;
+
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Normalize to start of day
 
@@ -178,11 +187,20 @@ exports.markAttendance = async (req, res) => {
     }
 
     // console.log(start, " - ", end);
-
+   if (user.roles == "Saadhak"){
+     await Attendance.deleteOne({
+      saadhak: user.id,
+      kender: selectedKender,
+      date: { $gte: start, $lt: end },
+    });
+   } else {
     await Attendance.deleteMany({
       kender: selectedKender,
       date: { $gte: start, $lt: end },
     });
+   }
+
+    
 
     const records = selectedSaadhaks.map((id) => ({
       saadhak: id,
