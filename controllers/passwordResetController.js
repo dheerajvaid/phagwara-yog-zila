@@ -30,7 +30,9 @@ exports.getAllSaadhaks = async (req, res) => {
       }
       if (
         user.roles.includes("Kender Pramukh") ||
-        user.roles.includes("Seh Kender Pramukh")
+        user.roles.includes("Seh Kender Pramukh") ||
+        user.roles.includes("Shikshak") ||
+        user.roles.includes("Karyakarta")
       ) {
         query.kender = user.kender;
       }
@@ -46,7 +48,7 @@ exports.getAllSaadhaks = async (req, res) => {
     const ksheters = await Ksheter.find().sort({ name: 1 });
     const kenders = await Kender.find().sort({ name: 1 });
 
-    res.render('resetPassword/list', { saadhaks });
+    res.render("resetPassword/list", { saadhaks });
   } catch (err) {
     console.error(err);
     res.status(500).send("Error fetching Saadhaks");
@@ -56,7 +58,6 @@ exports.getAllSaadhaks = async (req, res) => {
 // POST: Reset password
 exports.resetPassword = async (req, res) => {
   try {
-    
     const saadhakId = req.params.id;
     await Saadhak.findByIdAndUpdate(saadhakId, {
       password: null,
