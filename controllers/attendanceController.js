@@ -22,6 +22,13 @@ exports.showMarkAttendanceForm = async (req, res) => {
     end.setHours(24, 0, 0, 0); // today at 23:59:59.999
 
     let query = {};
+    const ksheterRoles = ["Ksheter Pradhan", "Ksheter Mantri"];
+    const zilaRoles = [
+      "Zila Pradhan",
+      "Zila Mantri",
+      "Sangathan Mantri",
+      "Cashier",
+    ];
 
     if (!user.roles.includes("Admin")) {
       if (
@@ -44,15 +51,17 @@ exports.showMarkAttendanceForm = async (req, res) => {
         user.roles.includes("Shikshak") ||
         user.roles.includes("Karyakarta")
       ) {
-        query.kender = user.kender;
+        query.$or = [
+          { kender: user.kender }, // Kender team
+          { zila: user.zila, role: { $in: ksheterRoles } }, // Ksheter team
+          { zila: user.zila, role: { $in: zilaRoles } }, // Zila team
+        ];
       }
-      if (
-        user.roles.includes("Saadhak")
-      ) {
+      if (user.roles.includes("Saadhak")) {
         query._id = user.id;
       }
     }
-    
+
     console.log(query);
 
     const saadhaks = await Saadhak.find(query)
@@ -62,7 +71,7 @@ exports.showMarkAttendanceForm = async (req, res) => {
       .sort({ name: 1 })
       .lean(); // Make sure we can attach properties
 
-    // console.log(saadhaks.length);
+    console.log(saadhaks.length);
 
     const zilas = !user.zila
       ? await Zila.find().sort({ name: 1 })
@@ -133,6 +142,8 @@ exports.showMarkAttendanceForm = async (req, res) => {
     // console.log("Grouped Attendance Data:", attendanceBySaadhak);
 
     // Step 3: Assign the grouped attendance dates to the saadhaks
+    console.log("Level 2 Sadhak Count: " + saadhaks.length);
+
     for (let saadhak of saadhaks) {
       saadhak.attendanceDates =
         attendanceBySaadhak[saadhak._id.toString()] || []; // Default to empty array if no attendance found
@@ -187,27 +198,28 @@ exports.markAttendance = async (req, res) => {
     }
 
     // console.log(start, " - ", end);
-   if (user.roles == "Saadhak"){
-     await Attendance.deleteOne({
-      saadhak: user.id,
-      kender: selectedKender,
-      date: { $gte: start, $lt: end },
-    });
-   } else {
-    await Attendance.deleteMany({
-      kender: selectedKender,
-      date: { $gte: start, $lt: end },
-    });
-   }
-
-    
+    if (user.roles == "Saadhak") {
+      await Attendance.deleteOne({
+        saadhak: user.id,
+        kender: req.body.selectedKender,
+        date: { $gte: start, $lt: end },
+      });
+    } else {
+      await Attendance.deleteMany({
+        kender: req.body.selectedKender,
+        date: { $gte: start, $lt: end },
+      });
+    }
+    console.log("reached at 7");
 
     const records = selectedSaadhaks.map((id) => ({
       saadhak: id,
-      kender: selectedKender,
+      kender: req.body.selectedKender,
       date: attendanceDate,
       status: "Present", // or whatever your schema requires
     }));
+
+    console.log("reached at 8 and kender is " + selectedKender);
 
     await Attendance.insertMany(records);
 
@@ -239,7 +251,8 @@ exports.markAttendance = async (req, res) => {
     const randomMessage = messages[Math.floor(Math.random() * messages.length)];
     req.flash("message", randomMessage);
 
-    res.redirect("/attendance/today");
+    const formattedDate = attendanceDate.toISOString().split("T")[0]; // YYYY-MM-DD format
+    res.redirect(`/attendance/today?date=${formattedDate}`);
   } catch (err) {
     console.error("Error marking attendance:", err);
     res.status(500).send("Server Error");
@@ -250,47 +263,35 @@ exports.markAttendance = async (req, res) => {
 exports.viewTodayAttendance = async (req, res) => {
   try {
     const user = req.session.user;
+    const selectedDate = req.query.date ? new Date(req.query.date) : new Date();
 
-    // const today = new Date();
-    // today.setHours(0, 0, 0, 0);
+    const start = new Date(selectedDate);
+    start.setHours(0, 0, 0, 0);
 
-    const start = new Date();
-    start.setHours(0, 0, 0, 0); // today at 00:00:00
-
-    const end = new Date();
-    end.setHours(23, 59, 59, 999); // today at 23:59:59.999
+    const end = new Date(selectedDate);
+    end.setHours(23, 59, 59, 999);
 
     const attendanceRecords = await Attendance.find({
       date: { $gte: start, $lte: end },
-      status: "Present", // optional
-    })
-      .populate({
-        path: "saadhak",
-        match: { kender: user.kender },
-      })
-      .then((records) => records.filter((record) => record.saadhak));
+      status: "Present",
+      kender: user.kender,
+    }).populate("saadhak");
 
-    const kender = await Kender.findById(user.kender).sort({ name: 1 });
-
-    if (attendanceRecords.length === 0) {
-      return res.render("attendance/today", {
-        saadhaks: [],
-        message: "No attendance marked for today",
-        kenderName: kender.name,
-        attendanceDateFormatted: new Date().toLocaleDateString("en-IN"),
-        randomMessage: messages[Math.floor(Math.random() * messages.length)],
-      });
-    }
+    const kender = await Kender.findById(user.kender);
 
     res.render("attendance/today", {
       saadhaks: attendanceRecords,
-      message: "No attendance marked for today",
+      message:
+        attendanceRecords.length === 0
+          ? "No attendance marked for selected date"
+          : "",
       kenderName: kender.name,
-      attendanceDateFormatted: new Date().toLocaleDateString("en-IN"),
+      attendanceDateFormatted: selectedDate.toLocaleDateString("en-IN"),
+      attendanceDate: selectedDate.toISOString().split("T")[0],
       randomMessage: messages[Math.floor(Math.random() * messages.length)],
     });
   } catch (err) {
-    console.error("Error fetching today's attendance:", err);
+    console.error("Error fetching attendance:", err);
     res.status(500).send("Server Error");
   }
 };
@@ -416,4 +417,33 @@ exports.filteredAttendanceResult = async (req, res) => {
 
   const records = await Attendance.find(query).populate("saadhak");
   res.render("attendance/filteredResult", { records, date, kender });
+};
+
+exports.getAttendanceByDate = async (req, res) => {
+  try {
+    const { date } = req.query;
+    const user = req.session.user;
+
+    if (!date || !user.kender) {
+      return res.status(400).json({ error: "Invalid date or kender." });
+    }
+
+    const selectedDate = new Date(date);
+    selectedDate.setHours(0, 0, 0, 0);
+    const nextDay = new Date(selectedDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+
+    const attendance = await Attendance.find({
+      date: { $gte: selectedDate, $lt: nextDay },
+      kender: user.kender,
+      status: "Present",
+    }).select("saadhak");
+
+    const markedIds = attendance.map((a) => a.saadhak.toString());
+
+    res.json({ markedSaadhakIds: markedIds });
+  } catch (err) {
+    console.error("Error in getAttendanceByDate:", err);
+    res.status(500).json({ error: "Something went wrong." });
+  }
 };

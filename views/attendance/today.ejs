@@ -4,8 +4,18 @@
 <section class="container mt-4">
   <!-- Centered heading -->
   <div class="text-center mb-3">
-    <h4 class="fw-semibold">Today's Attendance - <%= saadhaks.length %> Present</h4>
-  </div>
+  <form method="GET" action="/attendance/today">
+    <input 
+      type="date" 
+      name="date" 
+      class="form-control form-control-sm d-inline-block" 
+      style="width: auto;" 
+      value="<%= attendanceDate %>" 
+      onchange="this.form.submit()" />
+    <span class="fw-semibold"> - <%= saadhaks.length %> Present</span>
+  </form>
+</div>
+
 
   <!-- Export Button -->
   <div class="text-center mb-2">
@@ -115,6 +125,15 @@
       link.href = canvas.toDataURL('image/png');
       link.click();
     });
+  });
+</script>
+
+<script>
+  document.getElementById('attendanceDate').addEventListener('change', function () {
+    const selectedDate = this.value;
+    const url = new URL(window.location.href);
+    url.searchParams.set('date', selectedDate);
+    window.location.href = url.toString();
   });
 </script>
 
