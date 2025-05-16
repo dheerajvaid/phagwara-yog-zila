@@ -43,9 +43,10 @@
               <%- include('shivir') %>
               <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
             <% } %>
-            <% if (user.roles.includes('Kender Pramukh') || user.roles.includes('Seh Kender Pramukh')) { %>
+            <% if (user.roles.includes('Kender Pramukh') || user.roles.includes('Seh Kender Pramukh') || user.roles.includes('Shikshak') || user.roles.includes('Karyakarta')) { %>
               
               <%- include('saadhak') %>
+              
               <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
             <% } %>
             <% if (user.roles.includes('Saadhak')) { %>

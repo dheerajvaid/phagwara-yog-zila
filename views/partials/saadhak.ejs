@@ -6,7 +6,9 @@
       <li><a class="dropdown-item" href="/saadhak/manage">🗂️ Manage Saadhaks</a></li>
       <li><a class="dropdown-item" href="/saadhak/add">➕ Add Saadhak</a></li>
       <li><a class="dropdown-item" href="/report/summary">🗒️ Kender Sumamry Report</a></li>
-      <li><a class="dropdown-item" href="/attendance/mark">📋 Mark Attendance</a></li>
+      <% if (user.roles.includes('Kender Pramukh') || user.roles.includes('Seh Kender Pramukh') || user.roles.includes('Shikshak') || user.roles.includes('Karyakarta')) { %>
+        <li><a class="dropdown-item" href="/attendance/mark">📋 Mark Attendance</a></li>
+      <% } %>
       <li><a class="dropdown-item" href="/attendance/today">📋 Today's Attendance</a></li>
       <li><a class="dropdown-item" href="/report/attendance-summary">📋 Attendance Summary</a></li>
     </ul>
