@@ -41,24 +41,36 @@
   });
 </script>
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    // Attach to all menu or nav links
-    document.querySelectorAll("a").forEach(link => {
-      link.addEventListener("click", function (e) {
-        const href = this.getAttribute("href");
+  (function () {
+    const spinner = document.getElementById('loadingSpinner');
 
-        // Skip anchors, JavaScript:void(0), or modal links
-        if (href && !href.startsWith("#") && !href.startsWith("javascript:")) {
-          document.getElementById("loadingSpinner").style.display = "block";
-        }
-      });
+    // 1️⃣ Always hide spinner when the page *becomes visible* (normal load or bfcache restore)
+    window.addEventListener('pageshow', () => {
+      if (spinner) spinner.style.display = 'none';
     });
 
-    // Optionally hide spinner after load
-    window.addEventListener("load", function () {
-      document.getElementById("loadingSpinner").style.display = "none";
+    // 2️⃣ Show spinner on any normal link click or form submit
+    document.addEventListener('click', e => {
+      const link = e.target.closest('a[href]');
+      if (!link) return;
+
+      const href = link.getAttribute('href');
+      // ignore anchors, JS pseudo-links, external links
+      if (
+        !href ||
+        href.startsWith('#') ||
+        href.startsWith('javascript') ||
+        link.target === '_blank'
+      )
+        return;
+
+      spinner.style.display = 'block';
     });
-  });
+
+    document.addEventListener('submit', () => {
+      if (spinner) spinner.style.display = 'block';
+    });
+  })();
 </script>
 </body>
 </html>

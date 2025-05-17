@@ -119,6 +119,6 @@ exports.loginWithPassword = async (req, res) => {
 // Logout
 exports.logout = (req, res) => {
   req.session.destroy(() => {
-    res.redirect("/auth/login");
+    res.redirect("/");
   });
 };

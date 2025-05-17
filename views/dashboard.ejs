@@ -6,7 +6,12 @@
   <p>Your mobile: <strong><%= user.mobile %></strong></p>
 
   <div class="mt-4">
-    <a href="/attendance/mark" class="btn btn-success me-2">Mark Attendance</a>
+    <% /* Show button only for Kender-team roles */ %>
+    <% if (user.roles && user.roles.some(r =>
+          ['Kender Pramukh', 'Seh Kender Pramukh', 'Shikshak', 'Karyakarta'].includes(r))) { %>
+      <a href="/attendance/mark" class="btn btn-success me-2">Mark Attendance</a>
+    <% } %>
+
     <a href="/auth/logout" class="btn btn-danger">Logout</a>
   </div>
 </section>

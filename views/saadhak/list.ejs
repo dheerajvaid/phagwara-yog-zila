@@ -1,5 +1,6 @@
 <%- include('../partials/header') %>
 <%- include('../partials/navbar') %>
+  
 
 <section class="container mt-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
@@ -8,46 +9,45 @@
   </div>
 
   <!-- 🔍 Filter + Search -->
-  <div class="row mb-3">
+  <div class="row mb-3 gy-3">
     <div class="col-md-3">
-      <label>Zila</label>
+     
       <select id="zilaFilter" class="form-select">
-        <option value="">All Zila</option>
+        <option value="">Select Zila</option>
         <% zilas.forEach(z => { %>
           <option value="<%= z._id %>"><%= z.name %></option>
         <% }) %>
       </select>
     </div>
     <div class="col-md-3">
-      <label>Ksheter</label>
+      
       <select id="ksheterFilter" class="form-select">
-        <option value="">All Ksheter</option>
+        <option value="">Select Ksheter</option>
       </select>
     </div>
     <div class="col-md-3">
-      <label>Kender</label>
+    
       <select id="kenderFilter" class="form-select">
-        <option value="">All Kender</option>
+        <option value="">Select Kender</option>
       </select>
     </div>
     <div class="col-md-3">
-      <label>Search</label>
-      <input type="text" id="searchInput" class="form-control" placeholder="Search Saadhak...">
-    </div>
+  <label>Search (Anyhing)</label>
+  <div class="input-group">
+    <input type="text" id="searchInput" class="form-control" placeholder="Type Name, Mobile, Role, Kender etc.">
+    <button id="searchBtn" class="btn btn-outline-primary">🔍 Search</button>
   </div>
+</div>
 
   <!-- ✅ Column Selection -->
   <div class="mb-3">
-    <label class="form-label">🛠️ Show Fields:</label><br>
-    <label><input type="checkbox" id="toggleMobile" checked> Mobile</label>
-    <label class="ms-3"><input type="checkbox" id="toggleRole" checked> Role</label>
-    <label class="ms-3"><input type="checkbox" id="toggleZila" checked> Zila</label>
-    <label class="ms-3"><input type="checkbox" id="toggleKsheter" checked> Ksheter</label>
-    <label class="ms-3"><input type="checkbox" id="toggleKender" checked> Kender</label>
-    <button id="resetBtn" class="btn btn-sm btn-outline-secondary float-end">🔄 Reset</button>
+    <button id="resetBtn" class="btn btn-sm btn-outline-secondary">🔄 Reset</button>
   </div>
 
+
+  
   <!-- ✅ Table -->
+  
   <div class="table-responsive">
     <table class="table table-bordered align-middle">
       <thead class="table-dark">
@@ -55,16 +55,13 @@
           <th>#</th>
           <th>Name</th>
           <th class="mobile-col">Mobile</th>
-          <th class="role-col">Role</th>
-          <th class="zila-col">Zila</th>
-          <th class="ksheter-col">Ksheter</th>
-          <th class="kender-col">Kender</th>
-          <th class="text-end">Actions</th>
+          <th class="role-col">Role</th>          
         </tr>
       </thead>
       <tbody id="saadhakTableBody"></tbody>
     </table>
   </div>
+
 </section>
 
 <script>
@@ -77,19 +74,12 @@
     const zilaFilter = document.getElementById("zilaFilter");
     const ksheterFilter = document.getElementById("ksheterFilter");
     const kenderFilter = document.getElementById("kenderFilter");
-    const searchInput = document.getElementById("searchInput");
     const resetBtn = document.getElementById("resetBtn");
     const tableBody = document.getElementById("saadhakTableBody");
-
-    const checkboxFields = {
-      mobile: document.getElementById("toggleMobile"),
-      role: document.getElementById("toggleRole"),
-      zila: document.getElementById("toggleZila"),
-      ksheter: document.getElementById("toggleKsheter"),
-      kender: document.getElementById("toggleKender")
-    };
-
-    // Populate dependent dropdowns
+    const searchBtn = document.getElementById("searchBtn");
+    
+    
+     // Populate dependent dropdowns
     function populateKsheter(zilaId) {
       ksheterFilter.innerHTML = '<option value="">All Ksheter</option>';
       const filtered = allKsheters.filter(k => k.zila === zilaId);
@@ -125,6 +115,7 @@
     }
 
     function renderTable() {
+      
       const selectedZila = zilaFilter.value;
       const selectedKsheter = ksheterFilter.value;
       const selectedKender = kenderFilter.value;
@@ -168,67 +159,66 @@
         tableBody.innerHTML += `
           <tr>
             <td>${index + 1}</td>
-            <td><a href="/saadhak/edit/${s._id}" class="text-decoration-none fw-bold">${s.name}</a></td>
+            <td><a href="/saadhak/edit/${s._id}" class="text-decoration-none fw-bold">${s.name}</a><br>
+            <small class="text-muted d-block">${s.zila?.name || '—'}</small>
+            <small class="text-muted d-block">${s.ksheter?.name || '—'}</small>
+            <small class="text-muted d-block">${s.kender?.name || '—'}</small></td>
             <td class="mobile-col">${s.mobile || ''}</td>
-            <td class="role-col">${rolesHtml}</td>
-            <td class="zila-col">${s.zila?.name || '—'}</td>
-            <td class="ksheter-col">${s.ksheter?.name || '—'}</td>
-            <td class="kender-col">${s.kender?.name || '—'}</td>
-            <td class="text-end">
-              <a href="/saadhak/edit/${s._id}" class="btn btn-sm btn-outline-primary me-1">🖊️</a>
-              <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal${s._id}">🗑️</button>
-              <div class="modal fade" id="deleteModal${s._id}" tabindex="-1">
-                <div class="modal-dialog modal-dialog-centered">
-                  <div class="modal-content">
-                    <div class="modal-header bg-danger text-white">
-                      <h5 class="modal-title">Confirm Delete</h5>
-                      <button class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">Delete <strong>${s.name}</strong>?</div>
-                    <div class="modal-footer">
-                      <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-                      <a href="/saadhak/delete/${s._id}" class="btn btn-danger btn-sm">Yes, Delete</a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </td>
+            <td class="role-col text-center">
+  ${rolesHtml}
+  <div class="mt-1 d-flex justify-content-center gap-1">
+    <a href="/saadhak/edit/${s._id}" class="btn btn-sm btn-outline-primary">🖊️</a>
+    <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal${s._id}">🗑️</button>
+  </div>
+
+  <!-- Delete Modal -->
+  <div class="modal fade" id="deleteModal${s._id}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title">Confirm Delete</h5>
+          <button class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">Delete <strong>${s.name}</strong>?</div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <a href="/saadhak/delete/${s._id}" class="btn btn-danger btn-sm">Yes, Delete</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</td>
+
           </tr>
         `;
       });
 
-      // Show/hide columns based on checkboxes
-      document.querySelectorAll(".mobile-col").forEach(col => col.style.display = checkboxFields.mobile.checked ? "" : "none");
-      document.querySelectorAll(".role-col").forEach(col => col.style.display = checkboxFields.role.checked ? "" : "none");
-      document.querySelectorAll(".zila-col").forEach(col => col.style.display = checkboxFields.zila.checked ? "" : "none");
-      document.querySelectorAll(".ksheter-col").forEach(col => col.style.display = checkboxFields.ksheter.checked ? "" : "none");
-      document.querySelectorAll(".kender-col").forEach(col => col.style.display = checkboxFields.kender.checked ? "" : "none");
+         
+     
     }
 
     // Live update dropdown changes
     zilaFilter.addEventListener("change", function () {
       populateKsheter(this.value);
       kenderFilter.innerHTML = '<option value="">All Kender</option>';
-      renderTable();
+     
     });
 
     ksheterFilter.addEventListener("change", function () {
       populateKender(this.value);
-      renderTable();
+      
     });
 
-    kenderFilter.addEventListener("change", renderTable);
-    searchInput.addEventListener("input", renderTable);
-    Object.values(checkboxFields).forEach(cb => cb.addEventListener("change", renderTable));
-
+    // kenderFilter.addEventListener("change", renderTable);
+    searchBtn?.addEventListener("click", renderTable);
     // Reset
     resetBtn?.addEventListener("click", () => {
       searchInput.value = "";
 
       if (user.roles.includes("Admin")) {
         zilaFilter.value = "";
-        ksheterFilter.innerHTML = '<option value="">All Ksheter</option>';
-        kenderFilter.innerHTML = '<option value="">All Kender</option>';
+        ksheterFilter.innerHTML = '<option value="">Select Ksheter</option>';
+        kenderFilter.innerHTML = '<option value="">Select Kender</option>';
       } else if (user.zila && user.ksheter && user.kender) {
         zilaFilter.value = user.zila;
         populateKsheter(user.zila);
@@ -239,20 +229,23 @@
         zilaFilter.value = user.zila;
         populateKsheter(user.zila);
         ksheterFilter.value = user.ksheter;
-        kenderFilter.innerHTML = '<option value="">All Kender</option>';
+        kenderFilter.innerHTML = '<option value="">Select Kender</option>';
       } else if (user.zila) {
         zilaFilter.value = user.zila;
         populateKsheter(user.zila);
         ksheterFilter.value = '';
-        kenderFilter.innerHTML = '<option value="">All Kender</option>';
+        kenderFilter.innerHTML = '<option value="">Select Kender</option>';
       }
 
-      renderTable();
-    });
-
-    renderTable();
+      tableBody.innerHTML ='';
+    });  
+    
+    
   });
+
+ 
 </script>
+
 
 
 <%- include('../partials/footer') %>
