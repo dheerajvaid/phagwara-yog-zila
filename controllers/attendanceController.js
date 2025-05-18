@@ -135,6 +135,7 @@ exports.showMarkAttendanceForm = async (req, res) => {
     for (let a of allAttendance) {
       const id = a.saadhak.toString(); // Group by saadhak ID
       if (!attendanceBySaadhak[id]) attendanceBySaadhak[id] = [];
+      a.date.setHours(10, 0, 0, 0);
       attendanceBySaadhak[id].push(a.date);
     }
 
@@ -142,11 +143,16 @@ exports.showMarkAttendanceForm = async (req, res) => {
     // console.log("Grouped Attendance Data:", attendanceBySaadhak);
 
     // Step 3: Assign the grouped attendance dates to the saadhaks
-    console.log("Level 2 Sadhak Count: " + saadhaks.length);
 
     for (let saadhak of saadhaks) {
+      // const rawDates = attendanceBySaadhak[saadhak._id.toString()] || [];
+
+      // saadhak.attendanceDates = [
+      //   ...new Set(rawDates.map((date) => new Date(date).toDateString())),
+      // ];
       saadhak.attendanceDates =
         attendanceBySaadhak[saadhak._id.toString()] || []; // Default to empty array if no attendance found
+      // console.log(saadhak.name + " " + saadhak.attendanceDates);
     }
 
     // Log final result
@@ -278,6 +284,25 @@ exports.viewTodayAttendance = async (req, res) => {
     }).populate("saadhak");
 
     const kender = await Kender.findById(user.kender);
+    const pramukhs = await Saadhak.find({
+      kender: user.kender,
+      role: { $in: ["Kender Pramukh", "Seh Kender Pramukh"] },
+    }).select("name mobile role");
+    
+     
+    let kenderPramukh = null;
+    let sehKenderPramukh = null;
+
+    pramukhs.forEach((p) => {
+      if (p.role[0] === "Kender Pramukh") {
+        kenderPramukh = p;
+      } else if (p.role[0] === "Seh Kender Pramukh") {
+        sehKenderPramukh = p;
+      }
+    });
+
+    // console.log (kenderPramukh);
+    // console.log(sehKenderPramukh);
 
     res.render("attendance/today", {
       saadhaks: attendanceRecords,
@@ -286,6 +311,8 @@ exports.viewTodayAttendance = async (req, res) => {
           ? "No attendance marked for selected date"
           : "",
       kenderName: kender.name,
+      kenderPramukh: kenderPramukh || {},
+      sehKenderPramukh: sehKenderPramukh || {},
       attendanceDateFormatted: selectedDate.toLocaleDateString("en-IN"),
       attendanceDate: selectedDate.toISOString().split("T")[0],
       randomMessage: messages[Math.floor(Math.random() * messages.length)],

@@ -4,8 +4,6 @@ const Ksheter = require("../models/Ksheter");
 const Kender = require("../models/Kender");
 const Attendance = require("../models/Attendance");
 
-
-
 exports.teamSummary = async (req, res) => {
   const user = req.session.user;
   const query = {};
@@ -68,7 +66,7 @@ exports.teamSummary = async (req, res) => {
       }
     });
   });
-//   console.log(summary);
+  //   console.log(summary);
   res.render("report/summary", {
     summary,
     ksheterTotals,
@@ -77,7 +75,6 @@ exports.teamSummary = async (req, res) => {
   });
 };
 
-
 exports.attendanceSummary = async (req, res) => {
   const user = req.session.user;
   const dateStr = req.query.date || new Date().toISOString().split("T")[0]; // default today
@@ -85,23 +82,39 @@ exports.attendanceSummary = async (req, res) => {
   const nextDate = new Date(date);
   nextDate.setDate(date.getDate() + 1);
 
-  const query = {};
+  let attendanceQuery = {
+    date: { $gte: date, $lt: nextDate },
+    status: "Present",
+  };
 
-  if (!user.roles.includes("Admin")) {
-    if (user.zila) query.zila = user.zila;
-    if (user.ksheter) query.ksheter = user.ksheter;
-    if (user.kender) query.kender = user.kender;
+  if (user.kender) {
+    // Direct match on Attendance.kender
+    attendanceQuery.kender = user.kender;
+  } else if (user.zila || user.ksheter) {
+    // Find relevant kender IDs based on zila/ksheter
+    const kenderFilter = {};
+    if (user.zila) kenderFilter.zila = user.zila;
+    if (user.ksheter) kenderFilter.ksheter = user.ksheter;
+
+    const relevantKenders = await Kender.find(kenderFilter).select("_id");
+    const kenderIds = relevantKenders.map((k) => k._id);
+
+    attendanceQuery.kender = { $in: kenderIds };
   }
 
   // Get Present attendance records
-  const attendance = await Attendance.find({
-    date: { $gte: date, $lt: nextDate },
-    status: "Present"
-  })
+  const attendance = await Attendance.find(attendanceQuery)
     .populate({
       path: "saadhak",
-      match: query,
-      populate: ["zila", "ksheter", "kender"]
+      select: "name",
+    })
+    .populate({
+      path: "kender",
+      select: "name ksheter zila",
+      populate: [
+        { path: "ksheter", model: "Ksheter", select: "name" },
+        { path: "zila", model: "Zila", select: "name" },
+      ],
     });
 
   const summary = {};
@@ -109,20 +122,24 @@ exports.attendanceSummary = async (req, res) => {
   const zilaTotals = {};
 
   attendance.forEach((a) => {
-    const s = a.saadhak;
-    if (!s || !s.zila || !s.ksheter || !s.kender) return;
+    const saadhak = a.saadhak;
+    const kender = a.kender;
 
-    const zilaName = s.zila.name;
-    const ksheterName = s.ksheter.name;
-    const kenderName = s.kender.name;
+    // Check that all required fields are present
+    if (!saadhak || !kender || !kender.zila || !kender.ksheter) return;
 
+    const zilaName = kender.zila.name;
+    const ksheterName = kender.ksheter.name;
+    const kenderName = kender.name;
+
+    // Zila → Ksheter → Kender summary
     summary[zilaName] = summary[zilaName] || {};
     summary[zilaName][ksheterName] = summary[zilaName][ksheterName] || {};
     summary[zilaName][ksheterName][kenderName] =
       summary[zilaName][ksheterName][kenderName] || 0;
     summary[zilaName][ksheterName][kenderName]++;
 
-    // Ksheter total
+    // Ksheter total per Zila
     ksheterTotals[zilaName] = ksheterTotals[zilaName] || {};
     ksheterTotals[zilaName][ksheterName] =
       ksheterTotals[zilaName][ksheterName] || 0;
@@ -138,6 +155,6 @@ exports.attendanceSummary = async (req, res) => {
     ksheterTotals,
     zilaTotals,
     selectedDate: dateStr,
-    user
+    user,
   });
 };

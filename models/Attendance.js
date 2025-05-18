@@ -8,7 +8,7 @@ const attendanceSchema = new mongoose.Schema({
   },
   kender: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Kendeer',
+    ref: 'Kender',
     required: true
   },
   date: {
