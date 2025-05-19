@@ -2,16 +2,112 @@
 <%- include('../partials/navbar') %>
 
 <div class="container mt-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="fw-bold text-primary">Shivir Registrations</h2>
+ <div class="text-center mb-4">
+    <h2 class="fw-bold">🧘‍♂️ Shivir Registration Summary</h2>
     <button class="btn btn-success" onclick="downloadCSV()">Export CSV</button>
-
-    <iframe id="downloadFrame" style="display: none;"></iframe>
   </div>
 
+  <!-- Total Summary Card -->
+  <div class="card summary-card mb-4">
+    <div class="card-body text-center">
+      <div class="row">
+        <div class="col-12 col-md-4 mb-3 mb-md-0">
+          <h5>Total Registered</h5>
+          <span class="badge bg-primary fs-5"><%= summary.total %></span>
+        </div>
+        <div class="col-6 col-md-4">
+          <h5>Males</h5>
+          <span class="badge bg-info text-dark fs-5"><%= summary.male %></span>
+        </div>
+        <div class="col-6 col-md-4">
+          <h5>Females</h5>
+          <span class="badge bg-danger fs-5"><%= summary.female %></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Male Distribution Table -->
+  <div class="card summary-card mb-4">
+    <div class="card-header bg-info bg-opacity-10 border-info">
+      <span class="summary-header"><i class="bi bi-gender-male text-primary"></i> Male Age Distribution</span>
+    </div>
+    <div class="card-body p-0">
+      <table class="table table-hover table-striped mb-0 table-custom">
+        <thead class="table-light">
+          <tr>
+            <th>Age Range</th>
+            <th class="text-end">Count</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Below 20</td>
+            <td class="text-end"><%= summary.maleAgeSlabs.below20 %></td>
+          </tr>
+          <tr>
+            <td>20 – 40</td>
+            <td class="text-end"><%= summary.maleAgeSlabs.between20_40 %></td>
+          </tr>
+          <tr>
+            <td>40 – 60</td>
+            <td class="text-end"><%= summary.maleAgeSlabs.between40_60 %></td>
+          </tr>
+          <tr>
+            <td>60 – 80</td>
+            <td class="text-end"><%= summary.maleAgeSlabs.between60_80 %></td>
+          </tr>
+          <tr>
+            <td>Above 80</td>
+            <td class="text-end"><%= summary.maleAgeSlabs.above80 %></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Female Distribution Table -->
+  <div class="card summary-card mb-5">
+    <div class="card-header bg-danger bg-opacity-10 border-danger">
+      <span class="summary-header"><i class="bi bi-gender-female text-danger"></i> Female Age Distribution</span>
+    </div>
+    <div class="card-body p-0">
+      <table class="table table-hover table-striped mb-0 table-custom">
+        <thead class="table-light">
+          <tr>
+            <th>Age Range</th>
+            <th class="text-end">Count</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Below 20</td>
+            <td class="text-end"><%= summary.femaleAgeSlabs.below20 %></td>
+          </tr>
+          <tr>
+            <td>20 – 40</td>
+            <td class="text-end"><%= summary.femaleAgeSlabs.between20_40 %></td>
+          </tr>
+          <tr>
+            <td>40 – 60</td>
+            <td class="text-end"><%= summary.femaleAgeSlabs.between40_60 %></td>
+          </tr>
+          <tr>
+            <td>60 – 80</td>
+            <td class="text-end"><%= summary.femaleAgeSlabs.between60_80 %></td>
+          </tr>
+          <tr>
+            <td>Above 80</td>
+            <td class="text-end"><%= summary.femaleAgeSlabs.above80 %></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
   <table class="table table-bordered table-striped table-hover">
   <thead class="table-dark text-center">
     <tr>
+      <th>#</th>
       <th>Name</th>
       <th>Mobile</th>
       <th>Gender</th>
@@ -23,8 +119,11 @@
     </tr>
   </thead>
   <tbody>
+    <% let count = 0 %>
     <% registrations.forEach(reg => { %>
       <tr>
+        <% count = count + 1 %>
+        <td><%= count %></td>
         <td><%= reg.name %></td>
         <td><%= reg.mobile %></td>
         <td><%= reg.gender %></td>

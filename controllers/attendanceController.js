@@ -9,8 +9,6 @@ const messages = require("../utils/motivationalMessages");
 exports.showMarkAttendanceForm = async (req, res) => {
   try {
     const user = req.session.user;
-    console.log("User Role in Session: " + user.roles);
-    console.log("User ID in Session: " + user.id);
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -62,16 +60,12 @@ exports.showMarkAttendanceForm = async (req, res) => {
       }
     }
 
-    console.log(query);
-
     const saadhaks = await Saadhak.find(query)
       .populate("zila")
       .populate("ksheter")
       .populate("kender")
       .sort({ name: 1 })
       .lean(); // Make sure we can attach properties
-
-    console.log(saadhaks.length);
 
     const zilas = !user.zila
       ? await Zila.find().sort({ name: 1 })
@@ -283,13 +277,18 @@ exports.viewTodayAttendance = async (req, res) => {
       kender: user.kender,
     }).populate("saadhak");
 
+    attendanceRecords.sort((a, b) => {
+      const nameA = a.saadhak.name.toLowerCase();
+      const nameB = b.saadhak.name.toLowerCase();
+      return nameA.localeCompare(nameB); // for case-insensitive alphabetical sort
+    });
+    
     const kender = await Kender.findById(user.kender);
     const pramukhs = await Saadhak.find({
       kender: user.kender,
       role: { $in: ["Kender Pramukh", "Seh Kender Pramukh"] },
     }).select("name mobile role");
-    
-     
+
     let kenderPramukh = null;
     let sehKenderPramukh = null;
 

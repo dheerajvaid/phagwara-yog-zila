@@ -24,6 +24,7 @@ function canManage(allowedRoles) {
     if (userRoles.includes('Admin')) return next();
 
     // Check if any of the user roles is allowed
+    // console.log(allowedRoles);
     const hasAccess = userRoles.some(role => allowedRoles.includes(role));
     // console.log(hasAccess);
 

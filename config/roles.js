@@ -26,5 +26,9 @@ module.exports = {
     "Karyakarta"
   ],
 
+  saadhakRoles: [
+    "Saadhak",
+  ],
+
   adminOnly: ["Admin"]
 };
