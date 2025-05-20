@@ -5,12 +5,13 @@ const { requireLogin } = require("../middleware/authMiddleware");
 const { canManage } = require("../middleware/roleMiddleware");
 const { zilaRoles, ksheterRoles, kenderRoles, saadhakRoles } = require("../config/roles");
 const saadhakManagerRoles = [...zilaRoles, ...ksheterRoles, ...kenderRoles];
+const attendanceRoles =[...kenderRoles, ...saadhakRoles];
 
 // Show form to mark attendance
 router.get(
   "/mark",
   requireLogin,
-  canManage([kenderRoles, ...saadhakRoles]),
+  canManage(attendanceRoles),
   attendanceController.showMarkAttendanceForm
 );
 
@@ -18,7 +19,7 @@ router.get(
 router.post(
   "/mark",
   requireLogin,
-  canManage([kenderRoles, ...saadhakRoles]),
+  canManage(attendanceRoles),
   attendanceController.markAttendance
 );
 
@@ -26,7 +27,7 @@ router.post(
 router.get(
   "/today",
   requireLogin,
-  canManage([kenderRoles, ...saadhakRoles]),
+  canManage(attendanceRoles),
   attendanceController.viewTodayAttendance
 );
 

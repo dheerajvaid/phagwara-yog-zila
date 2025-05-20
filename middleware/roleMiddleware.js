@@ -22,7 +22,8 @@ function canManage(allowedRoles) {
     // console.log(userRoles);
     // Admins bypass checks
     if (userRoles.includes('Admin')) return next();
-
+    console.log(allowedRoles);
+    console.log(req.session.user.roles);
     // Check if any of the user roles is allowed
     // console.log(allowedRoles);
     const hasAccess = userRoles.some(role => allowedRoles.includes(role));
