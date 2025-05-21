@@ -3,50 +3,54 @@
 
 <!-- 🌟 Hero Section -->
 <section
-  class="bg-light text-dark py-3"
-  style="background:url('/images/hero-yoga.jpg') no-repeat center/cover;"
+  class="bg-light text-dark py-4"
+  style="background: url('/images/hero-yoga.jpg') no-repeat center/cover; min-height: 70vh;"
 >
   <div
-    class="container text-center py-4 px-3"
-    style="background:rgba(255,255,255,.85);border-radius:1rem;max-width:640px;"
+    class="container text-center py-5 px-4"
+    style="background: rgba(255, 255, 255, 0.9); border-radius: 1.5rem; max-width: 700px;"
   >
-    <h1 class="display-5 fw-bold mb-3">Welcome to Bhartiya Yog Sansthan</h1>
-    <p class="lead mb-4">
-      Transform your body, mind &amp; soul with the power of Yog. Join our
-      community-led movement across Zilas, Ksheter, and 4500+ Kendras.
+    <h1 class="display-5 fw-bold mb-3 text-success">
+      🧘‍♂️ Welcome to Bhartiya Yog Sansthan
+    </h1>
+    <p class="lead mb-4 text-dark">
+      Transform your <strong>body, mind & soul</strong> with the power of Yog. <br />
+      Join our community-led movement across <strong>Zilas, Ksheter</strong> and <strong>4500+ Kendras</strong>.
     </p>
 
-    <!-- ✨ New CTA Buttons -->
-<div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
-  <a href="/shivir/register" class="btn btn-success btn-lg shadow-sm">
-    Register for Shivir (21-25 May)
-  </a>
-  <a href="/shivir/attendance/report" class="btn btn-success btn-lg shadow-sm">
-    Shivir Attendance (21-25 May)
-  </a>
-  <a href="/explore" class="btn btn-outline-primary btn-lg shadow-sm">
-    Explore BYS
-  </a>
-  <% if (user) { %>
-    <a href="/auth/logout" class="btn btn-outline-danger btn-lg shadow-sm">
-      Logout
-    </a>
-  <% } else { %>
-    <a href="/auth/login" class="btn btn-outline-dark btn-lg shadow-sm">
-      Login
-    </a>
-  <% } %>
-</div>
-
+    <!-- ✨ CTA Buttons (fully responsive) -->
+    <div class="d-grid gap-3 d-sm-flex justify-content-sm-center flex-wrap">
+      <a href="/yog-samagri/report" class="btn btn-success btn-lg px-4 shadow">
+        🛍️ Yog Samagri
+      </a>
+      <a href="/shivir/register" class="btn btn-warning btn-lg px-4 shadow">
+        📅 Shivir Registration
+      </a>
+      <a href="/shivir/attendance/report" class="btn btn-info btn-lg px-4 shadow text-white">
+        📋 Shivir Attendance
+      </a>
+      <a href="/explore" class="btn btn-outline-primary btn-lg px-4 shadow">
+        🌐 Explore BYS
+      </a>
+      <% if (user) { %>
+        <a href="/auth/logout" class="btn btn-outline-danger btn-lg px-4 shadow">
+          🔒 Logout
+        </a>
+      <% } else { %>
+        <a href="/auth/login" class="btn btn-outline-dark btn-lg px-4 shadow">
+          🔑 Login
+        </a>
+      <% } %>
+    </div>
+  </div>
 </section>
 
-<!-- Hindi Mission Statement -->
-<section class="bg-light py-2">
+<!-- 💡 Mission Statement -->
+<section class="bg-light py-4">
   <div class="container text-center">
-    <h4 class="mb-3">हमारा उद्देश्य</h4>
-    <p class="lead">
-      योग को जन-जन तक पहुँचाना, आत्मा को परमात्मा से जोड़ना, और सेवा भाव से समाज
-      को सशक्त बनाना।
+    <h4 class="mb-3 fw-bold text-primary">📖 हमारा उद्देश्य</h4>
+    <p class="lead text-dark" style="max-width: 720px; margin: auto;">
+      योग को जन-जन तक पहुँचाना, आत्मा को परमात्मा से जोड़ना, और सेवा भाव से समाज को सशक्त बनाना।
     </p>
   </div>
 </section>
