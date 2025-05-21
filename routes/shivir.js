@@ -39,4 +39,8 @@ router.post("/check-mobile", async (req, res) => {
   }
 });
 
+router.get("/attendance", requireLogin, canManage(ksheterRoles),shivirController.getAttendanceForm);
+router.post("/attendance", requireLogin, canManage(ksheterRoles), shivirController.postAttendance);
+router.get("/attendance/report", shivirController.attendanceReport);
+
 module.exports = router;

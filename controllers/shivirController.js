@@ -1,4 +1,5 @@
 const ShivirRegistration = require("../models/ShivirRegistration");
+const ShivirAttendance = require("../models/ShivirAttendance");
 const { Parser } = require("json2csv"); // for CSV export
 const moment = require("moment");
 
@@ -153,4 +154,99 @@ exports.deleteRegistration = async (req, res) => {
     console.error(err);
     res.status(500).send("Error deleting registration");
   }
+};
+
+exports.getAttendanceForm = async (req, res) => {
+  const today = moment().format("YYYY-MM-DD");
+
+  // ✅ Only fetch records where present is true
+  const attendance = await ShivirAttendance.find({ date: today, present: true })
+    .collation({ locale: "en", strength: 1 }) // Case-insensitive collation
+    .sort({ name: 1 });
+
+  // 🔁 Build Set of registrationIds already marked present
+  const markedIds = new Set(attendance.map((a) => a.registrationId.toString()));
+  console.log("Marked as present IDs:", markedIds);
+
+  // ✅ Show registrations who are NOT in markedIds (i.e., not present yet)
+  const registrations = await ShivirRegistration.find({
+    _id: { $nin: Array.from(markedIds) },
+  }).sort("name");
+
+  res.render("shivir/attendance", {
+    registrations,
+    today,
+  });
+};
+
+exports.postAttendance = async (req, res) => {
+  const today = moment().format("YYYY-MM-DD");
+  const presentIds = req.body.present || [];
+
+  const allRegistrations = await ShivirRegistration.find();
+
+  // Normalize presentIds to strings in case it's a single value
+  const presentSet = new Set(
+    Array.isArray(presentIds) ? presentIds : [presentIds]
+  );
+
+  console.log("Present: ", presentSet);
+
+  for (const reg of allRegistrations) {
+    const regIdStr = reg._id.toString();
+    const isPresent = presentSet.has(regIdStr);
+
+    // Find if there's already an attendance record
+    const existing = await ShivirAttendance.findOne({
+      registrationId: reg._id,
+      date: today,
+      present: false,
+    });
+
+    if (existing) {
+      if (existing.present !== isPresent) {
+        existing.present = isPresent;
+        await existing.save();
+      }
+    } else {
+      await ShivirAttendance.create({
+        registrationId: reg._id,
+        date: today,
+        present: isPresent,
+      });
+    }
+  }
+
+  res.redirect("/shivir/attendance/report");
+};
+
+exports.attendanceReport = async (req, res) => {
+  const days = [
+    "2025-05-21",
+    "2025-05-22",
+    "2025-05-23",
+    "2025-05-24",
+    "2025-05-25",
+  ];
+  const registrations = await ShivirRegistration.find()
+    .collation({ locale: "en", strength: 1 }) // Case-insensitive collation
+    .sort({ name: 1 });
+
+  const attendanceData = {};
+
+  for (let day of days) {
+    const dayRecords = await ShivirAttendance.find({ date: day });
+    const presentIds = new Set(
+      dayRecords
+        .filter((r) => r.present)
+        .map((r) => r.registrationId.toString())
+    );
+    attendanceData[day] = presentIds;
+  }
+
+  res.render("shivir/report", {
+    registrations,
+    attendanceData,
+    days,
+  });
 };

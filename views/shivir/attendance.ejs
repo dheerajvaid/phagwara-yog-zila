@@ -1,0 +1,39 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-4 mb-5">
+  <div class="text-center mb-4">
+    <h2 class="text-center">📝 Shivir Attendance - <%= today %></h2>
+
+    <form method="POST" action="/shivir/attendance">
+      <table border="1" cellpadding="8" style="width:100%">
+        <thead>
+          <tr>
+            <th>Present</th>
+            <th>Name</th>
+            <th>Mobile</th>
+            <th>Gender</th>
+            <th>Age</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% registrations.forEach(reg => { %>
+            <tr>
+              <td>
+                <input type="checkbox" name="present" value="<%= reg._id %>">
+              </td>
+              <td><%= reg.name.toUpperCase() %></td>
+              <td><%= reg.mobile %></td>
+              <td><%= reg.gender %></td>
+              <td><%= reg.age %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+
+      <div style="text-align: center; margin-top: 20px;">
+        <button type="submit">✅ Save Attendance</button>
+      </div>
+    </form>
+  </div>
+</div>

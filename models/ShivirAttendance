@@ -1,0 +1,10 @@
+// models/ShivirAttendance.js
+const mongoose = require("mongoose");
+
+const shivirAttendanceSchema = new mongoose.Schema({
+  registrationId: { type: mongoose.Schema.Types.ObjectId, ref: "ShivirRegistration" },
+  date: { type: String, required: true }, // e.g., '2025-05-21'
+  present: { type: Boolean, default: false },
+});
+
+module.exports = mongoose.model("ShivirAttendance", shivirAttendanceSchema);

@@ -1,0 +1,83 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-4 mb-5">
+  <div class="text-center mb-4" id="present-attendance-report">
+    <h2>📋 Shivir Attendance Report</h2>
+
+    <h4>✅ Present (at least once)</h4>
+    <table border="1" cellpadding="6" style="width: 100%">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <% days.forEach(day => { %>
+            <th><%= day %></th>
+          <% }) %>
+        </tr>
+      </thead>
+      <tbody>
+        <% registrations.forEach(reg => {
+             const wasPresent = days.some(day => attendanceData[day]?.has(reg._id.toString()));
+             if (wasPresent) { %>
+          <tr>
+            <td><%= reg.name.toUpperCase() %></td>
+            <% days.forEach(day => { %>
+              <td>
+                <%= attendanceData[day]?.has(reg._id.toString()) ? '✅' : '❌' %>
+              </td>
+            <% }) %>
+          </tr>
+        <% } }) %>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Export button -->
+  <div class="text-center mt-4 mb-5">
+    <button id="exportBtn" class="btn btn-primary">Export Present Attendance as Image 📸</button>
+  </div>
+
+  <div class="text-center mb-4">
+    <h4 class="mt-4">❌ Not Present (on any day)</h4>
+    <table border="1" cellpadding="6" style="width: 100%">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <% days.forEach(day => { %>
+            <th><%= day %></th>
+          <% }) %>
+        </tr>
+      </thead>
+      <tbody>
+        <% registrations.forEach(reg => {
+             const wasPresent = days.some(day => attendanceData[day]?.has(reg._id.toString()));
+             if (!wasPresent) { %>
+          <tr>
+            <td><%= reg.name.toUpperCase() %></td>
+            <% days.forEach(day => { %>
+              <td>❌</td>
+            <% }) %>
+          </tr>
+        <% } }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Include html2canvas from CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<script>
+  document.getElementById('exportBtn').addEventListener('click', () => {
+    const presentReport = document.getElementById('present-attendance-report');
+
+    html2canvas(presentReport).then(canvas => {
+      const link = document.createElement('a');
+      link.download = 'shivir-attendance-present-report.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }).catch(err => {
+      alert('Error exporting image: ' + err);
+    });
+  });
+</script>
