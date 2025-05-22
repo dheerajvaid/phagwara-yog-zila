@@ -157,7 +157,9 @@ exports.deleteRegistration = async (req, res) => {
 };
 
 exports.getAttendanceForm = async (req, res) => {
+  // const today = moment().subtract(1, 'days').format("YYYY-MM-DD");
   const today = moment().format("YYYY-MM-DD");
+  // console.log(today);
 
   // ✅ Only fetch records where present is true
   const attendance = await ShivirAttendance.find({ date: today, present: true })
@@ -166,7 +168,7 @@ exports.getAttendanceForm = async (req, res) => {
 
   // 🔁 Build Set of registrationIds already marked present
   const markedIds = new Set(attendance.map((a) => a.registrationId.toString()));
-  console.log("Marked as present IDs:", markedIds);
+  // console.log("Marked as present IDs:", markedIds);
 
   // ✅ Show registrations who are NOT in markedIds (i.e., not present yet)
   const registrations = await ShivirRegistration.find({
@@ -180,6 +182,7 @@ exports.getAttendanceForm = async (req, res) => {
 };
 
 exports.postAttendance = async (req, res) => {
+  // const today = moment().subtract(1, 'days').format("YYYY-MM-DD");
   const today = moment().format("YYYY-MM-DD");
   const presentIds = req.body.present || [];
 
@@ -190,7 +193,7 @@ exports.postAttendance = async (req, res) => {
     Array.isArray(presentIds) ? presentIds : [presentIds]
   );
 
-  console.log("Present: ", presentSet);
+  // console.log("Present: ", presentSet);
 
   for (const reg of allRegistrations) {
     const regIdStr = reg._id.toString();

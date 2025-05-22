@@ -25,7 +25,7 @@ const reportRoutes = require('./routes/reportRoutes');
 const flash = require("connect-flash");
 const shivirRoutes = require('./routes/shivir');
 const yogSamagriRoutes = require('./routes/yogSamagri');
-
+const storyRoutes = require('./routes/storyRoutes');
 // Load environment variables from .env file
 dotenv.config();
 
@@ -87,6 +87,7 @@ app.use('/', exploreRoutes); // Keep it public!
  app.use('/report', reportRoutes);
  app.use('/shivir', shivirRoutes);
  app.use('/yog-samagri', yogSamagriRoutes);
+ app.use('/stories', storyRoutes);
  
 // Start the server
 const port = process.env.PORT || 3000;

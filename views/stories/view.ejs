@@ -1,0 +1,8 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+<div class="container py-4">
+  <h2><%= story.title %></h2>
+  <p style="white-space: pre-wrap;"><%= story.content %></p>
+  <a href="/stories" class="btn btn-secondary mt-3">← Back to Stories</a>
+</div>
+<%- include('../partials/footer') %>

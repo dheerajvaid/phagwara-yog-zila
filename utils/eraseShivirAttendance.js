@@ -18,7 +18,7 @@ async function eraseAllShivirAttendance() {
      .then(() => console.log("MongoDB connected"))
      .catch((err) => console.log(err));
 
-    const result = await ShivirAttendance.deleteMany({});
+    const result = await ShivirAttendance.deleteMany({ date: '2025-05-21' });
     console.log(
       `✅ All Shivir attendance records deleted. Count: ${result.deletedCount}`
     );
