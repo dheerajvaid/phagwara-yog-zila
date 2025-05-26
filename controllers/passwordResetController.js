@@ -5,12 +5,13 @@ const Zila = require("../models/Zila");
 const Ksheter = require("../models/Ksheter");
 const Kender = require("../models/Kender");
 
-const { ALL_ROLES } = require("../utils/roles");
+const { ALL_ROLES } = require("../config/roles");
 const { all } = require("../routes/kenderRoutes");
 
 // GET: List all Saadhaks
 exports.getAllSaadhaks = async (req, res) => {
   try {
+    
     const user = req.session.user;
 
     let query = {};
@@ -35,6 +36,11 @@ exports.getAllSaadhaks = async (req, res) => {
         user.roles.includes("Karyakarta")
       ) {
         query.kender = user.kender;
+      }
+      if (
+        user.roles.includes("Saadhak")
+      ) {
+        query._id = user.id;
       }
     }
 
