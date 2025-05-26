@@ -1,15 +1,81 @@
 <%- include('../partials/header') %>
 <%- include('../partials/navbar') %>
 
+<style>
+  input[type="checkbox"] {
+    accent-color: #0d6efd; /* Bootstrap Primary Blue */
+    transition: 0.2s ease;
+  }
+  input[type="checkbox"]:hover {
+    transform: scale(1.1);
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  table th, table td {
+    border: 1px solid #dee2e6;
+    padding: 12px;
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  table th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+  }
+
+  table tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+
+  table tr:hover {
+    background-color: #e9ecef;
+  }
+
+  button[type="submit"] {
+    background-color: #0d6efd;
+    color: white;
+    padding: 10px 20px;
+    font-size: 18px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.3s ease;
+  }
+
+  button[type="submit"]:hover {
+    background-color: #0b5ed7;
+  }
+</style>
+
 <div class="container mt-4 mb-5">
   <div class="text-center mb-4">
-    <h2 class="text-center">📝 Shivir Attendance - <%= today %></h2>
+    <h2 class="text-center">📝 Shivir Attendance</h2>
 
     <form method="POST" action="/shivir/attendance">
-      <table border="1" cellpadding="8" style="width:100%">
+      <div class="mb-3 text-center">
+        <label for="date" class="form-label"><strong>📅 Select Date:</strong></label>
+        <input
+          type="date"
+          id="date"
+          name="date"
+          value="<%= today %>"
+          min="2025-06-04"
+          max="2025-06-08"
+          required
+          style="padding: 6px 12px; font-size: 16px;"
+        >
+      </div>
+
+      <table class="table table-bordered">
         <thead>
           <tr>
-            <th>Present</th>
+            <th>
+              <input type="checkbox" id="selectAll" onclick="toggleAll(this)" style="width: 20px; height: 20px; cursor: pointer;" />
+            </th>
             <th>Name</th>
             <th>Mobile</th>
             <th>Gender</th>
@@ -20,7 +86,7 @@
           <% registrations.forEach(reg => { %>
             <tr>
               <td>
-                <input type="checkbox" name="present" value="<%= reg._id %>">
+                <input type="checkbox" class="present-checkbox" name="present" value="<%= reg._id %>" style="width: 20px; height: 20px; cursor: pointer;">
               </td>
               <td><%= reg.name.toUpperCase() %></td>
               <td><%= reg.mobile %></td>
@@ -37,4 +103,12 @@
     </form>
   </div>
 </div>
+
+<script>
+  function toggleAll(source) {
+    const checkboxes = document.querySelectorAll('.present-checkbox');
+    checkboxes.forEach(cb => cb.checked = source.checked);
+  }
+</script>
+
 <%- include('../partials/footer') %>

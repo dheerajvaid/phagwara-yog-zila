@@ -2,6 +2,7 @@ const ShivirRegistration = require("../models/ShivirRegistration");
 const ShivirAttendance = require("../models/ShivirAttendance");
 const { Parser } = require("json2csv"); // for CSV export
 const moment = require("moment");
+const { formatName } = require('../utils/formatters');
 
 exports.getForm = (req, res) => {
   res.render("shivir/register", { success: null, error: null });
@@ -30,7 +31,7 @@ exports.postForm = async (req, res) => {
 
     // ✅ Create new entry
     await ShivirRegistration.create({
-      name,
+      name: formatName(name.trim()),
       mobile,
       gender,
       age,
@@ -183,7 +184,32 @@ exports.getAttendanceForm = async (req, res) => {
 
 exports.postAttendance = async (req, res) => {
   // const today = moment().subtract(1, 'days').format("YYYY-MM-DD");
-  const today = moment().format("YYYY-MM-DD");
+  // const today = moment().format("YYYY-MM-DD");
+
+  const selectedDate = req.body.date || moment().format("YYYY-MM-DD");
+  const today = moment(selectedDate).format("YYYY-MM-DD");
+
+  // Define allowed date range
+  const minDate = moment("2025-06-04", "YYYY-MM-DD");
+  const maxDate = moment("2025-06-08", "YYYY-MM-DD");
+  const selected = moment(today, "YYYY-MM-DD");
+
+  // Check if selected date is in allowed range
+  if (
+    !selected.isBetween(
+      minDate.clone().subtract(1, "day"),
+      maxDate.clone().add(1, "day")
+    )
+  ) {
+    return res.status(400).send(`
+      <div style="text-align:center; margin-top:50px;">
+        <h2 style="color:red;">❌ Invalid Date Selected</h2>
+        <p>Only dates from <strong>4 June 2025</strong> to <strong>8 June 2025</strong> are allowed.</p>
+        <a href="/shivir/attendance" style="text-decoration:none; font-size:18px;">⬅️ Go Back</a>
+      </div>
+    `);
+  }
+
   const presentIds = req.body.present || [];
 
   const allRegistrations = await ShivirRegistration.find();
@@ -225,11 +251,11 @@ exports.postAttendance = async (req, res) => {
 
 exports.attendanceReport = async (req, res) => {
   const days = [
-    "2025-05-21",
-    "2025-05-22",
-    "2025-05-23",
-    "2025-05-24",
-    "2025-05-25",
+    "2025-06-04",
+    "2025-06-05",
+    "2025-06-06",
+    "2025-06-07",
+    "2025-06-08",
   ];
   const registrations = await ShivirRegistration.find()
     .collation({ locale: "en", strength: 1 }) // Case-insensitive collation
