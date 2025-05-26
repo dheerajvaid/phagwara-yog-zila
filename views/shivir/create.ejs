@@ -1,0 +1,31 @@
+<%- include('../partials/header') %>
+
+<div class="container mt-4">
+  <h3>Create New Shivir</h3>
+  <form action="/shivir/create" method="POST">
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label>Shivir Subject</label>
+        <input type="text" name="subject" class="form-control" required>
+      </div>
+      <div class="col-md-6 mb-3">
+        <label>Date</label>
+        <input type="date" name="date" class="form-control" required>
+      </div>
+      <div class="col-md-4 mb-3">
+        <label>Days</label>
+        <input type="number" name="days" class="form-control" min="1" required>
+      </div>
+      <div class="col-md-4 mb-3">
+        <label>Time</label>
+        <input type="text" name="time" class="form-control" placeholder="e.g. 6am - 8am" required>
+      </div>
+      <div class="col-md-4 mb-3">
+        <label>Place</label>
+        <input type="text" name="place" class="form-control" required>
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <label>Contact Person Name</label>
+        <input type="text" name="contactName" class="form-control" required>
+      </div>

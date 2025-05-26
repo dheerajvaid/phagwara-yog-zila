@@ -1,0 +1,36 @@
+<%- include('../partials/header') %>
+
+<div class="container mt-4">
+  <h3>Your Shivirs</h3>
+  <a href="/shivir/create" class="btn btn-success btn-sm mb-3">+ New Shivir</a>
+
+  <table class="table table-bordered table-hover">
+    <thead class="thead-dark">
+      <tr>
+        <th>Subject</th>
+        <th>Date</th>
+        <th>Place</th>
+        <th>Days</th>
+        <th>Live</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% shivirs.forEach(shivir => { %>
+        <tr>
+          <td><%= shivir.subject %></td>
+          <td><%= new Date(shivir.date).toLocaleDateString() %></td>
+          <td><%= shivir.place %></td>
+          <td><%= shivir.days %></td>
+          <td><%= shivir.isLive ? "Yes" : "No" %></td>
+          <td>
+            <a href="/shivir/<%= shivir._id %>" class="btn btn-sm btn-primary">View</a>
+            <a href="/shivir/<%= shivir._id %>/registrations" class="btn btn-sm btn-info">Registrations</a>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('../partials/footer') %>

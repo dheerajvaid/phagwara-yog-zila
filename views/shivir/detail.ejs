@@ -1,0 +1,50 @@
+<%- include('../partials/header') %>
+
+<div class="container mt-4">
+  <div class="card">
+    <div class="card-body">
+      <h3><%= shivir.subject %></h3>
+      <p><strong>Date:</strong> <%= new Date(shivir.date).toLocaleDateString() %></p>
+      <p><strong>Time:</strong> <%= shivir.time %></p>
+      <p><strong>Days:</strong> <%= shivir.days %></p>
+      <p><strong>Place:</strong> <%= shivir.place %></p>
+      <p><strong>Contact:</strong> <%= shivir.contactPerson.name %> (<%= shivir.contactPerson.mobile %>)</p>
+      <p><strong>Description:</strong><br><%= shivir.description || 'N/A' %></p>
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <h5>Register for this Shivir</h5>
+    <form action="/shivir/<%= shivir._id %>/register" method="POST">
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label>Name</label>
+          <input type="text" name="name" class="form-control" required>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label>Mobile</label>
+          <input type="text" name="mobile" class="form-control" required>
+        </div>
+        <div class="col-md-3 mb-3">
+          <label>Gender</label>
+          <select name="gender" class="form-control">
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="col-md-3 mb-3">
+          <label>Age</label>
+          <input type="number" name="age" class="form-control" min="1" max="120">
+        </div>
+        <div class="col-md-6 mb-3">
+          <label>Address</label>
+          <input type="text" name="address" class="form-control">
+        </div>
+      </div>
+      <button type="submit" class="btn btn-success">Submit Registration</button>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

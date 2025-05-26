@@ -1,0 +1,15 @@
+<h2>Upcoming Shivirs</h2>
+<div class="row">
+  <% shivirs.forEach(shivir => { %>
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body">
+          <h5><%= shivir.subject %></h5>
+          <p><strong>Date:</strong> <%= new Date(shivir.date).toLocaleDateString() %></p>
+          <p><strong>Place:</strong> <%= shivir.place %></p>
+          <a href="/shivir/<%= shivir._id %>" class="btn btn-sm btn-primary">View & Register</a>
+        </div>
+      </div>
+    </div>
+  <% }) %>
+</div>

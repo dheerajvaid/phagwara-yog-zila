@@ -7,6 +7,7 @@ const app = express();
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const bcrypt = require('bcryptjs');
+const methodOverride = require('method-override');
 
 const zilaRoutes = require('./routes/zilaRoutes');
 const ksheterRoutes = require('./routes/ksheterRoutes');
@@ -26,6 +27,7 @@ const flash = require("connect-flash");
 const shivirRoutes = require('./routes/shivir');
 const yogSamagriRoutes = require('./routes/yogSamagri');
 const storyRoutes = require('./routes/storyRoutes');
+const shivirRegRoutes = require('./routes/shivirRoutes');
 // Load environment variables from .env file
 dotenv.config();
 
@@ -46,6 +48,7 @@ app.set("views", path.join(__dirname, "views"));
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(methodOverride('_method'));
 
 app.use(session({
   secret: 'yog-zila-secret',
@@ -88,6 +91,7 @@ app.use('/', exploreRoutes); // Keep it public!
  app.use('/shivir', shivirRoutes);
  app.use('/yog-samagri', yogSamagriRoutes);
  app.use('/stories', storyRoutes);
+ app.use('/shivirreg', shivirRegRoutes);
  
 // Start the server
 const port = process.env.PORT || 3000;
