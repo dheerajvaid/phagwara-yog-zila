@@ -151,9 +151,34 @@ exports.showMarkAttendanceForm = async (req, res) => {
 
     // Log final result
     // console.log("Updated Saadhaks with Attendance Dates:", saadhaks);
+    const saadhaksWithAttendance = [];
+    const saadhaksWithoutAttendance = [];
 
+    for (let saadhak of saadhaks) {
+      if (saadhak.attendanceDates && saadhak.attendanceDates.length > 0) {
+        saadhaksWithAttendance.push(saadhak);
+      } else {
+        saadhaksWithoutAttendance.push(saadhak);
+      }
+    }
+
+    // Sort both groups alphabetically by name
+    saadhaksWithAttendance.sort((a, b) =>
+      a.name.localeCompare(b.name, "en", { sensitivity: "base" })
+    );
+    saadhaksWithoutAttendance.sort((a, b) =>
+      a.name.localeCompare(b.name, "en", { sensitivity: "base" })
+    );
+
+    // Merge the two groups
+    const sortedSaadhaks = [
+      ...saadhaksWithAttendance,
+      ...saadhaksWithoutAttendance,
+    ];
+
+    // Now render the view with the sorted list
     res.render("attendance/mark", {
-      saadhaks,
+      saadhaks: sortedSaadhaks,
       zilas,
       ksheters,
       kenders,
@@ -282,7 +307,7 @@ exports.viewTodayAttendance = async (req, res) => {
       const nameB = b.saadhak.name.toLowerCase();
       return nameA.localeCompare(nameB); // for case-insensitive alphabetical sort
     });
-    
+
     const kender = await Kender.findById(user.kender);
     const pramukhs = await Saadhak.find({
       kender: user.kender,
