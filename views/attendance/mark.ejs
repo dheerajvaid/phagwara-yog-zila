@@ -39,6 +39,22 @@
           name="attendanceDate"
           required
         />
+       
+        <div class="d-flex align-items-center gap-4 my-3">
+        <div class="form-check d-flex align-items-center gap-2">
+          <input class="form-check-input mt-0" type="checkbox" id="toggleDiv" style="transform: scale(1.3);">
+          <label class="form-check-label fw-bold text-primary" for="toggleDiv">
+            Show Attendance Days
+          </label>
+        </div>
+
+        <div class="form-check d-flex align-items-center gap-2">
+          <input class="form-check-input mt-0" type="checkbox" id="toggleAdhikari" style="transform: scale(1.3);">
+          <label class="form-check-label fw-bold text-primary" for="toggleAdhikari">
+            Show Adhikari
+          </label>
+        </div>
+      </div>
       </div>
     </div>
     <div class="table-responsive">
@@ -69,7 +85,8 @@
       document.addEventListener("DOMContentLoaded", function () {
         const tableBody = document.getElementById("saadhakTableBody");
         const attendanceDateInput = document.getElementById("attendanceDate");
-
+        const checkbox = document.getElementById('toggleDiv');
+          
         const today = new Date();
         const fifteenDaysAgo = new Date(today);
         fifteenDaysAgo.setDate(today.getDate() - 15);
@@ -108,21 +125,35 @@
               });
 
               attendanceStrip += `
-                <div
-                  class="d-inline-block text-white text-center me-1 mb-1"
+                <div class="d-inline-block text-white text-center me-1 mb-1"
                   style="width: 24px; height: 24px; font-size: 0.75rem; line-height: 24px; border-radius: 4px; background-color: ${isPresent ? '#28a745' : '#dc3545'};">
                   ${day}
                 </div>`;
             }
 
+            let adhikariClass;
+
+            if (s.role[0] == 'Kender Pramukh' || s.role[0] == 'Seh Kender Pramukh' || s.role[0] == 'Shikshak' || s.role[0] == 'Karyakarta' || s.role[0] == 'Saadhak') {
+              adhikariClass = '';
+            } else {
+              adhikariClass = 'adhikari';
+            }  
+            
             const row = `
-              <tr class="saadhak-row ${isMarked ? 'fw-bold text-danger' : ''}">
+              <tr class="saadhak-row ${adhikariClass}" style="${adhikariClass === 'adhikari' ? 'display: none;' : ''}">
                 <td>${index + 1}</td>
                 <td>
-                  <input type="checkbox" name="selectedSaadhaks" value="${s._id}" class="saadhak-checkbox" ${isMarked ? 'checked' : '' } style="transform: scale(1.5);"/>
-                  <strong>${s.name}</strong>
+                  <input 
+                    type="checkbox" 
+                    name="selectedSaadhaks" 
+                    value="${s._id}" 
+                    class="saadhak-checkbox" 
+                    ${isMarked ? 'checked' : ''}
+                    style="transform: scale(1.5);"
+                  />
+                  <strong class="saadhak-name ${isMarked ? 'text-danger fw-bold' : ''}" data-id="${s._id}">${s.name}</strong>
                   <div class="text-muted small">(${s.attendanceDates.length}/${day - 1} days present)</div>
-                  <div class="d-flex flex-wrap mt-1">${attendanceStrip}</div>
+                  <div class="d-flex flex-wrap mt-1 dayBox d-none">${attendanceStrip}</div>
                 </td>
                 <td>${s.mobile || ''}</td>
               </tr>
@@ -137,6 +168,8 @@
         function updateSelectedCount() {
           const selected = document.querySelectorAll('input[name="selectedSaadhaks"]:checked');
           const label = document.getElementById("selectedCount");
+
+          // Update label
           if (selected.length > 0) {
             label.textContent = `${selected.length} Present`;
             label.classList.remove("d-none");
@@ -144,6 +177,14 @@
             label.textContent = `No Attendance Marked`;
             label.classList.remove("d-none");
           }
+
+          // 🔁 Toggle text color in <strong> based on selection
+          document.querySelectorAll('.saadhak-name').forEach(strong => {
+            const saadhakId = strong.getAttribute('data-id');
+            const isChecked = document.querySelector(`input[value="${saadhakId}"]`)?.checked;
+            strong.classList.toggle('text-danger', isChecked);
+            strong.classList.toggle('fw-bold', isChecked);
+          });
         }
 
         tableBody.addEventListener("change", updateSelectedCount);
@@ -163,6 +204,20 @@
       console.error("Failed to fetch attendance data", err);
     }
   });
+
+  checkbox.addEventListener('change', function () {
+    const dayBox = document.querySelectorAll('.dayBox');
+    dayBox.forEach((box) => {
+      box.classList.toggle('d-none', !this.checked);
+    });
+  });
+
+      document.getElementById('toggleAdhikari').addEventListener('change', function () {
+        const adhikariRows = document.querySelectorAll('.adhikari');
+        adhikariRows.forEach(row => {
+          row.style.display = this.checked ? '' : 'none';
+        });
+      });
 
 
         renderTable();

@@ -175,7 +175,7 @@ exports.showMarkAttendanceForm = async (req, res) => {
       ...saadhaksWithAttendance,
       ...saadhaksWithoutAttendance,
     ];
-
+    
     // Now render the view with the sorted list
     res.render("attendance/mark", {
       saadhaks: sortedSaadhaks,
