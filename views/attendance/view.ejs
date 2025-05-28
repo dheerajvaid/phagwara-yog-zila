@@ -95,28 +95,31 @@
   document.getElementById("exportImageBtn").addEventListener("click", function () {
     const captureElement = document.getElementById("attendanceCapture");
 
-    // Expand scrollable area temporarily
+    // Temporarily remove scroll constraints
     const scrollContainer = document.querySelector('.custom-scroll');
-    const originalHeight = scrollContainer.style.maxHeight;
-    scrollContainer.style.maxHeight = 'none';
+    const originalMaxHeight = scrollContainer.style.maxHeight;
+    const originalOverflowY = scrollContainer.style.overflowY;
 
-    // Delay to allow layout reflow
+    scrollContainer.style.maxHeight = 'none';
+    scrollContainer.style.overflowY = 'visible';
+
+    // Allow layout to adjust
     setTimeout(() => {
       html2canvas(captureElement, {
-        scale: 2, // higher scale = better quality
-        useCORS: true,
-        allowTaint: true
+        scale: 2,
+        useCORS: true
       }).then(canvas => {
-        // Restore scroll height
-        scrollContainer.style.maxHeight = originalHeight;
+        // Restore original scroll styles
+        scrollContainer.style.maxHeight = originalMaxHeight;
+        scrollContainer.style.overflowY = originalOverflowY;
 
-        // Create image link
+        // Trigger download
         const link = document.createElement('a');
         link.download = `Attendance_<%= selectedMonth %>-<%= selectedYear %>.png`;
         link.href = canvas.toDataURL();
         link.click();
       });
-    }, 300);
+    }, 300); // Delay helps layout settle
   });
 </script>
 
