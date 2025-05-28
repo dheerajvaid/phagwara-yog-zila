@@ -1,0 +1,124 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-3">
+  <div id="attendanceCapture">
+  <h4 class="text-center mb-3">📊 View Kender Attendance</h4>
+
+  <!-- Dropdown Form -->
+  <form id="attendanceForm" method="GET" action="/attendance/view" class="row g-2 mb-4">
+    <div class="col-12 col-md-4">
+      <select name="kender" class="form-control" required>
+        <option value="">Select Kender</option>
+        <% allKenders.forEach(k => { %>
+          <option value="<%= k._id %>" <%= selectedKender == k._id ? 'selected' : '' %>><%= k.name %></option>
+        <% }) %>
+      </select>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <select name="month" class="form-control" required>
+        <option value="">Month</option>
+        <% for (let m = 1; m <= 12; m++) { %>
+          <option value="<%= m %>" <%= selectedMonth == m ? 'selected' : '' %>><%= new Date(2000, m-1).toLocaleString('default', { month: 'long' }) %></option>
+        <% } %>
+      </select>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <select name="year" class="form-control" required>
+        <option value="">Year</option>
+        <% for (let y = 2025; y <= 2030; y++) { %>
+          <option value="<%= y %>" <%= selectedYear == y ? 'selected' : '' %>><%= y %></option>
+        <% } %>
+      </select>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <select name="sortBy" class="form-control" onchange="document.getElementById('attendanceForm').submit()">
+        <option value="name" <%= sortBy === 'name' ? 'selected' : '' %>>Sort by Name</option>
+        <option value="count" <%= sortBy === 'count' ? 'selected' : '' %>>Sort by Present Days</option>
+      </select>
+    </div>
+
+    <div class="col-12 col-md-2">
+      <button class="btn btn-primary w-100">View</button>
+    </div>
+  </form>
+
+  <% if (attendanceData.length) { %>
+    <div class="mb-3 text-end">
+      <button id="exportImageBtn" class="btn btn-success btn-sm">
+        📷 Export as Image
+      </button>
+    </div>
+    <!-- Attendance Table -->
+    <div class="custom-scroll table-responsive-sm" style="max-height: 400px; overflow-x: auto; overflow-y: auto;">
+  <table class="table table-bordered table-sm text-center align-middle">
+    <thead class="thead-light sticky-top bg-light">
+      <tr>
+        <th>Saadhak</th>
+        <% activeDays.forEach(day => { %>
+          <th style="width: 32px;"><%= day %></th>
+        <% }) %>
+      </tr>
+    </thead>
+   <tbody>
+  <% attendanceData.forEach(s => { %>
+    <tr>
+      <td style="white-space: nowrap; font-size: 0.85rem; width: 1%;">
+        <%= s.name %> (<%= s.presentCount %>)
+      </td>
+      <% activeDays.forEach(day => {
+           const dateStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+           const isPresent = s.attendance.includes(dateStr);
+      %>
+        <td class="<%= isPresent ? 'bg-success text-white' : 'bg-danger text-white' %>" 
+            style="width: 30px; min-width: 30px; max-width: 30px; font-size: 0.8rem; padding: 4px;">
+          <%= day %>
+        </td>
+      <% }) %>
+    </tr>
+  <% }) %>
+</tbody>
+
+  </table>
+</div>
+
+  <% } else if (selectedKender) { %>
+    <p class="text-muted text-center">No attendance data found for selected month.</p>
+  <% } %>
+  </div>
+</div>
+
+<script>
+  document.getElementById("exportImageBtn").addEventListener("click", function () {
+    const captureElement = document.getElementById("attendanceCapture");
+
+    // Expand scrollable area temporarily
+    const scrollContainer = document.querySelector('.custom-scroll');
+    const originalHeight = scrollContainer.style.maxHeight;
+    scrollContainer.style.maxHeight = 'none';
+
+    // Delay to allow layout reflow
+    setTimeout(() => {
+      html2canvas(captureElement, {
+        scale: 2, // higher scale = better quality
+        useCORS: true,
+        allowTaint: true
+      }).then(canvas => {
+        // Restore scroll height
+        scrollContainer.style.maxHeight = originalHeight;
+
+        // Create image link
+        const link = document.createElement('a');
+        link.download = `Attendance_<%= selectedMonth %>-<%= selectedYear %>.png`;
+        link.href = canvas.toDataURL();
+        link.click();
+      });
+    }, 300);
+  });
+</script>
+
+
+<%- include('../partials/footer') %>

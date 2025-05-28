@@ -3,9 +3,14 @@ const router = express.Router();
 const attendanceController = require("../controllers/attendanceController");
 const { requireLogin } = require("../middleware/authMiddleware");
 const { canManage } = require("../middleware/roleMiddleware");
-const { zilaRoles, ksheterRoles, kenderRoles, saadhakRoles } = require("../config/roles");
+const {
+  zilaRoles,
+  ksheterRoles,
+  kenderRoles,
+  saadhakRoles,
+} = require("../config/roles");
 const saadhakManagerRoles = [...zilaRoles, ...ksheterRoles, ...kenderRoles];
-const attendanceRoles =[...kenderRoles, ...saadhakRoles];
+const attendanceRoles = [...kenderRoles, ...saadhakRoles];
 
 // Show form to mark attendance
 router.get(
@@ -74,5 +79,8 @@ router.get(
   canManage(saadhakManagerRoles),
   attendanceController.getAttendanceByDate
 ); // ✅ This returns JSON
+
+// GET view form and report
+router.get("/view", requireLogin, canManage(saadhakManagerRoles), attendanceController.viewAttendance);
 
 module.exports = router;

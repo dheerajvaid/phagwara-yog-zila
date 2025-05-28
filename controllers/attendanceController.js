@@ -175,7 +175,7 @@ exports.showMarkAttendanceForm = async (req, res) => {
       ...saadhaksWithAttendance,
       ...saadhaksWithoutAttendance,
     ];
-    
+
     // Now render the view with the sorted list
     res.render("attendance/mark", {
       saadhaks: sortedSaadhaks,
@@ -201,7 +201,7 @@ exports.markAttendance = async (req, res) => {
     today.setHours(0, 0, 0, 0); // Normalize to start of day
 
     let selectedSaadhaks = req.body.selectedSaadhaks;
-    const selectedKender = req.body.kenderFilter;
+    // const selectedKender = req.body.kenderFilter;
     // console.log(selectedKender);
     // console.log(selectedSaadhaks);
 
@@ -223,7 +223,7 @@ exports.markAttendance = async (req, res) => {
     }
 
     // console.log(start, " - ", end);
-    if (user.roles == "Saadhak") {
+    if (user.roles.includes("Saadhak")) {
       await Attendance.deleteOne({
         saadhak: user.id,
         kender: req.body.selectedKender,
@@ -235,7 +235,7 @@ exports.markAttendance = async (req, res) => {
         date: { $gte: start, $lt: end },
       });
     }
-    console.log("reached at 7");
+    // console.log("reached at 7");
 
     const records = selectedSaadhaks.map((id) => ({
       saadhak: id,
@@ -244,9 +244,11 @@ exports.markAttendance = async (req, res) => {
       status: "Present", // or whatever your schema requires
     }));
 
-    console.log("reached at 8 and kender is " + selectedKender);
+    // console.log("reached at 8 and kender is " + selectedKender);
 
-    await Attendance.insertMany(records);
+    if (records.length > 0) {
+      await Attendance.insertMany(records);
+    }
 
     // for (let saadhakId of selectedSaadhaks) {
     //   const existingAttendance = await Attendance.findOne({
@@ -496,5 +498,105 @@ exports.getAttendanceByDate = async (req, res) => {
   } catch (err) {
     console.error("Error in getAttendanceByDate:", err);
     res.status(500).json({ error: "Something went wrong." });
+  }
+};
+
+exports.viewAttendance = async (req, res) => {
+  try {
+    const { kender, month, year, sortBy } = req.query;
+    // console.log(req.session.user);
+    const today = new Date();
+    const selectedMonth = parseInt(req.query.month) || today.getMonth() + 1; // 1–12
+    const selectedYear = parseInt(req.query.year) || today.getFullYear();
+
+    const allKenders = await Kender.find({ zila: req.session.user.zila }).sort("name");
+
+    let attendanceData = [];
+    let saadhaks = [];
+    let daysInMonth = 0;
+    let activeDaysArray = []; 
+
+    if (kender && month && year) {
+      const start = new Date(`${selectedYear}-${selectedMonth}-01`);
+      const end = new Date(selectedYear, selectedMonth, 0, 23, 59, 59); // last day of month
+
+      // Get all Saadhaks under the selected Kender
+      saadhaks = await Saadhak.find({ kender });
+
+      // Attendance records in that period
+      const attendanceRecords = await Attendance.find({
+        kender,
+        date: { $gte: start, $lte: end },
+      });
+
+      // Map attendance by saadhakId
+      const attendanceMap = {};
+      attendanceRecords.forEach((record) => {
+        if (!attendanceMap[record.saadhak]) {
+          attendanceMap[record.saadhak] = [];
+        }
+        attendanceMap[record.saadhak].push(
+          record.date.toISOString().split("T")[0]
+        );
+      });
+
+      // Prepare final data
+      // Prepare final data and filter out those with 0 days present
+      attendanceData = saadhaks
+        .map((s) => {
+          const attendance = attendanceMap[s._id.toString()] || [];
+          return {
+            _id: s._id,
+            name: s.name,
+            attendance,
+            presentCount: attendance.length,
+          };
+        })
+        .filter((s) => s.presentCount > 0);
+
+      // Sorting logic
+      if (sortBy === "count") {
+        attendanceData.sort((a, b) => {
+          if (b.presentCount === a.presentCount) {
+            return a.name.localeCompare(b.name);
+          }
+          return b.presentCount - a.presentCount;
+        });
+      } else {
+        // Default sort by name
+        attendanceData.sort((a, b) => a.name.localeCompare(b.name));
+      }
+
+      // Determine which days have at least one attendance
+      const activeDays = new Set();
+      attendanceData.forEach((s) => {
+        s.attendance.forEach((dateStr) => {
+          const day = parseInt(dateStr.split("-")[2]); // Extract day from YYYY-MM-DD
+          activeDays.add(day);
+        });
+      });
+
+      // Convert Set to sorted array
+      activeDaysArray = Array.from(activeDays).sort((a, b) => a - b);
+
+      daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
+    }
+
+    // console.log(activeDaysArray);
+
+    res.render("attendance/view", {
+      allKenders,
+      selectedKender: kender || "",
+      selectedMonth,
+      selectedYear,
+      attendanceData,
+      saadhaks,
+      daysInMonth,
+      sortBy,
+      activeDays: activeDaysArray,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server Error");
   }
 };
