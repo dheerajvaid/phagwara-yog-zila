@@ -76,7 +76,7 @@ router.post(
 router.get(
   "/by-date",
   requireLogin,
-  canManage(saadhakManagerRoles),
+  canManage(attendanceRoles),
   attendanceController.getAttendanceByDate
 ); // ✅ This returns JSON
 

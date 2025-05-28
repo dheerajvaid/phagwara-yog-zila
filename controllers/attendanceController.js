@@ -298,16 +298,24 @@ exports.viewTodayAttendance = async (req, res) => {
     const end = new Date(selectedDate);
     end.setHours(23, 59, 59, 999);
 
-    const attendanceRecords = await Attendance.find({
+    let attendanceRecords = await Attendance.find({
       date: { $gte: start, $lte: end },
       status: "Present",
       kender: user.kender,
     }).populate("saadhak");
 
+    // console.log(attendanceRecords);
+
+    // Remove records with missing saadhak or saadhak.name
+    attendanceRecords = attendanceRecords.filter((record) => {
+      return record.saadhak && record.saadhak.name;
+    });
+
+    // Then safely sort
     attendanceRecords.sort((a, b) => {
       const nameA = a.saadhak.name.toLowerCase();
       const nameB = b.saadhak.name.toLowerCase();
-      return nameA.localeCompare(nameB); // for case-insensitive alphabetical sort
+      return nameA.localeCompare(nameB);
     });
 
     const kender = await Kender.findById(user.kender);
@@ -509,12 +517,14 @@ exports.viewAttendance = async (req, res) => {
     const selectedMonth = parseInt(req.query.month) || today.getMonth() + 1; // 1–12
     const selectedYear = parseInt(req.query.year) || today.getFullYear();
 
-    const allKenders = await Kender.find({ zila: req.session.user.zila }).sort("name");
+    const allKenders = await Kender.find({ zila: req.session.user.zila }).sort(
+      "name"
+    );
 
     let attendanceData = [];
     let saadhaks = [];
     let daysInMonth = 0;
-    let activeDaysArray = []; 
+    let activeDaysArray = [];
 
     if (kender && month && year) {
       const start = new Date(`${selectedYear}-${selectedMonth}-01`);
