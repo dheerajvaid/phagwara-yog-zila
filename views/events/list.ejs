@@ -1,0 +1,20 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+<h2 class="text-center mb-4">📅 Our Events & News</h2>
+<div class="row">
+  <% events.forEach(event => { %>
+    <div class="col-md-4">
+      <div class="card mb-3">
+        <% if (event.imageUrl) { %>
+          <img src="<%= event.imageUrl %>" class="card-img-top" alt="Event Image">
+        <% } %>
+        <div class="card-body">
+          <h5 class="card-title"><%= event.title %></h5>
+          <p class="card-text" style="white-space: pre-wrap;"><%= event.description %></p>
+          <p class="text-muted">📆 <%= event.date.toDateString() %></p>
+        </div>
+      </div>
+    </div>
+  <% }) %>
+</div>
+<%- include('../partials/footer') %>
