@@ -1,0 +1,18 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container my-5">
+  <div class="card shadow-lg">
+    <img src="<%= event.imageUrl %>" class="card-img-top" alt="Event Banner" style="max-height: 400px; object-fit: cover;">
+    <div class="card-body">
+      <h2 class="card-title text-success"><%= event.title %></h2>
+      <p class="text-muted"><strong>Date:</strong> <%= new Date(event.date).toDateString() %></p>
+      <p class="card-text fs-5" style="white-space: pre-wrap;"><%= event.description %></p>
+    </div>
+  </div>
+  <div class="mt-4">
+    <a href="/events" class="btn btn-outline-primary">← Back to Events</a>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

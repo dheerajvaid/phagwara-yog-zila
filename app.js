@@ -96,6 +96,8 @@ app.use("/yog-samagri", yogSamagriRoutes);
 app.use("/stories", storyRoutes);
 app.use("/shivirreg", shivirRegRoutes);
 app.use("/events", eventRoutes);
+app.use('/api/events', require('./routes/api/events'));
+
 
 // Start the server
 const port = process.env.PORT || 3000;

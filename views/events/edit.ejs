@@ -1,0 +1,44 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container my-4">
+  <h2 class="text-success mb-3">✏️ Edit Event</h2>
+
+  <form action="/events/<%= event._id %>/update" method="POST" enctype="multipart/form-data">
+  <!-- Title -->
+  <div class="mb-3">
+    <label class="form-label">Title</label>
+    <input type="text" name="title" class="form-control" value="<%= event.title %>" required />
+  </div>
+
+  <!-- Date -->
+  <div class="mb-3">
+    <label class="form-label">Date</label>
+    <input type="date" name="date" class="form-control" value="<%= event.date.toISOString().substring(0, 10) %>" required />
+  </div>
+
+  <!-- Current Image Preview -->
+  <div class="mb-3">
+    <label class="form-label">Current Image</label><br>
+    <img src="<%= event.imageUrl %>" alt="Current Image" style="max-width: 200px; height: auto;">
+  </div>
+
+  <!-- Upload New Image -->
+  <div class="mb-3">
+    <label class="form-label">Replace Image (optional)</label>
+    <input type="file" name="image" accept="image/*" class="form-control" />
+  </div>
+
+  <!-- Description -->
+  <div class="mb-3">
+    <label class="form-label">Description</label>
+    <textarea name="description" class="form-control" rows="5" required><%= event.description %></textarea>
+  </div>
+
+  <button type="submit" class="btn btn-primary">💾 Update</button>
+  <a href="/events" class="btn btn-secondary">Cancel</a>
+</form>
+
+</div>
+
+<%- include('../partials/footer') %>

@@ -25,4 +25,28 @@ router.post(
   eventController.createEvent
 );
 
+router.get(
+  "/:id/edit",
+  requireLogin,
+  canManage(adminOnly),
+  eventController.renderEditForm
+); // Show edit form
+
+router.get("/:id", eventController.viewEvent);
+
+router.post(
+  "/:id/update",
+  requireLogin,
+  canManage(adminOnly),
+  upload.single("image"),
+  eventController.updateEvent
+); // Handle edit
+
+router.post(
+  "/:id/delete",
+  requireLogin,
+  canManage(adminOnly),
+  eventController.deleteEvent
+);
+
 module.exports = router;

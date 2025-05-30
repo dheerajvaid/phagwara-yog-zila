@@ -35,3 +35,58 @@ exports.createEvent = async (req, res) => {
     res.redirect('/events');
   }
 };
+
+exports.viewEvent = async (req, res) => {
+  const event = await Event.findById(req.params.id);
+  if (!event) return res.status(404).send('Event not found');
+  res.render('events/view', { event });
+};
+
+exports.renderEditForm = async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) return res.status(404).send('Event not found');
+    res.render('events/edit', { event });
+  } catch (err) {
+    res.status(500).send('Error loading event edit form');
+  }
+};
+
+exports.updateEvent = async (req, res) => {
+  try {
+    const { title, date, description } = req.body;
+    const event = await Event.findById(req.params.id);
+    if (!event) return res.status(404).send('Event not found');
+
+    // Update fields
+    event.title = title;
+    event.date = date;
+    event.description = description;
+
+    // If a new image is uploaded
+    if (req.file) {
+      // Optional: delete old image from Cloudinary if stored (future improvement)
+
+      // Upload new image
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: 'phagwara-yog-zila/events',
+      });
+      event.imageUrl = result.secure_url;
+    }
+
+    await event.save();
+    res.redirect(`/events/${event._id}`);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error updating event');
+  }
+};
+
+exports.deleteEvent = async (req, res) => {
+  try {
+    await Event.findByIdAndDelete(req.params.id);
+    res.redirect('/events');
+  } catch (err) {
+    res.status(500).send('Error deleting event');
+  }
+};
