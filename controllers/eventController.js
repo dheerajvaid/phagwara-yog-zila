@@ -2,9 +2,10 @@ const Event = require('../models/Event');
 const cloudinary = require('../utils/cloudinary');
 
 exports.getAllEvents = async (req, res) => {
-  const events = await Event.find().sort({ date: -1 });
+  const events = await Event.find().sort({ date: -1, _id: -1 });
   res.render('events/list', { events });
 };
+
 
 exports.getUpcomingEvents = async () => {
   return await Event.find({ date: { $gte: new Date() } }).sort({ date: 1 }).limit(5);

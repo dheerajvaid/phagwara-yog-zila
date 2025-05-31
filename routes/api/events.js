@@ -17,7 +17,7 @@ router.get('/', async (req, res) => {
 
   try {
     const events = await Event.find(query)
-      .sort({ date: -1 })
+      .sort({ date: -1, _id: -1 })
       .skip(skip)
       .limit(limit);
 
