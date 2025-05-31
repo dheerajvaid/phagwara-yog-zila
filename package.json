@@ -4,7 +4,6 @@
   "main": "index.js",
   "scripts": {
     "start": "node app.js",
-    "postinstall": "npm install --legacy-peer-deps"
   },
   "author": "",
   "license": "ISC",
