@@ -1,38 +1,75 @@
-<%- include('../partials/header') %>
-<%- include('../partials/navbar') %>
+<%- include('../partials/header') %> <%- include('../partials/navbar') %>
 
 <div class="container my-4">
   <h3 class="text-center text-primary mb-4">Add New Event</h3>
 
-  <form action="/events" method="POST" enctype="multipart/form-data" class="row g-3">
+  <form
+    action="/events"
+    method="POST"
+    enctype="multipart/form-data"
+    class="row g-3"
+  >
     <div class="col-md-6">
       <label for="title" class="form-label">Title</label>
-      <input type="text" class="form-control" id="title" name="title" required>
+      <input
+        type="text"
+        class="form-control"
+        id="title"
+        name="title"
+        required
+      />
     </div>
 
     <div class="col-md-6">
       <label for="date" class="form-label">Event Date</label>
-      <input type="date" class="form-control" id="date" name="date" required>
+      <input type="date" class="form-control" id="date" name="date" required />
     </div>
 
     <div class="col-12">
       <label for="description" class="form-label">Description</label>
-      <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
+      <textarea
+        class="form-control"
+        id="description"
+        name="description"
+        rows="4"
+        required
+      ></textarea>
     </div>
 
     <div class="col-md-6">
       <label for="images" class="form-label">Upload Images (max 5)</label>
-      <input type="file" class="form-control" id="images" name="images" accept="image/*" multiple>
+      <input
+        type="file"
+        class="form-control"
+        id="images"
+        name="images"
+        accept="image/*"
+        multiple
+        capture="environment"
+      />
     </div>
 
     <div class="col-md-6">
       <label for="video" class="form-label">Upload Video</label>
-      <input type="file" class="form-control" id="video" name="video" accept="video/*">
+      <input
+        type="file"
+        class="form-control"
+        id="video"
+        name="video"
+        accept="video/*"
+        capture="environment"
+      />
     </div>
 
     <div class="col-md-6">
       <label for="audio" class="form-label">Upload Audio</label>
-      <input type="file" class="form-control" id="audio" name="audio" accept="audio/*">
+      <input
+        type="file"
+        class="form-control"
+        id="audio"
+        name="audio"
+        accept="audio/*"
+      />
     </div>
 
     <div class="col-12 d-flex justify-content-center mt-4">
