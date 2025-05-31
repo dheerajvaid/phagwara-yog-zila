@@ -1,26 +1,41 @@
 <div class="col-6 col-sm-6 col-md-4">
-        <div class="card shadow-sm h-100">
-          <img src="<%= event.imageUrl %>" class="card-img-top" alt="Event Image" style="height: 160px; object-fit: cover;">
-          <div class="card-body p-3">
-            <h5 class="card-title text-primary mb-1"><%= event.title %></h5>
-            <small class="text-muted d-block mb-2">
-              <i class="bi bi-calendar-event"></i> <%= new Date(event.date).toDateString() %>
-            </small>
-            <p class="card-text mb-3" style="font-size: 0.95rem;">
-              <%= event.description.length > 100 ? event.description.substring(0, 100) + '...' : event.description %>
-            </p>
+  <div class="card shadow-sm h-100">
+    <% if (event.imageUrls && event.imageUrls.length > 0) { %>
+      <img src="<%= event.imageUrls[0] %>" class="card-img-top" alt="Event Image" style="height: 160px; object-fit: cover;">
+    <% } else { %>
+      <img src="/images/default-event.jpg" class="card-img-top" alt="Default Image" style="height: 160px; object-fit: cover;">
+    <% } %>
 
-            <a href="/events/<%= event._id %>" class="btn btn-sm btn-outline-success">👉 Read More</a>
+    <div class="card-body p-3">
+      <h5 class="card-title text-primary mb-1"><%= event.title %></h5>
+      <small class="text-muted d-block mb-2">
+        <i class="bi bi-calendar-event"></i> <%= new Date(event.date).toDateString() %>
+      </small>
 
-            <div class="d-flex justify-content-start mt-2 gap-1">
-              <% if (user && user.roles && user.roles.includes('Admin')) { %>  
-                <a href="/events/<%= event._id %>/edit" class="btn btn-sm btn-outline-primary">✏️ Edit</a>
+      <p class="card-text mb-3" style="font-size: 0.95rem;">
+        <%= event.description.length > 100 ? event.description.substring(0, 100) + '...' : event.description %>
+      </p>
 
-                <button onclick="openDeleteModal('<%= event._id %>')" class="btn btn-sm btn-outline-danger">
-                  🗑️ Delete
-                </button>
-              <% } %>    
-            </div>
-          </div>
-        </div>
+      <div class="mb-2">
+        <% if (event.videoUrl) { %>
+          <span class="badge bg-dark me-1"><i class="bi bi-camera-reels-fill"></i> वीडियो</span>
+        <% } %>
+        <% if (event.audioUrl) { %>
+          <span class="badge bg-dark"><i class="bi bi-volume-up-fill"></i> ऑडियो</span>
+        <% } %>
       </div>
+
+      <a href="/events/<%= event._id %>" class="btn btn-sm btn-outline-success">👉 Read More</a>
+
+      <div class="d-flex justify-content-start mt-2 gap-1">
+        <% if (user && user.roles && user.roles.includes('Admin')) { %>  
+          <a href="/events/<%= event._id %>/edit" class="btn btn-sm btn-outline-primary">✏️ Edit</a>
+
+          <button onclick="openDeleteModal('<%= event._id %>')" class="btn btn-sm btn-outline-danger">
+            🗑️ Delete
+          </button>
+        <% } %>    
+      </div>
+    </div>
+  </div>
+</div>

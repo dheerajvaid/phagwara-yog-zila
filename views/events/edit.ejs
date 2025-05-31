@@ -1,44 +1,135 @@
-<%- include('../partials/header') %>
-<%- include('../partials/navbar') %>
+<%- include('../partials/header') %> <%- include('../partials/navbar') %>
 
 <div class="container my-4">
-  <h2 class="text-success mb-3">✏️ Edit Event</h2>
+  <h3 class="text-center text-primary mb-4">Edit Event</h3>
 
-  <form action="/events/<%= event._id %>/update" method="POST" enctype="multipart/form-data">
-  <!-- Title -->
-  <div class="mb-3">
-    <label class="form-label">Title</label>
-    <input type="text" name="title" class="form-control" value="<%= event.title %>" required />
-  </div>
+  <form
+    action="/events/<%= event._id %>?_method=PUT"
+    method="POST"
+    enctype="multipart/form-data"
+    class="row g-3"
+  >
+    <div class="col-md-6">
+      <label for="title" class="form-label">Title</label>
+      <input
+        type="text"
+        class="form-control"
+        id="title"
+        name="title"
+        value="<%= event.title %>"
+        required
+      />
+    </div>
 
-  <!-- Date -->
-  <div class="mb-3">
-    <label class="form-label">Date</label>
-    <input type="date" name="date" class="form-control" value="<%= event.date.toISOString().substring(0, 10) %>" required />
-  </div>
+    <div class="col-md-6">
+      <label for="date" class="form-label">Event Date</label>
+      <input
+        type="date"
+        class="form-control"
+        id="date"
+        name="date"
+        value="<%= event.date.toISOString().split('T')[0] %>"
+        required
+      />
+    </div>
 
-  <!-- Current Image Preview -->
-  <div class="mb-3">
-    <label class="form-label">Current Image</label><br>
-    <img src="<%= event.imageUrl %>" alt="Current Image" style="max-width: 200px; height: auto;">
-  </div>
+    <div class="col-12">
+      <label for="description" class="form-label">Description</label>
+      <textarea
+        class="form-control"
+        id="description"
+        name="description"
+        rows="4"
+        required
+      >
+<%= event.description %></textarea
+      >
+    </div>
 
-  <!-- Upload New Image -->
-  <div class="mb-3">
-    <label class="form-label">Replace Image (optional)</label>
-    <input type="file" name="image" accept="image/*" class="form-control" />
-  </div>
+    <div class="col-md-6">
+      <label for="images" class="form-label">Upload New Images (max 5)</label>
+      <input
+        type="file"
+        class="form-control"
+        id="images"
+        name="images"
+        accept="image/*"
+        multiple
+      />
+      <% if (event.imageUrls && event.imageUrls.length > 0) { %>
+      <h5>Existing Images:</h5>
+      <div class="d-flex flex-wrap gap-3">
+        <% event.imageUrls.forEach((imgUrl, index) => { %>
+        <div style="position: relative; width: 150px">
+          <img
+            src="<%= imgUrl %>"
+            alt="Event Image"
+            style="width: 100%; height: auto; border-radius: 5px"
+          />
+          <div
+            class="form-check"
+            style="position: absolute; top: 5px; right: 5px"
+          >
+            <input
+              class="form-check-input"
+              type="checkbox"
+              name="deleteImages"
+              value="<%= imgUrl %>"
+              id="deleteImage<%= index %>"
+            />
+            <label class="form-check-label" for="deleteImage<%= index %>"
+              >Delete</label
+            >
+          </div>
+        </div>
+        <% }); %>
+      </div>
 
-  <!-- Description -->
-  <div class="mb-3">
-    <label class="form-label">Description</label>
-    <textarea name="description" class="form-control" rows="5" required><%= event.description %></textarea>
-  </div>
+      <% } %>
+    </div>
 
-  <button type="submit" class="btn btn-primary">💾 Update</button>
-  <a href="/events" class="btn btn-secondary">Cancel</a>
-</form>
+    <div class="col-md-6">
+      <label for="video" class="form-label">Upload New Video</label>
+      <input
+        type="file"
+        class="form-control"
+        id="video"
+        name="video"
+        accept="video/*"
+      />
+      <% if (event.videoUrl) { %>
+      <div class="mt-2">
+        <video controls width="200">
+          <source src="<%= event.videoUrl %>" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+      </div>
+      <% } %>
+    </div>
 
+    <div class="col-md-6">
+      <label for="audio" class="form-label">Upload New Audio</label>
+      <input
+        type="file"
+        class="form-control"
+        id="audio"
+        name="audio"
+        accept="audio/*"
+      />
+      <% if (event.audioUrl) { %>
+      <div class="mt-2">
+        <audio controls>
+          <source src="<%= event.audioUrl %>" type="audio/mpeg" />
+          Your browser does not support the audio element.
+        </audio>
+      </div>
+      <% } %>
+    </div>
+
+    <div class="col-12 d-flex justify-content-center mt-4">
+      <button type="submit" class="btn btn-success px-4">Update Event</button>
+    </div>
+  </form>
 </div>
 
 <%- include('../partials/footer') %>

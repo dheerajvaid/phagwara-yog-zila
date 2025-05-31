@@ -1,11 +1,12 @@
 const mongoose = require('mongoose');
 
 const eventSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  description: { type: String },
-  date: { type: Date, required: true },
-  imageUrl: { type: String }, // Cloudinary image URL
-  createdAt: { type: Date, default: Date.now },
+  title: String,
+  description: String,
+  date: Date,
+  imageUrls: [String],   // Multiple images
+  videoUrl: String,      // Single video
+  audioUrl: String       // Single audio
 });
 
 module.exports = mongoose.model('Event', eventSchema);

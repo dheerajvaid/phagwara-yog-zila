@@ -16,17 +16,52 @@ exports.renderAddEvent = (req, res) => {
 
 exports.createEvent = async (req, res) => {
   try {
-    let imageUrl = '';
-    if (req.file) {
-      const result = await cloudinary.uploader.upload(req.file.path);
-      imageUrl = result.secure_url;
+    const { title, description, date } = req.body;
+
+    let imageUrls = [];
+    let videoUrl = [];
+    let audioUrl = [];
+
+    // Images (multiple)
+    if (req.files['images']) {
+      for (const file of req.files['images']) {
+        const result = await cloudinary.uploader.upload(file.path, {
+          folder: 'phagwara-yog-zila/events/images',
+          resource_type: 'image',
+        });
+        imageUrls.push(result.secure_url);
+      }
+    }
+
+    // Videos (multiple)
+    if (req.files['video']) {
+      for (const file of req.files['video']) {
+        const videoResult = await cloudinary.uploader.upload(file.path, {
+          folder: 'phagwara-yog-zila/events/videos',
+          resource_type: 'video',
+        });
+        videoUrl.push(videoResult.secure_url);
+      }
+    }
+
+    // Audios (multiple)
+    if (req.files['audio']) {
+      for (const file of req.files['audio']) {
+        const audioResult = await cloudinary.uploader.upload(file.path, {
+          folder: 'phagwara-yog-zila/events/audios',
+          resource_type: 'video', // Cloudinary treats audio as video
+        });
+        audioUrl.push(audioResult.secure_url);
+      }
     }
 
     await Event.create({
-      title: req.body.title,
-      description: req.body.description,
-      date: req.body.date,
-      imageUrl,
+      title,
+      description,
+      date,
+      imageUrls,
+      videoUrl,
+      audioUrl,
     });
 
     res.redirect('/events');
@@ -35,6 +70,7 @@ exports.createEvent = async (req, res) => {
     res.redirect('/events');
   }
 };
+
 
 exports.viewEvent = async (req, res) => {
   const event = await Event.findById(req.params.id);
@@ -58,20 +94,41 @@ exports.updateEvent = async (req, res) => {
     const event = await Event.findById(req.params.id);
     if (!event) return res.status(404).send('Event not found');
 
-    // Update fields
     event.title = title;
     event.date = date;
     event.description = description;
 
-    // If a new image is uploaded
-    if (req.file) {
-      // Optional: delete old image from Cloudinary if stored (future improvement)
+    // Append new images
+    if (req.files['images']) {
+      for (const file of req.files['images']) {
+        const result = await cloudinary.uploader.upload(file.path, {
+          folder: 'phagwara-yog-zila/events/images',
+          resource_type: 'image',
+        });
+        event.imageUrls.push(result.secure_url);
+      }
+    }
 
-      // Upload new image
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: 'phagwara-yog-zila/events',
-      });
-      event.imageUrl = result.secure_url;
+    // Append new videos
+    if (req.files['video']) {
+      for (const file of req.files['video']) {
+        const videoResult = await cloudinary.uploader.upload(file.path, {
+          folder: 'phagwara-yog-zila/events/videos',
+          resource_type: 'video',
+        });
+        event.videoUrl.push(videoResult.secure_url);
+      }
+    }
+
+    // Append new audios
+    if (req.files['audio']) {
+      for (const file of req.files['audio']) {
+        const audioResult = await cloudinary.uploader.upload(file.path, {
+          folder: 'phagwara-yog-zila/events/audios',
+          resource_type: 'video',
+        });
+        event.audioUrl.push(audioResult.secure_url);
+      }
     }
 
     await event.save();
@@ -81,6 +138,7 @@ exports.updateEvent = async (req, res) => {
     res.status(500).send('Error updating event');
   }
 };
+
 
 exports.deleteEvent = async (req, res) => {
   try {

@@ -24,7 +24,7 @@ router.get('/', async (req, res) => {
     const total = await Event.countDocuments(query);
     const hasMore = skip + events.length < total;
 
-    res.json({ events, hasMore });
+    res.json({ events, hasMore }); // imageUrls, videoUrl, audioUrl included here
   } catch (err) {
     res.status(500).json({ error: 'Server Error' });
   }
