@@ -332,6 +332,12 @@ exports.updateKender = async (req, res) => {
       zila
     });
 
+     // ✅ Update ksheter for all Saadhaks under this Kender
+    await Saadhak.updateMany(
+      { kender: kenderId },
+      { $set: { ksheter: ksheter } }
+    );
+
     res.redirect("/kender/manage");
 
   } catch (err) {
