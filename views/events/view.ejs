@@ -59,7 +59,7 @@
       <% if (event.videoUrl) { const videoExt =
       event.videoUrl.split('.').pop().toLowerCase(); %>
       <div class="mt-4">
-        <h5>Event Video</h5>
+        <h5>Video</h5>
         <div style="width: 100%; max-width: 800px; margin: auto">
           <video class="w-100" controls style="height: auto; display: block">
             <source src="<%= event.videoUrl %>" type="video/<%= videoExt %>" />
@@ -72,7 +72,7 @@
       <% if (event.audioUrl) { const audioExt =
       event.audioUrl.split('.').pop().toLowerCase(); %>
       <div class="mt-4">
-        <h5>Event Audio</h5>
+        <h5>Audio</h5>
         <audio class="w-100" controls>
           <source src="<%= event.audioUrl %>" type="audio/<%= audioExt %>" />
           Your browser does not support the audio element.
