@@ -592,11 +592,15 @@ exports.viewAttendance = async (req, res) => {
       daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
     }
 
+    const selectedKenderData = await Kender.findById(kender);
+    const selectedKenderName = selectedKenderData ? selectedKenderData.name : 'Kender';
     // console.log(activeDaysArray);
+    // console.log(req.query);
 
     res.render("attendance/view", {
       allKenders,
       selectedKender: kender || "",
+      selectedKenderName,
       selectedMonth,
       selectedYear,
       attendanceData,
