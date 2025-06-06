@@ -34,10 +34,19 @@
           <span class="small-text"> KP: <span class="text-danger small-text"><%= kenderPramukh.name %></span></span>
           <span class="small-text">M: <span class="text-danger small-text"><%= kenderPramukh.mobile %></span></span>
         </div>
-        <div class="d-flex justify-content-between" style="gap: 1rem;">
-          <span class="small-text">SKP: <span class="text-danger small-text"><%= sehKenderPramukh.name %></span></span>
-          <span class="small-text">M: <span class="text-danger small-text"><%= sehKenderPramukh.mobile %></span></span>
-        </div>
+        <% if (Array.isArray(sehKenderPramukh) && sehKenderPramukh.length > 0) { %>
+          <% sehKenderPramukh.forEach((skp) => { %>
+            <div class="d-flex justify-content-between" style="gap: 1rem;">
+              <span class="small-text">SKP: <span class="text-danger small-text"><%= skp.name %></span></span>
+              <span class="small-text">M: <span class="text-danger small-text"><%= skp.mobile %></span></span>
+            </div>
+          <% }) %>
+        <% } else { %>
+          <div class="d-flex justify-content-between" style="gap: 1rem;">
+            <span class="small-text">SKP: <span class="text-muted small-text">N/A</span></span>
+            <span class="small-text">M: <span class="text-muted small-text">N/A</span></span>
+          </div>
+        <% } %>
         <hr class = "mb-1 mt-1"/>
         <div class="d-flex justify-content-center" style="gap: 1rem;">
           <span><strong>Attendance: <span class="text-danger"><%= attendanceDateFormatted || new Date().toLocaleDateString() %></span></strong></span>

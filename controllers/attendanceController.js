@@ -325,15 +325,17 @@ exports.viewTodayAttendance = async (req, res) => {
     }).select("name mobile role");
 
     let kenderPramukh = null;
-    let sehKenderPramukh = null;
+    let sehKenderPramukh = [];
 
     pramukhs.forEach((p) => {
       if (p.role[0] === "Kender Pramukh") {
         kenderPramukh = p;
       } else if (p.role[0] === "Seh Kender Pramukh") {
-        sehKenderPramukh = p;
+         sehKenderPramukh.push(p);
       }
     });
+
+    // console.log(pramukhs);
 
     // console.log (kenderPramukh);
     // console.log(sehKenderPramukh);
