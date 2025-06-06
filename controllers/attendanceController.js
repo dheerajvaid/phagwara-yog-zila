@@ -331,7 +331,7 @@ exports.viewTodayAttendance = async (req, res) => {
       if (p.role[0] === "Kender Pramukh") {
         kenderPramukh = p;
       } else if (p.role[0] === "Seh Kender Pramukh") {
-         sehKenderPramukh.push(p);
+        sehKenderPramukh.push(p);
       }
     });
 
@@ -595,7 +595,9 @@ exports.viewAttendance = async (req, res) => {
     }
 
     const selectedKenderData = await Kender.findById(kender);
-    const selectedKenderName = selectedKenderData ? selectedKenderData.name : 'Kender';
+    const selectedKenderName = selectedKenderData
+      ? selectedKenderData.name
+      : "Kender";
     // console.log(activeDaysArray);
     // console.log(req.query);
 
@@ -610,6 +612,112 @@ exports.viewAttendance = async (req, res) => {
       daysInMonth,
       sortBy,
       activeDays: activeDaysArray,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server Error");
+  }
+};
+
+exports.viewKenderWiseAttendance = async (req, res) => {
+  try {
+    const { month, year, sortBy } = req.query;
+    const today = new Date();
+    const selectedMonth = parseInt(month) || today.getMonth() + 1;
+    const selectedYear = parseInt(year) || today.getFullYear();
+
+    const allKenders = await Kender.find({ zila: req.session.user.zila }).sort(
+      "name"
+    );
+
+    let attendanceData = [];
+    let daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
+    let activeDaysArray = [];
+    let kenderDateCountMap = {};
+
+    if (month && year) {
+      const start = new Date(
+        `${selectedYear}-${String(selectedMonth).padStart(2, "0")}-01`
+      );
+      const end = new Date(selectedYear, selectedMonth, 0, 23, 59, 59);
+
+      const eligibleKenders = await Kender.find({
+        $or: [
+          { zila: req.session.user.zila },
+          { ksheter: req.session.user.ksheter },
+        ],
+      }).select("_id");
+
+      const eligibleKenderIds = eligibleKenders.map((k) => k._id.toString());
+
+      const attendanceRecords = await Attendance.find({
+        kender: { $in: eligibleKenderIds },
+        date: { $gte: start, $lte: end },
+      }).populate("kender");
+
+      // ✅ Map: kenderId -> { dateStr -> count }
+      attendanceRecords.forEach((record) => {
+        const kId = record.kender?._id?.toString();
+        const dateStr = record.date.toISOString().split("T")[0];
+
+        if (!kenderDateCountMap[kId]) kenderDateCountMap[kId] = {};
+        if (!kenderDateCountMap[kId][dateStr])
+          kenderDateCountMap[kId][dateStr] = 0;
+
+        kenderDateCountMap[kId][dateStr]++;
+      });
+
+      // ✅ Prepare attendanceData per Kender (just metadata for now)
+      attendanceData = allKenders
+        .map((k) => {
+          const attendanceObj = kenderDateCountMap[k._id.toString()] || {};
+          const attendance = Object.keys(attendanceObj); // all dates present
+          const presentCount = attendance.reduce(
+            (sum, date) => sum + attendanceObj[date],
+            0
+          );
+          return {
+            _id: k._id,
+            name: k.name,
+            attendance,
+            presentCount,
+          };
+        })
+        .filter((k) => k.presentCount > 0); // ✅ Filter out Kenders with 0 total present
+
+      // ✅ Sort
+      if (sortBy === "count") {
+        attendanceData.sort((a, b) => {
+          if (b.presentCount === a.presentCount) {
+            return a.name.localeCompare(b.name);
+          }
+          return b.presentCount - a.presentCount;
+        });
+      } else {
+        attendanceData.sort((a, b) => a.name.localeCompare(b.name));
+      }
+
+      // ✅ Extract active days across all Kenders
+      const activeDays = new Set();
+      Object.values(kenderDateCountMap).forEach((dateMap) => {
+        Object.keys(dateMap).forEach((dateStr) => {
+          const day = parseInt(dateStr.split("-")[2]);
+          activeDays.add(day);
+        });
+      });
+
+      activeDaysArray = Array.from(activeDays).sort((a, b) => a - b);
+    }
+
+    res.render("attendance/view-kender", {
+      allKenders,
+      selectedMonth,
+      selectedYear,
+      attendanceData,
+      daysInMonth,
+      sortBy,
+      activeDays: activeDaysArray,
+      kenderDateCountMap, // ✅ send this to EJS
     });
   } catch (err) {
     console.error(err);

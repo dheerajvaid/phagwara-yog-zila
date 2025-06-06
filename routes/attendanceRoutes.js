@@ -83,4 +83,6 @@ router.get(
 // GET view form and report
 router.get("/view", requireLogin, canManage(saadhakManagerRoles), attendanceController.viewAttendance);
 
+router.get('/view-kender', requireLogin, canManage(saadhakManagerRoles), attendanceController.viewKenderWiseAttendance);
+
 module.exports = router;

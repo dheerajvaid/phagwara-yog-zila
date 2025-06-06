@@ -1,0 +1,99 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-3">
+  <div id="attendanceWrapper">
+    <h4 class="text-center mb-3 fw-bold border-bottom pb-2">📊 View Kender Attendance (Monthly)</h4>
+
+    <!-- Month/Year Sort Form -->
+    <form method="GET" action="/attendance/view-kender" class="row g-2 mb-4">
+      <div class="col-6 col-md-3">
+        <select name="month" class="form-control" required>
+          <option value="">Month</option>
+          <% for (let m = 1; m <= 12; m++) { %>
+            <option value="<%= m %>" <%= selectedMonth == m ? 'selected' : '' %>>
+              <%= new Date(2000, m - 1).toLocaleString('default', { month: 'long' }) %>
+            </option>
+          <% } %>
+        </select>
+      </div>
+      <div class="col-6 col-md-3">
+        <select name="year" class="form-control" required>
+          <option value="">Year</option>
+          <% for (let y = 2025; y <= 2030; y++) { %>
+            <option value="<%= y %>" <%= selectedYear == y ? 'selected' : '' %>><%= y %></option>
+          <% } %>
+        </select>
+      </div>
+      <div class="col-6 col-md-3">
+        <select name="sortBy" class="form-control" onchange="this.form.submit()">
+          <option value="name" <%= sortBy === 'name' ? 'selected' : '' %>>Sort by Name</option>
+          <option value="count" <%= sortBy === 'count' ? 'selected' : '' %>>Sort by Present Days</option>
+        </select>
+      </div>
+      <div class="col-12 col-md-3">
+        <button class="btn btn-primary w-100">View</button>
+      </div>
+    </form>
+
+    <% if (attendanceData.length) { %>
+      <!-- Attendance Table -->
+      <div class="table-responsive-sm custom-scroll" style="max-height: 450px;">
+        <table class="table table-bordered table-sm text-center align-middle" style="border: 1px solid #999;">
+          <thead class="bg-light">
+            <tr>
+              <th class="bg-secondary text-white">Kender</th>
+              <% activeDays.forEach(day => { %>
+                <th class="bg-secondary text-white border" style="width: 32px; font-size: 0.85rem;"><%= day %></th>
+              <% }) %>
+            </tr>
+            <tr>
+              <th class="text-danger fw-bold bg-light">Total Present</th>
+              <% 
+                const kenderDayCount = {};
+                activeDays.forEach(day => kenderDayCount[day] = 0);
+
+                attendanceData.forEach(k => {
+                  const kenderId = k._id.toString();
+                  activeDays.forEach(day => {
+                    const dateStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                    const count = (kenderDateCountMap[kenderId] && kenderDateCountMap[kenderId][dateStr]) || 0;
+                    kenderDayCount[day] += count;
+                  });
+                });
+              %>
+              <% activeDays.forEach(day => { %>
+                <th class="text-danger fw-bold bg-light border">
+                  <%= kenderDayCount[day] > 0 ? kenderDayCount[day] : '' %>
+                </th>
+              <% }) %>
+            </tr>
+          </thead>
+          <tbody>
+            <% attendanceData.forEach(k => { %>
+              <tr style="page-break-inside: avoid;">
+                <td class="fw-bold" style="white-space: nowrap; font-size: 0.85rem;">
+                  <%= k.name %> <span class="text-danger">(<%= k.presentCount %>)</span>
+                </td>
+
+                <% activeDays.forEach(day => {
+                  const dateStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                  const count = (kenderDateCountMap[k._id.toString()] && kenderDateCountMap[k._id.toString()][dateStr]) || 0;
+                %>
+                  <td class="<%= count > 0 ? 'bg-success text-white fw-bold' : 'bg-danger text-white' %>"
+                      style="width: 30px; font-size: 0.8rem; padding: 4px;">
+                      <%= count > 0 ? count : '' %>
+                  </td>
+                <% }) %>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } else if (selectedMonth && selectedYear) { %>
+      <p class="text-muted text-center">No attendance found for selected month.</p>
+    <% } %>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>
