@@ -26,6 +26,11 @@ module.exports = {
     "Karyakarta"
   ],
 
+  kenderMainRoles: [
+    "Kender Pramukh",
+    "Seh Kender Pramukh"
+  ],
+
   saadhakRoles: [
     "Saadhak",
   ],

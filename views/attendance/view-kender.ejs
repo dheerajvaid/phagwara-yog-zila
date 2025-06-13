@@ -37,6 +37,9 @@
     </form>
 
     <% if (attendanceData.length) { %>
+      <div class="text-end mb-2">
+        <button id="exportPdfBtn" class="btn btn-sm btn-danger">📄 Export as PDF</button>
+      </div>
       <!-- Attendance Table -->
       <div class="table-responsive-sm custom-scroll" style="max-height: 450px;">
         <table class="table table-bordered table-sm text-center align-middle" style="border: 1px solid #999;">
@@ -90,10 +93,55 @@
           </tbody>
         </table>
       </div>
+     
+      <div id="pdfCloneContainer" style="position: absolute; left: -9999px; top: -9999px;"></div>
     <% } else if (selectedMonth && selectedYear) { %>
       <p class="text-muted text-center">No attendance found for selected month.</p>
     <% } %>
   </div>
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+  document.getElementById("exportPdfBtn")?.addEventListener("click", function () {
+    const originalTable = document.querySelector(".custom-scroll table");
+    const cloneContainer = document.getElementById("pdfCloneContainer");
+
+    cloneContainer.innerHTML = '';
+
+    const clone = originalTable.cloneNode(true);
+    clone.style.width = '100%';
+
+    const wrapper = document.createElement('div');
+
+    const heading = document.createElement('h4');
+    heading.innerText = "📊 Kender Attendance Report - <%= new Date(2000, selectedMonth - 1).toLocaleString('default', { month: 'long' }) %> <%= selectedYear %>";
+    heading.style.textAlign = "center";
+
+    const style = document.createElement('style');
+    style.textContent = `
+      table { border-collapse: collapse; width: 100%; font-size: 10px; }
+      tr { page-break-inside: avoid !important; break-inside: avoid; }
+      thead { display: table-header-group; }
+      tfoot { display: table-footer-group; }
+      th, td { border: 1px solid #888 !important; padding: 4px; }
+    `;
+
+    wrapper.appendChild(style);
+    wrapper.appendChild(heading);
+    wrapper.appendChild(clone);
+    cloneContainer.appendChild(wrapper);
+
+    const opt = {
+      margin:       0.3,
+      filename:     'Kender_Attendance_<%= selectedMonth %>_<%= selectedYear %>.pdf',
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, scrollY: 0 },
+      jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
+    };
+
+    html2pdf().set(opt).from(wrapper).save();
+  });
+</script>
 
 <%- include('../partials/footer') %>

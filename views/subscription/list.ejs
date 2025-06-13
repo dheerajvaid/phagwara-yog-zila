@@ -1,0 +1,49 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-4">
+  <h4 class="mb-3">📋 Subscription List</h4>
+
+  <table class="table table-bordered table-striped">
+    <thead>
+      <tr>
+        <th>Subscriber Type</th>
+        <th>Saadhak / Name</th>
+        <th>Mobile</th>
+        <th>Zila</th>
+        <th>Ksheter</th>
+        <th>Kender</th>
+        <th>Year</th>
+        <th>No. of Subs.</th>
+        <th>Amount</th>
+        <th>Created By</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% subscriptions.forEach(sub => { %>
+        <tr>
+          <td><%= sub.subscriberType %></td>
+          <td>
+            <% if (sub.subscriberType === 'internal') { %>
+              <%= sub.saadhak ? sub.saadhak.name : 'N/A' %>
+            <% } else { %>
+              <%= sub.name || 'N/A' %>
+            <% } %>
+          </td>
+          <td><%= sub.mobile || (sub.saadhak ? sub.saadhak.mobile : 'N/A') %></td>
+          <td><%= sub.zila ? sub.zila.name : 'N/A' %></td>
+          <td><%= sub.ksheter ? sub.ksheter.name : 'N/A' %></td>
+          <td><%= sub.kender ? sub.kender.name : 'N/A' %></td>
+          <td><%= sub.year %></td>
+          <td><%= sub.numberOfSubscriptions %></td>
+          <td>₹<%= sub.amount %></td>
+          <td><%= sub.createdBy ? sub.createdBy.name : 'N/A' %></td>
+          <td><%= sub.createdAt.toLocaleDateString() %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('../partials/footer') %>

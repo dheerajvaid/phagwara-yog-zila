@@ -29,6 +29,9 @@ const yogSamagriRoutes = require("./routes/yogSamagri");
 const storyRoutes = require("./routes/storyRoutes");
 const shivirRegRoutes = require("./routes/shivirRoutes");
 const eventRoutes = require("./routes/eventRoutes");
+const questionRoutes = require('./routes/questionRoutes');
+const subscriptionRoutes = require('./routes/subscriptionRoutes');
+
 // Load environment variables from .env file
 dotenv.config();
 
@@ -97,8 +100,8 @@ app.use("/stories", storyRoutes);
 app.use("/shivirreg", shivirRegRoutes);
 app.use("/events", eventRoutes);
 app.use('/api/events', require('./routes/api/events'));
-
-
+app.use('/question', questionRoutes);
+app.use('/subscription', subscriptionRoutes);
 // Start the server
 const port = process.env.PORT || 3000;
 app.listen(port, () => {

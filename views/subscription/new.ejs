@@ -1,0 +1,147 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-4">
+  <h4 class="text-center fw-bold mb-3 border-bottom pb-2">📝 Add New Subscription</h4>
+
+  <form action="/subscription/create" method="POST" class="row g-3">
+
+    <!-- Subscriber Type -->
+    <div class="col-md-6">
+      <label for="subscriberType" class="form-label">Subscriber Type</label>
+      <select class="form-select" id="subscriberType" name="subscriberType" required>
+        <option value="">-- Select --</option>
+        <option value="internal">Internal (Saadhak)</option>
+        <option value="external">External</option>
+      </select>
+    </div>
+
+    <!-- Zila -->
+    <div class="col-md-6">
+      <label for="zila" class="form-label">Zila</label>
+      <select class="form-select" id="zila" name="zila" <%= user.zila ? 'readonly disabled' : '' %> required>
+        <option value="">-- Select Zila --</option>
+        <% zilas.forEach(zila => { %>
+          <option value="<%= zila._id %>" <%= (user.zila?.toString() === zila._id.toString()) ? 'selected' : '' %>><%= zila.name %></option>
+        <% }) %>
+      </select>
+    </div>
+
+    <!-- Ksheter -->
+    <div class="col-md-6">
+      <label for="ksheter" class="form-label">Ksheter</label>
+      <select class="form-select" id="ksheter" name="ksheter" <%= user.ksheter ? 'readonly disabled' : '' %>>
+        <option value="">-- Select Ksheter --</option>
+        <% ksheters.forEach(k => { %>
+          <% if (!user.zila || (k.zila && k.zila.toString() === user.zila.toString())) { %>
+            <option value="<%= k._id %>" <%= (user.ksheter?.toString() === k._id.toString()) ? 'selected' : '' %>><%= k.name %></option>
+          <% } %>
+        <% }) %>
+      </select>
+    </div>
+
+    <!-- Kender -->
+    <div class="col-md-6">
+      <label for="kender" class="form-label">Kender</label>
+      <select class="form-select" id="kender" name="kender" <%= user.kender ? 'readonly disabled' : '' %> required>
+        <option value="">-- Select Kender --</option>
+        <% kenders.forEach(k => { %>
+          <% if (!user.ksheter || (k.ksheter && k.ksheter.toString() === user.ksheter.toString())) { %>
+            <option value="<%= k._id %>" <%= (user.kender?.toString() === k._id.toString()) ? 'selected' : '' %>><%= k.name %></option>
+          <% } %>
+        <% }) %>
+      </select>
+    </div>
+
+    <!-- Internal Saadhak Dropdown -->
+    <div class="col-md-6" id="internalSaadhakDiv" style="display:none;">
+      <label for="saadhak" class="form-label">Select Saadhak</label>
+      <select class="form-select" name="saadhakId" id="saadhak">
+        <option value="">-- Select Saadhak --</option>
+        <% saadhaks.forEach(s => { %>
+          <option value="<%= s._id %>"><%= s.name %> - <%= s.mobile %></option>
+        <% }) %>
+      </select>
+    </div>
+
+    <!-- External Subscriber Fields -->
+    <div id="externalFields" style="display:none;">
+      <div class="col-md-6">
+        <label for="name" class="form-label">Subscriber Name</label>
+        <input type="text" class="form-control" name="name" id="name">
+      </div>
+      <div class="col-md-6">
+        <label for="mobile" class="form-label">Mobile Number</label>
+        <input type="text" class="form-control" name="mobile" id="mobile">
+      </div>
+      <div class="col-12">
+        <label for="address" class="form-label">Address</label>
+        <textarea class="form-control" name="address" id="address" rows="2"></textarea>
+      </div>
+    </div>
+
+    <!-- Subscription Year -->
+    <div class="col-md-4">
+      <label for="year" class="form-label">Year</label>
+      <select name="year" id="year" class="form-select" required>
+        <% const currentYear = new Date().getFullYear(); %>
+        <% for (let y = currentYear - 2; y <= currentYear + 1; y++) { %>
+          <option value="<%= y %>" <%= (y === currentYear) ? 'selected' : '' %>><%= y %></option>
+        <% } %>
+      </select>
+    </div>
+
+    <!-- Subscription Count -->
+    <div class="col-md-4">
+      <label for="count" class="form-label">No. of Subscriptions</label>
+      <input type="number" min="1" step="1" class="form-control" id="count" name="count" value="1" required>
+    </div>
+
+    <!-- Amount (auto-calculated) -->
+    <div class="col-md-4">
+      <label for="amount" class="form-label">Total Amount (₹)</label>
+      <input type="number" name="amount" id="amount" class="form-control" readonly value="100">
+    </div>
+
+    <div class="col-12 text-end">
+      <button type="submit" class="btn btn-primary">💾 Save Subscription</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  const subscriberType = document.getElementById('subscriberType');
+  const internalSaadhakDiv = document.getElementById('internalSaadhakDiv');
+  const externalFields = document.getElementById('externalFields');
+  const countInput = document.getElementById('count');
+  const amountInput = document.getElementById('amount');
+  const PER_SUB_AMOUNT = 100; // Fixed amount per subscription
+
+  function toggleFields() {
+    const type = subscriberType.value;
+    if (type === 'internal') {
+      internalSaadhakDiv.style.display = 'block';
+      externalFields.style.display = 'none';
+    } else if (type === 'external') {
+      internalSaadhakDiv.style.display = 'none';
+      externalFields.style.display = 'block';
+    } else {
+      internalSaadhakDiv.style.display = 'none';
+      externalFields.style.display = 'none';
+    }
+  }
+
+  function updateAmount() {
+    const count = parseInt(countInput.value) || 1;
+    amountInput.value = count * PER_SUB_AMOUNT;
+  }
+
+  subscriberType.addEventListener('change', toggleFields);
+  countInput.addEventListener('input', updateAmount);
+
+  // Trigger defaults
+  toggleFields();
+  updateAmount();
+</script>
+
+<%- include('../partials/footer') %>

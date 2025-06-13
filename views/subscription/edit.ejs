@@ -1,0 +1,113 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-4">
+  <h4 class="text-center fw-bold border-bottom pb-2">📝 Edit Yog Manzri Subscription</h4>
+
+  <form method="POST" action="/subscription/update/<%= sub._id %>" class="row g-3">
+    <div class="col-md-12">
+      <label class="form-label fw-semibold">Subscriber Type</label><br>
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" name="subscriberType" value="internal" id="internal"
+          <%= sub.subscriberType === 'internal' ? 'checked' : '' %>>
+        <label class="form-check-label" for="internal">Internal (Saadhak)</label>
+      </div>
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" name="subscriberType" value="external" id="external"
+          <%= sub.subscriberType === 'external' ? 'checked' : '' %>>
+        <label class="form-check-label" for="external">External (Other)</label>
+      </div>
+    </div>
+
+    <!-- Internal -->
+    <div class="col-md-6 internal-group" style="<%= sub.subscriberType === 'internal' ? '' : 'display:none;' %>">
+      <label class="form-label">Select Saadhak</label>
+      <select name="saadhakId" class="form-select">
+        <option value="">-- Choose Saadhak --</option>
+        <% saadhaks.forEach(s => { %>
+          <option value="<%= s._id %>" <%= sub.saadhak?.toString() === s._id.toString() ? 'selected' : '' %>>
+            <%= s.name %> (<%= s.mobile %>)
+          </option>
+        <% }) %>
+      </select>
+    </div>
+
+    <!-- External -->
+    <div class="col-md-6 external-group" style="<%= sub.subscriberType === 'external' ? '' : 'display:none;' %>">
+      <label class="form-label">Name</label>
+      <input type="text" name="name" class="form-control" value="<%= sub.name %>">
+    </div>
+
+    <div class="col-md-6 external-group" style="<%= sub.subscriberType === 'external' ? '' : 'display:none;' %>">
+      <label class="form-label">Mobile</label>
+      <input type="text" name="mobile" class="form-control" value="<%= sub.mobile %>">
+    </div>
+
+    <div class="col-md-12 external-group" style="<%= sub.subscriberType === 'external' ? '' : 'display:none;' %>">
+      <label class="form-label">Address</label>
+      <textarea name="address" class="form-control" rows="2"><%= sub.address %></textarea>
+    </div>
+
+    <!-- Mapping -->
+    <div class="col-md-4">
+      <label class="form-label">Zila</label>
+      <select name="zila" class="form-select">
+        <option value="">-- Select Zila --</option>
+        <% zilas.forEach(z => { %>
+          <option value="<%= z._id %>" <%= sub.zila?.toString() === z._id.toString() ? 'selected' : '' %>><%= z.name %></option>
+        <% }) %>
+      </select>
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Ksheter</label>
+      <select name="ksheter" class="form-select">
+        <option value="">-- Select Ksheter --</option>
+        <% ksheters.forEach(k => { %>
+          <option value="<%= k._id %>" <%= sub.ksheter?.toString() === k._id.toString() ? 'selected' : '' %>><%= k.name %></option>
+        <% }) %>
+      </select>
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Kender</label>
+      <select name="kender" class="form-select">
+        <option value="">-- Select Kender --</option>
+        <% kenders.forEach(k => { %>
+          <option value="<%= k._id %>" <%= sub.kender?.toString() === k._id.toString() ? 'selected' : '' %>><%= k.name %></option>
+        <% }) %>
+      </select>
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Subscription Year</label>
+      <select name="year" class="form-select">
+        <% for(let y = 2022; y <= new Date().getFullYear() + 1; y++) { %>
+          <option value="<%= y %>" <%= sub.year == y ? 'selected' : '' %>><%= y %></option>
+        <% } %>
+      </select>
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Amount (₹)</label>
+      <input type="number" name="amount" class="form-control" value="<%= sub.amount %>">
+    </div>
+
+    <div class="col-md-4 d-flex align-items-end">
+      <button class="btn btn-success w-100">💾 Update Subscription</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  // Show/hide internal/external fields based on selection
+  document.querySelectorAll('input[name="subscriberType"]').forEach(el => {
+    el.addEventListener('change', () => {
+      const type = el.value;
+      document.querySelectorAll('.internal-group').forEach(div => div.style.display = type === 'internal' ? '' : 'none');
+      document.querySelectorAll('.external-group').forEach(div => div.style.display = type === 'external' ? '' : 'none');
+    });
+  });
+</script>
+
+<%- include('../partials/footer') %>
