@@ -8,6 +8,14 @@
 <div class="container py-4">
   <h2 class="mb-4 fw-bold text-success text-center">📅 Events, News, Information</h2>
 
+  <% if (user && (user.roles.includes('Admin') || user.id === '68135e80e8a34e1065944c10')) { %>
+  <div class="mb-3 text-end">
+    <a href="/events/add" class="btn btn-success">
+      ➕ Add Event
+    </a>
+  </div>
+  <% } %>
+
   <div class="row g-4" id="event-container">
     <!-- Events will be appended here dynamically -->
   </div>
@@ -73,6 +81,7 @@
   let currentSearch = '';
 
   const loggedInUserRoles = <%- JSON.stringify(user?.roles || []) %>;
+  const loggedInUserID = <%- JSON.stringify(user?.id || []) %>;
   const container = document.getElementById('event-container');
   const loading = document.getElementById('loading');
   const endMsg = document.getElementById('end-message');
@@ -95,7 +104,7 @@
           <a href="/events/${event._id}" class="btn btn-sm btn-outline-success">📖 Read More</a>
         `;
 
-        if (loggedInUserRoles.includes('Admin')) {
+        if (loggedInUserRoles.includes('Admin') || loggedInUserID=='68135e80e8a34e1065944c10') {
           buttonsHTML += `
             <a href="/events/${event._id}/edit" class="btn btn-sm btn-outline-primary ms-1">✏️ Edit</a>
             <button onclick="openDeleteModal('${event._id}')" class="btn btn-sm btn-outline-danger ms-1">🗑️ Delete</button>

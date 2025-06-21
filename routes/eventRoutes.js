@@ -26,19 +26,19 @@ router.get("/", async (req, res) => {
 });
 
 // GET /events/add - show the form to create a new event
-router.get("/add", requireLogin, canManage(adminOnly), (req, res) => {
+router.get("/add", requireLogin, canManage(adminOnly,'event'), (req, res) => {
   res.render("events/add"); // make sure you have views/events/add.ejs
 });
 
 // ⬇️ EDIT ROUTE HERE
-router.get("/:id/edit", requireLogin, canManage(adminOnly),eventController.renderEditForm);
+router.get("/:id/edit", requireLogin, canManage(adminOnly,'event'),eventController.renderEditForm);
 
 // ⬇️ VIEW ROUTE
 router.get("/:id", eventController.viewEvent);
 
 // Accept multiple images + video + audio
 router.post(
-  "/",requireLogin, canManage(adminOnly),
+  "/",requireLogin, canManage(adminOnly,'event'),
   upload.fields([
     { name: "images", maxCount: 5 },
     { name: "video", maxCount: 1 },
@@ -118,7 +118,7 @@ router.post(
 // });
 
 // POST /events/:id/delete - delete event by ID
-router.post("/:id/delete",requireLogin, canManage(adminOnly), async (req, res) => {
+router.post("/:id/delete",requireLogin, canManage(adminOnly,'event'), async (req, res) => {
   try {
     await Event.findByIdAndDelete(req.params.id);
     res.redirect("/events"); // redirect back to event list after deletion
@@ -130,7 +130,7 @@ router.post("/:id/delete",requireLogin, canManage(adminOnly), async (req, res) =
 
 // For updating an event by ID
 router.put(
-  "/:id",requireLogin, canManage(adminOnly),
+  "/:id",requireLogin, canManage(adminOnly,'event'),
   upload.fields([
     { name: "images", maxCount: 5 },
     { name: "video", maxCount: 1 },

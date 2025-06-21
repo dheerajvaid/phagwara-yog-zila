@@ -35,5 +35,6 @@ module.exports = {
     "Saadhak",
   ],
 
-  adminOnly: ["Admin"]
+  adminOnly: ["Admin"],
+
 };
