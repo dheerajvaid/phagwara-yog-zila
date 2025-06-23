@@ -42,16 +42,16 @@
       </div>
       <!-- Attendance Table -->
       <div class="table-responsive-sm custom-scroll" style="max-height: 450px;">
-        <table class="table table-bordered table-sm text-center align-middle" style="border: 1px solid #999;">
+        <table class="table table-bordered table-sm text-center align-middle" style="border: 1px solid black;">
           <thead class="bg-light">
             <tr>
-              <th class="bg-secondary text-white">Kender</th>
+              <th class="bg-primary text-white border" style="border: 1px solid black;">Kender</th>
               <% activeDays.forEach(day => { %>
-                <th class="bg-secondary text-white border" style="width: 32px; font-size: 0.85rem;"><%= day %></th>
+                <th class="bg-primary text-white border" style="width: 32px; font-size: 0.85rem; border: 1px solid black;"><%= day %></th>
               <% }) %>
             </tr>
             <tr>
-              <th class="text-danger fw-bold bg-light">Total Present</th>
+              <th class="text-primary fw-bold bg-light">Total Present</th>
               <% 
                 const kenderDayCount = {};
                 activeDays.forEach(day => kenderDayCount[day] = 0);
@@ -66,7 +66,7 @@
                 });
               %>
               <% activeDays.forEach(day => { %>
-                <th class="text-danger fw-bold bg-light border">
+                <th class="text-primary fw-bold bg-light border" style="border: 1px solid black;">
                   <%= kenderDayCount[day] > 0 ? kenderDayCount[day] : '' %>
                 </th>
               <% }) %>
@@ -76,17 +76,17 @@
             <% attendanceData.forEach(k => { %>
               <tr style="page-break-inside: avoid;">
                 <td class="fw-bold" style="white-space: nowrap; font-size: 0.85rem;">
-                  <%= k.name %> <span class="text-danger">(<%= k.presentCount %>)</span>
+                  <%= k.name %> <span class="text-primary">(<%= k.presentCount %>)</span>
                 </td>
 
                 <% activeDays.forEach(day => {
                   const dateStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                   const count = (kenderDateCountMap[k._id.toString()] && kenderDateCountMap[k._id.toString()][dateStr]) || 0;
                 %>
-                  <td class="<%= count > 0 ? 'bg-success text-white fw-bold' : 'bg-danger text-white' %>"
+                  <td class="<%= count > 0 ? 'bg-success text-white fw-bold' : 'bg-light text-black' %>"
                       style="width: 30px; font-size: 0.8rem; padding: 4px;">
                       <%= count > 0 ? count : '' %>
-                  </td>
+                  </td> 
                 <% }) %>
               </tr>
             <% }) %>
