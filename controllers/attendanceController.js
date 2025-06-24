@@ -724,3 +724,109 @@ exports.viewKenderWiseAttendance = async (req, res) => {
     res.status(500).send("Server Error");
   }
 };
+
+exports.viewTop10Attendance = async (req, res) => {
+  try {
+    const user = req.session.user;
+    const zilaId = user.zila;
+
+    const excludedRoles = [
+      "Zila Pradhan",
+      "Zila Mantri",
+      "Sangathan Mantri",
+      "Cashier",
+      "Ksheter Pradhan",
+      "Ksheter Mantri",
+    ];
+
+    const today = new Date();
+
+    const selectedMonth = parseInt(req.query.month) || today.getMonth() + 1; // 1–12
+    const selectedYear = parseInt(req.query.year) || today.getFullYear();
+
+    const start = new Date(selectedYear, selectedMonth - 1, 1);
+    const end = new Date(selectedYear, selectedMonth, 0, 23, 59, 59);
+
+    const selectedScope = req.query.scope || "zila";
+
+    let filter = {};
+    if (selectedScope === "zila") {
+      filter.zila = zilaId;
+    } else if (selectedScope === "ksheter") {
+      filter.ksheter = req.session.user.ksheter;
+    } else if (selectedScope === "kender") {
+      filter.kender = req.session.user.kender;
+    }
+    filter.role = { $nin: excludedRoles };
+
+    const saadhaks = await Saadhak.find(filter)
+      .populate("ksheter", "name")
+      .populate("kender", "name")
+      .lean();
+
+    const saadhakIds = saadhaks.map((s) => s._id);
+
+    // console.log(start, end);
+
+    const attendanceRecords = await Attendance.find({
+      saadhak: { $in: saadhakIds },
+      date: { $gte: start, $lte: end },
+      status: "Present",
+    })
+      .select("saadhak date")
+      .lean();
+
+    const attendanceMap = {};
+    for (let rec of attendanceRecords) {
+      const id = rec.saadhak.toString();
+      if (!attendanceMap[id]) attendanceMap[id] = [];
+      attendanceMap[id].push(rec.date.toISOString().split("T")[0]);
+    }
+
+    const sortedData = saadhaks
+      .map((s) => {
+        const attendance = attendanceMap[s._id.toString()] || [];
+        return {
+          _id: s._id,
+          name: s.name,
+          kender: s.kender?.name || "N/A",
+          ksheter: s.ksheter?.name || "N/A",
+          attendance,
+          presentCount: attendance.length,
+        };
+      })
+      .filter((s) => s.presentCount > 0)
+      .sort((a, b) => b.presentCount - a.presentCount);
+
+    const topN = 10;
+    const cutoffCount =
+      sortedData.length >= topN ? sortedData[topN - 1].presentCount : 0;
+
+    const attendanceData = sortedData.filter(
+      (s) => s.presentCount >= cutoffCount
+    );
+
+    // ✅ If no saadhak has any attendance, don't show table
+    if (attendanceData.length === 0) {
+      return res.render("attendance/top10", {
+        attendanceData: [],
+        selectedMonth,
+        selectedYear,
+        selectedScope,
+        noData: true, // 👉 pass flag to EJS
+      });
+    }
+
+    // Normal render
+    res.render("attendance/top10", {
+      attendanceData,
+      selectedMonth,
+      selectedYear,
+      selectedScope,
+      noData: false,
+    });
+  } catch (err) {
+    console.error("Error loading top 10 saadhaks:", err);
+    res.status(500).send("Server Error");
+  }
+};

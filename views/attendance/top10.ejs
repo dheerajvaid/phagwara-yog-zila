@@ -1,0 +1,103 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-3">
+  <h4 class="text-center fw-bold mb-3">🔥 Top 10 Saadhaks in Attendance</h4>
+
+  <form method="GET" action="/attendance/top10" class="row g-2 mb-4">
+  <div class="col-6 col-md-3">
+    <select name="month" class="form-control" required>
+      <option value="">Month</option>
+      <% for (let m = 1; m <= 12; m++) { %>
+        <option value="<%= m %>" <%= selectedMonth == m ? 'selected' : '' %>>
+          <%= new Date(2000, m - 1).toLocaleString('default', { month: 'long' }) %>
+        </option>
+      <% } %>
+    </select>
+  </div>
+
+  <div class="col-6 col-md-3">
+    <select name="year" class="form-control" required>
+      <option value="">Year</option>
+      <% for (let y = 2024; y <= 2030; y++) { %>
+        <option value="<%= y %>" <%= selectedYear == y ? 'selected' : '' %>><%= y %></option>
+      <% } %>
+    </select>
+  </div>
+
+  <div class="col-6 col-md-3">
+    <select name="scope" class="form-control" onchange="this.form.submit()">
+      <option value="zila" <%= selectedScope === 'zila' ? 'selected' : '' %>>Zila</option>
+      <option value="ksheter" <%= selectedScope === 'ksheter' ? 'selected' : '' %>>Ksheter</option>
+      <option value="kender" <%= selectedScope === 'kender' ? 'selected' : '' %>>Kender</option>
+    </select>
+  </div>
+
+  <div class="col-12 col-md-3">
+    <button class="btn btn-primary w-100">🔍 View Report</button>
+  </div>
+</form>
+
+
+  <% if (attendanceData.length > 0 && !noData) { %>
+    <div class="text-end mb-2">
+      <button class="btn btn-danger btn-sm" id="exportPdfBtn">📄 Export PDF</button>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-bordered table-striped align-middle text-center">
+        <thead class="bg-primary text-white">
+          <tr>
+            <th>Saadhak</th>
+            <th>Ksheter</th>
+            <th>Kender</th>
+            <th>Total Present</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% attendanceData.forEach((s, index) => { %>
+            <tr>
+              <td class="fw-bold text-start"><%= s.name %></td>
+              <td><%= s.ksheter %></td>
+              <td><%= s.kender %></td>
+              <td><%= s.presentCount %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } else { %>
+    <p class="text-muted text-center">No data found for selected month.</p>
+  <% } %>
+</div>
+
+<div id="pdfCloneContainer" style="position: absolute; left: -9999px;"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+  document.getElementById("exportPdfBtn")?.addEventListener("click", () => {
+    const cloneContainer = document.getElementById("pdfCloneContainer");
+    cloneContainer.innerHTML = "";
+
+    const clone = document.querySelector("table").cloneNode(true);
+    const wrapper = document.createElement("div");
+
+    const heading = document.createElement("h4");
+    heading.innerText = "🔥 Top 10 Saadhaks in Attendance - <%= new Date(2000, selectedMonth - 1).toLocaleString('default', { month: 'long' }) %> <%= selectedYear %>";
+    heading.style.textAlign = "center";
+
+    wrapper.appendChild(heading);
+    wrapper.appendChild(clone);
+    cloneContainer.appendChild(wrapper);
+
+    html2pdf().set({
+      margin: 0.3,
+      filename: 'Top10_Attendance_<%= selectedMonth %>_<%= selectedYear %>.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+    }).from(wrapper).save();
+  });
+</script>
+
+<%- include('../partials/footer') %>

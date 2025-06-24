@@ -85,4 +85,11 @@ router.get("/view", requireLogin, canManage(saadhakManagerRoles), attendanceCont
 
 router.get('/view-kender', requireLogin, canManage(saadhakManagerRoles), attendanceController.viewKenderWiseAttendance);
 
+router.get(
+  "/top10",
+  requireLogin,
+  canManage(saadhakManagerRoles),
+  attendanceController.viewTop10Attendance
+);
+
 module.exports = router;
