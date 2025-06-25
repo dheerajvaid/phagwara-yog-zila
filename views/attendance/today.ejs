@@ -92,6 +92,39 @@
       </div>
     <% } %>
 
+    <!-- Ksheter Team Info -->
+<div class="text-center mt-3">
+  <hr class="mb-2 mt-3" />
+  <h6 class="fw-bold text-primary">
+    <%= ksheterName ? ksheterName + " - क्षेत्र टीम" : "क्षेत्र टीम" %>
+  </h6>
+  <div class="d-flex justify-content-center" style="gap: 1rem;">
+    <span class="small-text">Pradhan: 
+      <span class="text-danger small-text">
+        <%= ksheterPradhan.name || 'N/A' %>
+      </span>
+    </span>
+    <span class="small-text">M: 
+      <span class="text-danger small-text">
+        <%= ksheterPradhan.mobile || 'N/A' %>
+      </span>
+    </span>
+  </div>
+  <div class="d-flex justify-content-center" style="gap: 1rem;">
+    <span class="small-text">Mantri: 
+      <span class="text-danger small-text">
+        <%= ksheterMantri.name || 'N/A' %>
+      </span>
+    </span>
+    <span class="small-text">M: 
+      <span class="text-danger small-text">
+        <%= ksheterMantri.mobile || 'N/A' %>
+      </span>
+    </span>
+  </div>
+</div>
+
+
     <!-- Motivational Message -->
     <div class="text-center">
       <hr />

@@ -335,6 +335,28 @@ exports.viewTodayAttendance = async (req, res) => {
       }
     });
 
+    // Get Ksheter-level pramukhs (Pradhan & Mantri)
+    let ksheterPradhan = null;
+    let ksheterMantri = null;
+
+    if (user.ksheter) {
+      const ksheterTeam = await Saadhak.find({
+        ksheter: user.ksheter,
+        role: { $in: ["Ksheter Pradhan", "Ksheter Mantri"] },
+      }).select("name mobile role");
+
+      ksheterTeam.forEach((member) => {
+        if (member.role.includes("Ksheter Pradhan")) ksheterPradhan = member;
+        if (member.role.includes("Ksheter Mantri")) ksheterMantri = member;
+      });
+    }
+
+    let ksheterName = "";
+
+    if (user.ksheter) {
+      const ksheter = await Ksheter.findById(user.ksheter).select("name");
+      if (ksheter) ksheterName = ksheter.name;
+    }
     // console.log(pramukhs);
 
     // console.log (kenderPramukh);
@@ -349,6 +371,9 @@ exports.viewTodayAttendance = async (req, res) => {
       kenderName: kender.name,
       kenderPramukh: kenderPramukh || {},
       sehKenderPramukh: sehKenderPramukh || {},
+      ksheterPradhan: ksheterPradhan || {},
+      ksheterMantri: ksheterMantri || {},
+      ksheterName: ksheterName || "",
       attendanceDateFormatted: selectedDate.toLocaleDateString("en-IN"),
       attendanceDate: selectedDate.toISOString().split("T")[0],
       randomMessage: messages[Math.floor(Math.random() * messages.length)],
