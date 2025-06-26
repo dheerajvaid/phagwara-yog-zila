@@ -1,6 +1,10 @@
-<%- include('../partials/header') %> <%- include('../partials/navbar') %>
+<%- include('../partials/header') %> 
+<%- include('../partials/navbar') %>
 
-<div class="container my-5">
+<div class="container my-2">
+   <div class="mb-2">
+    <a href="/events" class="btn btn-outline-primary">← Back to Events</a>
+  </div>
   <div class="card shadow-lg">
     <% if (event.imageUrls && event.imageUrls.length > 0) { %>
     <!-- Bootstrap Carousel for multiple images -->
@@ -56,8 +60,9 @@
         <%= event.description %>
       </p>
 
-      <% if (event.videoUrl) { const videoExt =
-      event.videoUrl.split('.').pop().toLowerCase(); %>
+      <% if (event.videoUrl) { 
+        const videoExt = event.videoUrl.split('.').pop().toLowerCase(); 
+      %>
       <div class="mt-4">
         <h5>Video</h5>
         <div style="width: 100%; max-width: 800px; margin: auto">
@@ -67,16 +72,28 @@
           </video>
         </div>
       </div>
-      <% } %> 
-      
-      <% if (event.audioUrl) { const audioExt =
-      event.audioUrl.split('.').pop().toLowerCase(); %>
+      <% } %>
+
+      <% if (event.audioUrl) { 
+        const audioExt = event.audioUrl.split('.').pop().toLowerCase(); 
+      %>
       <div class="mt-4">
         <h5>Audio</h5>
         <audio class="w-100" controls>
           <source src="<%= event.audioUrl %>" type="audio/<%= audioExt %>" />
           Your browser does not support the audio element.
         </audio>
+      </div>
+      <% } %>
+
+      <% if (event.fileUrl) { 
+        const fileName = event.fileUrl.split('/').pop().split('?')[0];
+      %>
+      <div class="mt-4">
+        <h5>Downloadable File</h5>
+        <a href="<%= event.fileUrl %>" download class="btn btn-outline-secondary">
+          📥 Download <%= decodeURIComponent(fileName) %>
+        </a>
       </div>
       <% } %>
     </div>

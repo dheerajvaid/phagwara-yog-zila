@@ -1,4 +1,5 @@
-<%- include('../partials/header') %> <%- include('../partials/navbar') %>
+<%- include('../partials/header') %> 
+<%- include('../partials/navbar') %>
 
 <div class="container my-4">
   <h3 class="text-center text-primary mb-4">Add New Event</h3>
@@ -67,6 +68,17 @@
         id="audio"
         name="audio"
         accept="audio/*"
+      />
+    </div>
+
+    <div class="col-md-6">
+      <label for="file" class="form-label">Upload File (PDF, DOCX, etc.)</label>
+      <input
+        type="file"
+        class="form-control"
+        id="file"
+        name="file"
+        accept=".pdf,.doc,.docx,.xls,.xlsx,.zip,.rar"
       />
     </div>
 

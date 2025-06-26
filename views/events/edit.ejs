@@ -1,6 +1,11 @@
-<%- include('../partials/header') %> <%- include('../partials/navbar') %>
+<%- include('../partials/header') %> 
+<%- include('../partials/navbar') %>
 
-<div class="container my-4">
+<div class="container my-2">
+  <div class="text-center mb-2">
+    <a href="/events" class="btn btn-outline-primary">← Back to Events</a>
+  </div>
+
   <h3 class="text-center text-primary mb-4">Edit Event</h3>
 
   <form
@@ -41,9 +46,7 @@
         name="description"
         rows="4"
         required
-      >
-<%= event.description %></textarea
-      >
+      ><%= event.description %></textarea>
     </div>
 
     <div class="col-md-6">
@@ -57,34 +60,28 @@
         multiple
       />
       <% if (event.imageUrls && event.imageUrls.length > 0) { %>
-      <h5>Existing Images:</h5>
-      <div class="d-flex flex-wrap gap-3">
-        <% event.imageUrls.forEach((imgUrl, index) => { %>
-        <div style="position: relative; width: 150px">
-          <img
-            src="<%= imgUrl %>"
-            alt="Event Image"
-            style="width: 100%; height: auto; border-radius: 5px"
-          />
-          <div
-            class="form-check"
-            style="position: absolute; top: 5px; right: 5px"
-          >
-            <input
-              class="form-check-input"
-              type="checkbox"
-              name="deleteImages"
-              value="<%= imgUrl %>"
-              id="deleteImage<%= index %>"
-            />
-            <label class="form-check-label" for="deleteImage<%= index %>"
-              >Delete</label
-            >
-          </div>
+        <h5 class="mt-2">Existing Images:</h5>
+        <div class="d-flex flex-wrap gap-3">
+          <% event.imageUrls.forEach((imgUrl, index) => { %>
+            <div style="position: relative; width: 150px">
+              <img
+                src="<%= imgUrl %>"
+                alt="Event Image"
+                style="width: 100%; height: auto; border-radius: 5px"
+              />
+              <div class="form-check" style="position: absolute; top: 5px; right: 5px">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  name="deleteImages"
+                  value="<%= imgUrl %>"
+                  id="deleteImage<%= index %>"
+                />
+                <label class="form-check-label" for="deleteImage<%= index %>">Delete</label>
+              </div>
+            </div>
+          <% }); %>
         </div>
-        <% }); %>
-      </div>
-
       <% } %>
     </div>
 
@@ -98,12 +95,23 @@
         accept="video/*"
       />
       <% if (event.videoUrl) { %>
-      <div class="mt-2">
-        <video controls width="200">
-          <source src="<%= event.videoUrl %>" type="video/mp4" />
-          Your browser does not support the video tag.
-        </video>
-      </div>
+        <div class="mt-2">
+          <video controls width="200">
+            <source src="<%= event.videoUrl %>" type="video/mp4" />
+          </video>
+        </div>
+        <div class="form-check mt-2">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            name="deleteVideo"
+            value="true"
+            id="deleteVideo"
+          />
+          <label class="form-check-label" for="deleteVideo">
+            Delete Video
+          </label>
+        </div>
       <% } %>
     </div>
 
@@ -117,12 +125,53 @@
         accept="audio/*"
       />
       <% if (event.audioUrl) { %>
-      <div class="mt-2">
-        <audio controls>
-          <source src="<%= event.audioUrl %>" type="audio/mpeg" />
-          Your browser does not support the audio element.
-        </audio>
-      </div>
+        <div class="mt-2">
+          <audio controls>
+            <source src="<%= event.audioUrl %>" type="audio/mpeg" />
+          </audio>
+        </div>
+        <div class="form-check mt-2">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            name="deleteAudio"
+            value="true"
+            id="deleteAudio"
+          />
+          <label class="form-check-label" for="deleteAudio">
+            Delete Audio
+          </label>
+        </div>
+      <% } %>
+    </div>
+
+    <div class="col-md-6">
+      <label for="file" class="form-label">Upload New File (PDF, DOCX, etc.)</label>
+      <input
+        type="file"
+        class="form-control"
+        id="file"
+        name="file"
+        accept=".pdf,.doc,.docx,.xls,.xlsx,.zip,.rar"
+      />
+      <% if (event.fileUrl) { %>
+        <div class="mt-2">
+          <a href="<%= event.fileUrl %>" target="_blank" class="btn btn-outline-secondary btn-sm">
+            📥 Download Existing File
+          </a>
+        </div>
+        <div class="form-check mt-2">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            name="deleteFile"
+            value="true"
+            id="deleteFile"
+          />
+          <label class="form-check-label" for="deleteFile">
+            Delete File
+          </label>
+        </div>
       <% } %>
     </div>
 
@@ -130,6 +179,11 @@
       <button type="submit" class="btn btn-success px-4">Update Event</button>
     </div>
   </form>
+
+  <!-- Back Button -->
+  <div class="text-center mt-4">
+    <a href="/events" class="btn btn-outline-primary">← Back to Events</a>
+  </div>
 </div>
 
 <%- include('../partials/footer') %>
