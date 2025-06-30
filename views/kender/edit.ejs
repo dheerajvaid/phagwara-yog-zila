@@ -47,6 +47,17 @@
         <% } %>
       </div>
 
+      <!-- ✅ Start Time -->
+      <div class="col-md-6">
+        <label class="form-label">Kender Start Time</label>
+        <input
+          type="time"
+          name="startTime"
+          class="form-control"
+          value="<%= kender.startTime || '' %>"
+        >
+      </div>
+
       <div class="text-end">
         <button class="btn btn-primary">💾 Update Kender</button>
       </div>
@@ -85,6 +96,5 @@
     }
   });
 </script>
-
 
 <%- include('../partials/footer') %>

@@ -1,3 +1,5 @@
+// ✅ Required part in POST and PUT is marked with comments.
+
 const express = require("express");
 const router = express.Router();
 const eventController = require("../controllers/eventController");
@@ -10,10 +12,10 @@ const { requireLogin } = require("../middleware/authMiddleware");
 const { canManage } = require("../middleware/roleMiddleware");
 const { adminOnly } = require("../config/roles");
 
-// GET /events - list all events
+// GET all events
 router.get("/", async (req, res) => {
   try {
-    const events = await Event.find().sort({ date: -1 }); // latest first
+    const events = await Event.find().sort({ date: -1 });
     res.render("events/list", { events });
   } catch (err) {
     console.error(err);
@@ -21,80 +23,74 @@ router.get("/", async (req, res) => {
   }
 });
 
-// GET /events/add - show the form to create a new event
-router.get("/add", requireLogin, canManage(adminOnly, 'event'), (req, res) => {
+// GET add form
+router.get("/add", requireLogin, canManage(adminOnly, "event"), (req, res) => {
   res.render("events/add");
 });
 
-// GET /events/:id/edit
-router.get("/:id/edit", requireLogin, canManage(adminOnly, 'event'), eventController.renderEditForm);
+// GET edit form
+router.get("/:id/edit", requireLogin, canManage(adminOnly, "event"), eventController.renderEditForm);
 
-// GET /events/:id
+// GET single event
 router.get("/:id", eventController.viewEvent);
 
-// POST /events - create event with files
+// POST create event
 router.post(
   "/",
   requireLogin,
-  canManage(adminOnly, 'event'),
+  canManage(adminOnly, "event"),
   upload.fields([
     { name: "images", maxCount: 5 },
     { name: "video", maxCount: 1 },
     { name: "audio", maxCount: 1 },
-    { name: "file", maxCount: 1 } // ✅ Added to support file uploads (PDF, ZIP)
+    { name: "file", maxCount: 1 },
   ]),
   async (req, res) => {
     try {
       const { title, description, date } = req.body;
 
       let imageUrls = [];
+      let videoUrl = "", videoPublicId = "";
+      let audioUrl = "", audioPublicId = "";
+      let fileUrl = "", filePublicId = "", fileResourceType = "";
+
       if (req.files["images"]) {
-        for (const file of req.files["images"]) {
-          const result = await cloudinary.uploader.upload(file.path, {
-            folder: "phagwara-yog-zila/events/images",
-          });
-          imageUrls.push(result.secure_url);
-        }
+        imageUrls = req.files["images"].map(file => ({
+          url: file.path,
+          public_id: file.filename,
+        }));
       }
 
-      let videoUrl = "";
       if (req.files["video"] && req.files["video"][0]) {
-        const result = await cloudinary.uploader.upload(req.files["video"][0].path, {
-          resource_type: "video",
-          folder: "phagwara-yog-zila/events/videos",
-        });
-        videoUrl = result.secure_url;
+        videoUrl = req.files["video"][0].path;
+        videoPublicId = req.files["video"][0].filename;
       }
 
-      let audioUrl = "";
       if (req.files["audio"] && req.files["audio"][0]) {
-        const result = await cloudinary.uploader.upload(req.files["audio"][0].path, {
-          resource_type: "video",
-          folder: "phagwara-yog-zila/events/audios",
-        });
-        audioUrl = result.secure_url;
+        audioUrl = req.files["audio"][0].path;
+        audioPublicId = req.files["audio"][0].filename;
       }
 
-      let fileUrl = null;
       if (req.files["file"] && req.files["file"][0]) {
-        const result = await cloudinary.uploader.upload(req.files["file"][0].path, {
-          resource_type: "raw",
-          folder: "phagwara-yog-zila/events/files",
-        });
-        fileUrl = result.secure_url;
+        fileUrl = req.files["file"][0].path;
+        filePublicId = req.files["file"][0].filename;
+        fileResourceType = "raw"; // ✅ Save this so we know what to delete later
       }
 
-      const event = new Event({
+      await Event.create({
         title,
         description,
         date,
         imageUrls,
         videoUrl,
+        videoPublicId,
         audioUrl,
+        audioPublicId,
         fileUrl,
+        filePublicId,
+        fileResourceType, // ✅
       });
 
-      await event.save();
       res.redirect("/events");
     } catch (err) {
       console.error(err);
@@ -103,18 +99,42 @@ router.post(
   }
 );
 
-// POST /events/:id/delete - delete event
-router.post("/:id/delete", requireLogin, canManage(adminOnly, 'event'), async (req, res) => {
+// DELETE event
+router.post("/:id/delete", requireLogin, canManage(adminOnly, "event"), async (req, res) => {
   try {
+    const event = await Event.findById(req.params.id);
+    if (!event) return res.status(404).send("Event not found");
+
+    if (event.imageUrls?.length > 0) {
+      for (const img of event.imageUrls) {
+        await cloudinary.uploader.destroy(img.public_id, { resource_type: "image" });
+      }
+    }
+
+    if (event.videoPublicId) {
+      await cloudinary.uploader.destroy(event.videoPublicId, { resource_type: "video" });
+    }
+
+    if (event.audioPublicId) {
+      await cloudinary.uploader.destroy(event.audioPublicId, { resource_type: "video" });
+    }
+
+    if (event.filePublicId) {
+      await cloudinary.uploader.destroy(event.filePublicId, {
+        resource_type: event.fileResourceType || "raw", // ✅ Use stored type
+      });
+    }
+
     await Event.findByIdAndDelete(req.params.id);
     res.redirect("/events");
   } catch (err) {
-    console.error(err);
+    console.error("Error deleting event:", err);
     res.status(500).send("Error deleting event");
   }
 });
 
-// PUT /events/:id - update event
+// PUT update event
+// PUT update event
 router.put(
   "/:id",
   requireLogin,
@@ -127,7 +147,16 @@ router.put(
   ]),
   async (req, res) => {
     try {
-      const { title, description, date, deleteImages, deleteVideo, deleteAudio, deleteFile } = req.body;
+      const {
+        title,
+        description,
+        date,
+        deleteImages,
+        deleteVideo,
+        deleteAudio,
+        deleteFile,
+      } = req.body;
+
       const event = await Event.findById(req.params.id);
       if (!event) return res.status(404).send("Event not found");
 
@@ -135,75 +164,80 @@ router.put(
       event.description = description;
       event.date = date;
 
-      // 🔻 DELETE IMAGES
       if (deleteImages) {
-        if (typeof deleteImages === "string") {
-          event.imageUrls = event.imageUrls.filter((url) => url !== deleteImages);
-        } else if (Array.isArray(deleteImages)) {
-          event.imageUrls = event.imageUrls.filter((url) => !deleteImages.includes(url));
+        const toDelete = Array.isArray(deleteImages) ? deleteImages : [deleteImages];
+        for (const url of toDelete) {
+          const img = event.imageUrls.find((img) => img.url === url);
+          if (img) {
+            await cloudinary.uploader.destroy(img.public_id, { resource_type: "image" });
+            event.imageUrls = event.imageUrls.filter((i) => i.url !== img.url);
+          }
         }
       }
 
-      // 🔻 DELETE VIDEO
-      if (deleteVideo === "true") {
+      if (deleteVideo === "true" && event.videoPublicId && !req.files["video"]) {
+        await cloudinary.uploader.destroy(event.videoPublicId, { resource_type: "video" });
         event.videoUrl = "";
+        event.videoPublicId = "";
       }
 
-      // 🔻 DELETE AUDIO
-      if (deleteAudio === "true") {
+      if (deleteAudio === "true" && event.audioPublicId && !req.files["audio"]) {
+        await cloudinary.uploader.destroy(event.audioPublicId, { resource_type: "video" });
         event.audioUrl = "";
+        event.audioPublicId = "";
       }
 
-      // 🔻 DELETE FILE
-      if (deleteFile === "true") {
+      // ✅ Upload new file first (this takes priority)
+      if (req.files["file"] && req.files["file"][0]) {
+        if (event.filePublicId) {
+          await cloudinary.uploader.destroy(event.filePublicId, {
+            resource_type: event.fileResourceType || "raw",
+          });
+        }
+        event.fileUrl = req.files["file"][0].path;
+        event.filePublicId = req.files["file"][0].filename;
+        event.fileResourceType = "raw";
+      }
+      // ✅ Only delete file if no new file was uploaded
+      else if (deleteFile === "true" && event.filePublicId) {
+        await cloudinary.uploader.destroy(event.filePublicId, {
+          resource_type: event.fileResourceType || "raw",
+        });
         event.fileUrl = "";
+        event.filePublicId = "";
+        event.fileResourceType = "";
       }
 
-      // 🔺 NEW IMAGES
       if (req.files["images"]) {
         for (const file of req.files["images"]) {
-          const result = await cloudinary.uploader.upload(file.path, {
-            folder: "phagwara-yog-zila/events/images",
-            resource_type: "image",
-          });
-          event.imageUrls.push(result.secure_url);
+          event.imageUrls.push({ url: file.path, public_id: file.filename });
         }
       }
 
-      // 🔺 NEW VIDEO
       if (req.files["video"] && req.files["video"][0]) {
-        const result = await cloudinary.uploader.upload(req.files["video"][0].path, {
-          resource_type: "video",
-          folder: "phagwara-yog-zila/events/videos",
-        });
-        event.videoUrl = result.secure_url;
+        if (event.videoPublicId) {
+          await cloudinary.uploader.destroy(event.videoPublicId, { resource_type: "video" });
+        }
+        event.videoUrl = req.files["video"][0].path;
+        event.videoPublicId = req.files["video"][0].filename;
       }
 
-      // 🔺 NEW AUDIO
       if (req.files["audio"] && req.files["audio"][0]) {
-        const result = await cloudinary.uploader.upload(req.files["audio"][0].path, {
-          resource_type: "video", // Cloudinary treats audio as video
-          folder: "phagwara-yog-zila/events/audios",
-        });
-        event.audioUrl = result.secure_url;
-      }
-
-      // 🔺 NEW FILE
-      if (req.files["file"] && req.files["file"][0]) {
-        const result = await cloudinary.uploader.upload(req.files["file"][0].path, {
-          resource_type: "raw",
-          folder: "phagwara-yog-zila/events/files",
-        });
-        event.fileUrl = result.secure_url;
+        if (event.audioPublicId) {
+          await cloudinary.uploader.destroy(event.audioPublicId, { resource_type: "video" });
+        }
+        event.audioUrl = req.files["audio"][0].path;
+        event.audioPublicId = req.files["audio"][0].filename;
       }
 
       await event.save();
       res.redirect(`/events/${event._id}`);
     } catch (err) {
-      console.error(err);
+      console.error("Error updating event:", err);
       res.status(500).send("Error updating event");
     }
   }
 );
+
 
 module.exports = router;

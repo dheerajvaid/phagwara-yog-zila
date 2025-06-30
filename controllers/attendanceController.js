@@ -377,6 +377,7 @@ exports.viewTodayAttendance = async (req, res) => {
       attendanceDateFormatted: selectedDate.toLocaleDateString("en-IN"),
       attendanceDate: selectedDate.toISOString().split("T")[0],
       randomMessage: messages[Math.floor(Math.random() * messages.length)],
+      startTime: kender.startTime || null, // 👈 added this line
     });
   } catch (err) {
     console.error("Error fetching attendance:", err);

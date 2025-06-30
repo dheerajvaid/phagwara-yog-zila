@@ -23,6 +23,7 @@
             <th>Address</th>
             <th>Zila</th>
             <th>Ksheter</th>
+            <th>Start Time</th> <!-- ✅ New Column -->
           </tr>
         </thead>
         <tbody>
@@ -33,6 +34,7 @@
               <td><%= k.address %></td>
               <td><%= k.zila.name %></td>
               <td><%= k.ksheter.name %></td>
+              <td><%= k.startTime || '—' %></td> <!-- ✅ Show Time or Dash -->
             </tr>
           <% }) %>
         </tbody>

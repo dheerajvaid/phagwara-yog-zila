@@ -1,29 +1,36 @@
 <div class="col">
   <div class="card shadow-sm h-100">
     <div class="image-container">
-      <% if (event.imageUrls && event.imageUrls.length > 0) { %>
-        <img src="<%= event.imageUrls[0] %>" alt="Event Image" class="event-img">
+      <% if (Array.isArray(event.imageUrls) && event.imageUrls.length > 0) { %>
+        <img src="<%= event.imageUrls[0].url %>" alt="Event image: <%= event.title %>" class="event-img">
       <% } else { %>
-        <img src="/images/default-event.jpg" alt="Default Image" class="event-img">
+        <img src="/images/default-event.jpg" alt="Default Event Image" class="event-img">
       <% } %>
     </div>
 
     <div class="card-body p-3">
       <h5 class="card-title text-primary mb-1"><%= event.title %></h5>
       <small class="text-muted d-block mb-2">
-        <i class="bi bi-calendar-event"></i> <%= new Date(event.date).toDateString() %>
+        <i class="bi bi-calendar-event"></i>
+        <%= new Date(event.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %>
       </small>
 
       <p class="card-text mb-3" style="font-size: 0.95rem;">
-        <%= event.description.length > 100 ? event.description.substring(0, 100) + '...' : event.description %>
+        <%= event.description && event.description.length > 100 
+            ? event.description.substring(0, 100) + '...' 
+            : event.description || '' %>
       </p>
 
       <div class="mb-2">
         <% if (event.videoUrl) { %>
-          <span class="badge bg-dark me-1"><i class="bi bi-camera-reels-fill"></i> वीडियो</span>
+          <span class="badge bg-dark me-1">
+            <i class="bi bi-camera-reels-fill"></i> वीडियो
+          </span>
         <% } %>
         <% if (event.audioUrl) { %>
-          <span class="badge bg-dark"><i class="bi bi-volume-up-fill"></i> ऑडियो</span>
+          <span class="badge bg-dark">
+            <i class="bi bi-volume-up-fill"></i> ऑडियो
+          </span>
         <% } %>
       </div>
 

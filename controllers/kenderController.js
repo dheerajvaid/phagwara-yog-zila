@@ -61,12 +61,13 @@ exports.showAddForm = async (req, res) => {
   }
 };
 // ✅ Create New Kender
+// ✅ Create New Kender
 exports.createKender = async (req, res) => {
   try {
-    const { name, address, zila, ksheter } = req.body;
+    const { name, address, zila, ksheter, startTime } = req.body;
     const user = req.session.user;
 
-    const formData = { name, address, zila, ksheter };
+    const formData = { name, address, zila, ksheter, startTime };
 
     // ✅ Validate required fields
     if (!name || !address || !zila || !ksheter) {
@@ -81,7 +82,7 @@ exports.createKender = async (req, res) => {
       });
     }
 
-    // ✅ Validate name (only alphabets and numbers)
+    // ✅ Validate name
     if (!validateName(name)) {
       const zilas = await Zila.find();
       const ksheters = await Ksheter.find({ zila });
@@ -94,11 +95,9 @@ exports.createKender = async (req, res) => {
       });
     }
 
-    // ✅ Format name and address
     const formattedName = formatName(name.trim());
     const formattedAddress = formatName(address.trim());
 
-    // ✅ Check for duplicate in same Zila and Ksheter
     const existing = await Kender.findOne({
       name: formattedName,
       zila,
@@ -117,12 +116,12 @@ exports.createKender = async (req, res) => {
       });
     }
 
-    // ✅ Save Kender
     const newKender = new Kender({
       name: formattedName,
       address: formattedAddress,
       zila,
-      ksheter
+      ksheter,
+      startTime: startTime?.trim() || undefined // Optional field
     });
 
     await newKender.save();
@@ -141,6 +140,7 @@ exports.createKender = async (req, res) => {
     });
   }
 };
+
 
 // ✅ List All Kenders
 exports.listKenders = async (req, res) => {
@@ -262,16 +262,15 @@ exports.showEditForm = async (req, res) => {
 };
 
 // ✅ Update Existing Kender
+// ✅ Update Existing Kender
 exports.updateKender = async (req, res) => {
   try {
-    const { name, ksheter, zila, address } = req.body;
+    const { name, ksheter, zila, address, startTime } = req.body;
     const user = req.session.user;
     const kenderId = req.params.id;
 
-    // ✅ Re-fetch existing kender
     const kender = await Kender.findById(kenderId).populate("zila ksheter");
 
-    // ✅ Required fields check
     if (!name || !ksheter || !zila || !address) {
       const zilas = await Zila.find().sort({ name: 1 });
       const ksheters = await Ksheter.find({ zila }).sort({ name: 1 });
@@ -285,7 +284,6 @@ exports.updateKender = async (req, res) => {
       });
     }
 
-    // ✅ Validate name (alphabets and space)
     if (!validateName(name)) {
       const zilas = await Zila.find().sort({ name: 1 });
       const ksheters = await Ksheter.find({ zila }).sort({ name: 1 });
@@ -299,11 +297,9 @@ exports.updateKender = async (req, res) => {
       });
     }
 
-    // ✅ Format name and address
     const formattedName = formatName(name.trim());
     const formattedAddress = formatName(address.trim());
 
-    // ✅ Check for duplicates (ignore self)
     const existing = await Kender.findOne({
       _id: { $ne: kenderId },
       name: formattedName,
@@ -324,15 +320,16 @@ exports.updateKender = async (req, res) => {
       });
     }
 
-    // ✅ Update
+    // ✅ Update Kender (with startTime)
     await Kender.findByIdAndUpdate(kenderId, {
       name: formattedName,
       address: formattedAddress,
       ksheter,
-      zila
+      zila,
+      startTime: startTime?.trim() || undefined
     });
 
-     // ✅ Update ksheter for all Saadhaks under this Kender
+    // ✅ Update Ksheter for all Saadhaks under this Kender
     await Saadhak.updateMany(
       { kender: kenderId },
       { $set: { ksheter: ksheter } }
@@ -345,6 +342,7 @@ exports.updateKender = async (req, res) => {
     res.status(500).send("Server Error while updating Kender.");
   }
 };
+
 
 // ✅ Delete Kender
 exports.deleteKender = async (req, res) => {

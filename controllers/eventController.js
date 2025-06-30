@@ -19,47 +19,31 @@ exports.createEvent = async (req, res) => {
     const { title, description, date } = req.body;
 
     let imageUrls = [];
-    let videoUrl = '';
-    let audioUrl = '';
-    let fileUrl = '';
+    let videoUrl = '', videoPublicId = '';
+    let audioUrl = '', audioPublicId = '';
+    let fileUrl = '', filePublicId = '', fileResourceType = '';
 
-    // Images
     if (req.files['images']) {
-      for (const file of req.files['images']) {
-        const result = await cloudinary.uploader.upload(file.path, {
-          folder: 'phagwara-yog-zila/events/images',
-          resource_type: 'image',
-        });
-        imageUrls.push(result.secure_url);
-      }
+      imageUrls = req.files['images'].map(file => ({
+        url: file.path,
+        public_id: file.filename,
+      }));
     }
 
-    // Video
     if (req.files['video'] && req.files['video'][0]) {
-      const videoResult = await cloudinary.uploader.upload(req.files['video'][0].path, {
-        folder: 'phagwara-yog-zila/events/videos',
-        resource_type: 'video',
-      });
-      videoUrl = videoResult.secure_url;
+      videoUrl = req.files['video'][0].path;
+      videoPublicId = req.files['video'][0].filename;
     }
 
-    // Audio
     if (req.files['audio'] && req.files['audio'][0]) {
-      const audioResult = await cloudinary.uploader.upload(req.files['audio'][0].path, {
-        folder: 'phagwara-yog-zila/events/audios',
-        resource_type: 'video', // audio is treated as 'video' by Cloudinary
-      });
-      audioUrl = audioResult.secure_url;
+      audioUrl = req.files['audio'][0].path;
+      audioPublicId = req.files['audio'][0].filename;
     }
 
-    // File (PDF, ZIP, DOCX, etc.)
     if (req.files['file'] && req.files['file'][0]) {
-      const fileResult = await cloudinary.uploader.upload(req.files['file'][0].path, {
-        folder: 'phagwara-yog-zila/events/files',
-        resource_type: 'raw', // ✅ changed from 'raw' to 'auto'
-        type: 'upload',
-      });
-      fileUrl = fileResult.secure_url;
+      fileUrl = req.files['file'][0].path;
+      filePublicId = req.files['file'][0].filename;
+      fileResourceType = 'raw'; // ✅ Add this line
     }
 
     await Event.create({
@@ -68,8 +52,12 @@ exports.createEvent = async (req, res) => {
       date,
       imageUrls,
       videoUrl,
+      videoPublicId,
       audioUrl,
+      audioPublicId,
       fileUrl,
+      filePublicId,
+      fileResourceType, // ✅ Save this to support deletion later
     });
 
     res.redirect('/events');
@@ -78,6 +66,7 @@ exports.createEvent = async (req, res) => {
     res.status(500).send('Error creating event');
   }
 };
+
 
 exports.viewEvent = async (req, res) => {
   const event = await Event.findById(req.params.id);
@@ -92,96 +81,5 @@ exports.renderEditForm = async (req, res) => {
     res.render('events/edit', { event });
   } catch (err) {
     res.status(500).send('Error loading event edit form');
-  }
-};
-
-exports.updateEvent = async (req, res) => {
-  try {
-    console.log('Form body:', req.body);
-    const { title, date, description, deleteImages, deleteVideo, deleteAudio, deleteFile } = req.body;
-    const event = await Event.findById(req.params.id);
-    if (!event) return res.status(404).send('Event not found');
-
-    event.title = title;
-    event.date = date;
-    event.description = description;
-
-    // Delete selected images
-    if (deleteImages) {
-      const deleteArray = Array.isArray(deleteImages) ? deleteImages : [deleteImages];
-      event.imageUrls = event.imageUrls.filter(url => !deleteArray.includes(url));
-    }
-
-    // Delete video if checkbox selected
-    if (deleteVideo) {
-      event.videoUrl = '';
-    }
-
-    // Delete audio if checkbox selected
-    if (deleteAudio) {
-      event.audioUrl = '';
-    }
-
-    // Delete file if checkbox selected
-    if (deleteFile) {
-      event.fileUrl = '';
-    }
-
-    // Add new images
-    if (req.files['images']) {
-      for (const file of req.files['images']) {
-        const result = await cloudinary.uploader.upload(file.path, {
-          folder: 'phagwara-yog-zila/events/images',
-          resource_type: 'image',
-        });
-        event.imageUrls.push(result.secure_url);
-      }
-    }
-
-    // Replace video
-    if (req.files['video'] && req.files['video'][0]) {
-      const videoResult = await cloudinary.uploader.upload(req.files['video'][0].path, {
-        folder: 'phagwara-yog-zila/events/videos',
-        resource_type: 'video',
-      });
-      event.videoUrl = videoResult.secure_url;
-    }
-
-    // Replace audio
-    if (req.files['audio'] && req.files['audio'][0]) {
-      const audioResult = await cloudinary.uploader.upload(req.files['audio'][0].path, {
-        folder: 'phagwara-yog-zila/events/audios',
-        resource_type: 'video',
-      });
-      event.audioUrl = audioResult.secure_url;
-    }
-
-    // Replace file
-    if (req.files['file'] && req.files['file'][0]) {
-      const fileResult = await cloudinary.uploader.upload(req.files['file'][0].path, {
-        folder: 'phagwara-yog-zila/events/files',
-        resource_type: 'raw',
-        type: 'upload',
-      });
-      event.fileUrl = fileResult.secure_url;
-    }
-
-    await event.save();
-    res.redirect(`/events/${event._id}`);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Error updating event');
-  }
-};
-
-
-
-
-exports.deleteEvent = async (req, res) => {
-  try {
-    await Event.findByIdAndDelete(req.params.id);
-    res.redirect('/events');
-  } catch (err) {
-    res.status(500).send('Error deleting event');
   }
 };

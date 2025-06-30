@@ -50,6 +50,7 @@
           <tr>
             <th>#</th>
             <th>Kender Name</th>
+            <th>Start Time</th>
             <th>Ksheter</th>
             <th>Zila</th>
             <th class="text-end">Actions</th>
@@ -60,6 +61,9 @@
             <tr data-zila="<%= k.zila?._id %>" data-ksheter="<%= k.ksheter?._id %>">
               <td><%= index + 1 %></td>
               <td><strong><%= k.name %></strong></td>
+              <td>
+                <%= k.startTime ? new Date("1970-01-01T" + k.startTime).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }) : '—' %>
+              </td>
               <td><span class="badge bg-info text-dark"><%= k.ksheter?.name || '❓' %></span></td>
               <td><span class="badge bg-secondary"><%= k.zila?.name || '❓' %></span></td>
               <td class="text-end">

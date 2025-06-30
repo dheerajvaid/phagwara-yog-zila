@@ -1,189 +1,124 @@
-<%- include('../partials/header') %> 
+<%- include('../partials/header') %>
 <%- include('../partials/navbar') %>
 
-<div class="container my-2">
-  <div class="text-center mb-2">
-    <a href="/events" class="btn btn-outline-primary">← Back to Events</a>
-  </div>
+<div class="container my-4">
+  <h2 class="text-success fw-bold text-center mb-4">✏️ Edit Event</h2>
 
-  <h3 class="text-center text-primary mb-4">Edit Event</h3>
-
-  <form
-    action="/events/<%= event._id %>?_method=PUT"
-    method="POST"
-    enctype="multipart/form-data"
-    class="row g-3"
-  >
-    <div class="col-md-6">
-      <label for="title" class="form-label">Title</label>
-      <input
-        type="text"
-        class="form-control"
-        id="title"
-        name="title"
-        value="<%= event.title %>"
-        required
-      />
+  <form method="POST" action="/events/<%= event._id %>?_method=PUT" enctype="multipart/form-data">
+    <div class="mb-3">
+      <label class="form-label">Title</label>
+      <input type="text" class="form-control" name="title" required value="<%= event.title %>">
     </div>
 
-    <div class="col-md-6">
-      <label for="date" class="form-label">Event Date</label>
-      <input
-        type="date"
-        class="form-control"
-        id="date"
-        name="date"
-        value="<%= event.date.toISOString().split('T')[0] %>"
-        required
-      />
+    <div class="mb-3">
+      <label class="form-label">Date</label>
+      <input type="date" class="form-control" name="date" required value="<%= event.date.toISOString().split('T')[0] %>">
     </div>
 
-    <div class="col-12">
-      <label for="description" class="form-label">Description</label>
-      <textarea
-        class="form-control"
-        id="description"
-        name="description"
-        rows="4"
-        required
-      ><%= event.description %></textarea>
+    <div class="mb-3">
+      <label class="form-label">Description</label>
+      <textarea class="form-control" name="description" rows="6" required><%= event.description %></textarea>
     </div>
 
-    <div class="col-md-6">
-      <label for="images" class="form-label">Upload New Images (max 5)</label>
-      <input
-        type="file"
-        class="form-control"
-        id="images"
-        name="images"
-        accept="image/*"
-        multiple
-      />
-      <% if (event.imageUrls && event.imageUrls.length > 0) { %>
-        <h5 class="mt-2">Existing Images:</h5>
-        <div class="d-flex flex-wrap gap-3">
-          <% event.imageUrls.forEach((imgUrl, index) => { %>
-            <div style="position: relative; width: 150px">
-              <img
-                src="<%= imgUrl %>"
-                alt="Event Image"
-                style="width: 100%; height: auto; border-radius: 5px"
-              />
-              <div class="form-check" style="position: absolute; top: 5px; right: 5px">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  name="deleteImages"
-                  value="<%= imgUrl %>"
-                  id="deleteImage<%= index %>"
-                />
-                <label class="form-check-label" for="deleteImage<%= index %>">Delete</label>
+    <% if (event.imageUrls && event.imageUrls.length > 0) { %>
+      <label class="form-label">Uploaded Images</label>
+      <div class="row">
+        <% event.imageUrls.forEach(img => { %>
+          <div class="col-md-4 mb-3">
+            <div class="card shadow-sm">
+              <img src="<%= img.url %>" class="card-img-top" style="height: 200px; object-fit: cover;" />
+              <div class="card-body text-center">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="deleteImages" value="<%= img.url %>" id="del-<%= img.public_id %>">
+                  <label class="form-check-label text-danger" for="del-<%= img.public_id %>">
+                    🗑️ Delete Image
+                  </label>
+                </div>
               </div>
             </div>
-          <% }); %>
-        </div>
-      <% } %>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+
+    <div class="mb-3">
+      <label class="form-label">Upload New Images</label>
+      <input class="form-control" type="file" name="images" accept="image/*" multiple>
     </div>
 
-    <div class="col-md-6">
-      <label for="video" class="form-label">Upload New Video</label>
-      <input
-        type="file"
-        class="form-control"
-        id="video"
-        name="video"
-        accept="video/*"
-      />
-      <% if (event.videoUrl) { %>
-        <div class="mt-2">
-          <video controls width="200">
-            <source src="<%= event.videoUrl %>" type="video/mp4" />
-          </video>
+    <% if (event.videoUrl) { %>
+      <div class="mb-3">
+        <label class="form-label d-block">Uploaded Video</label>
+        <video controls class="w-100 mb-2" style="max-height: 300px;">
+          <source src="<%= event.videoUrl %>" type="video/mp4" />
+        </video>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="deleteVideo" value="true" id="deleteVideo">
+          <label class="form-check-label text-danger" for="deleteVideo">🗑️ Delete Video</label>
         </div>
-        <div class="form-check mt-2">
-          <input
-            class="form-check-input"
-            type="checkbox"
-            name="deleteVideo"
-            value="true"
-            id="deleteVideo"
-          />
-          <label class="form-check-label" for="deleteVideo">
-            Delete Video
-          </label>
-        </div>
-      <% } %>
+      </div>
+    <% } %>
+    <div class="mb-3">
+      <label class="form-label">Upload New Video</label>
+      <input class="form-control" type="file" name="video" id="videoInput" accept="video/*">
     </div>
 
-    <div class="col-md-6">
-      <label for="audio" class="form-label">Upload New Audio</label>
-      <input
-        type="file"
-        class="form-control"
-        id="audio"
-        name="audio"
-        accept="audio/*"
-      />
-      <% if (event.audioUrl) { %>
-        <div class="mt-2">
-          <audio controls>
-            <source src="<%= event.audioUrl %>" type="audio/mpeg" />
-          </audio>
+    <% if (event.audioUrl) { %>
+      <div class="mb-3">
+        <label class="form-label d-block">Uploaded Audio</label>
+        <audio controls class="w-100 mb-2">
+          <source src="<%= event.audioUrl %>" type="audio/mpeg" />
+        </audio>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="deleteAudio" value="true" id="deleteAudio">
+          <label class="form-check-label text-danger" for="deleteAudio">🗑️ Delete Audio</label>
         </div>
-        <div class="form-check mt-2">
-          <input
-            class="form-check-input"
-            type="checkbox"
-            name="deleteAudio"
-            value="true"
-            id="deleteAudio"
-          />
-          <label class="form-check-label" for="deleteAudio">
-            Delete Audio
-          </label>
-        </div>
-      <% } %>
+      </div>
+    <% } %>
+    <div class="mb-3">
+      <label class="form-label">Upload New Audio</label>
+      <input class="form-control" type="file" name="audio" id="audioInput" accept="audio/*">
     </div>
 
-    <div class="col-md-6">
-      <label for="file" class="form-label">Upload New File (PDF, DOCX, etc.)</label>
-      <input
-        type="file"
-        class="form-control"
-        id="file"
-        name="file"
-        accept=".pdf,.doc,.docx,.xls,.xlsx,.zip,.rar"
-      />
-      <% if (event.fileUrl) { %>
-        <div class="mt-2">
-          <a href="<%= event.fileUrl %>" target="_blank" class="btn btn-outline-secondary btn-sm">
-            📥 Download Existing File
-          </a>
+    <% if (event.fileUrl) { 
+      const fileName = event.fileUrl.split('/').pop().split('?')[0];
+    %>
+      <div class="mb-3">
+        <label class="form-label d-block">Attached File</label>
+        <a href="<%= event.fileUrl %>" target="_blank" class="btn btn-outline-secondary mb-2">📎 <%= decodeURIComponent(fileName) %></a>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="deleteFile" value="true" id="deleteFile">
+          <label class="form-check-label text-danger" for="deleteFile">🗑️ Delete File</label>
         </div>
-        <div class="form-check mt-2">
-          <input
-            class="form-check-input"
-            type="checkbox"
-            name="deleteFile"
-            value="true"
-            id="deleteFile"
-          />
-          <label class="form-check-label" for="deleteFile">
-            Delete File
-          </label>
-        </div>
-      <% } %>
+      </div>
+    <% } %>
+    <div class="mb-3">
+      <label class="form-label">Upload New File (PDF, DOCX, ZIP, etc.)</label>
+      <input class="form-control" type="file" name="file" id="fileInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.zip,.rar">
     </div>
 
-    <div class="col-12 d-flex justify-content-center mt-4">
-      <button type="submit" class="btn btn-success px-4">Update Event</button>
+    <div class="text-end">
+      <button type="submit" class="btn btn-primary">💾 Update Event</button>
+      <a href="/events/<%= event._id %>" class="btn btn-secondary ms-2">Cancel</a>
     </div>
   </form>
-
-  <!-- Back Button -->
-  <div class="text-center mt-4">
-    <a href="/events" class="btn btn-outline-primary">← Back to Events</a>
-  </div>
 </div>
+
+<!-- Auto-uncheck delete checkboxes when new file is selected -->
+<script>
+  const autoUncheck = (inputId, checkboxId) => {
+    const input = document.getElementById(inputId);
+    const checkbox = document.getElementById(checkboxId);
+    if (input && checkbox) {
+      input.addEventListener('change', () => {
+        checkbox.checked = false;
+      });
+    }
+  };
+
+  autoUncheck("videoInput", "deleteVideo");
+  autoUncheck("audioInput", "deleteAudio");
+  autoUncheck("fileInput", "deleteFile");
+</script>
 
 <%- include('../partials/footer') %>

@@ -2,38 +2,57 @@
 <%- include('../partials/navbar') %>
 
 <section class="container mt-4">
-  <!-- Centered heading -->
+  <!-- Date Filter and Export -->
   <div class="text-center mb-3">
-  <form method="GET" action="/attendance/today">
-    <input 
-      type="date" 
-      name="date" 
-      class="form-control form-control-sm d-inline-block" 
-      style="width: auto;" 
-      value="<%= attendanceDate %>" 
-      onchange="this.form.submit()" />
-    <span class="fw-semibold"> - <%= saadhaks.length %> Present</span>
-  </form>
-</div>
+    <form method="GET" action="/attendance/today">
+      <input 
+        type="date" 
+        name="date" 
+        class="form-control form-control-sm d-inline-block" 
+        style="width: auto;" 
+        value="<%= attendanceDate %>" 
+        onchange="this.form.submit()" />
+      <span class="fw-semibold"> - <%= saadhaks.length %> Present</span>
+    </form>
+  </div>
 
-
-  <!-- Export Button -->
   <div class="text-center mb-2">
     <button id="exportBtn" class="btn btn-sm btn-primary">Download as Image</button>
   </div>
 
   <!-- Export Area -->
-  <div id="attendanceExportWrapper" class="p-3 bg-white border rounded" style="max-width: 1000px; padding: 0; margin: auto; line-height: 1.2;">
-    <!-- Header Section with Logo + Title -->
-    <div class="d-flex align-items-center justify-content-center mb-2 flex-wrap">
-      <!-- <img src="/images/logo.jpg" alt="BYS Logo" style="height: 50px;" /> -->
+  <div id="attendanceExportWrapper" class="p-3 bg-white border rounded shadow-sm" style="max-width: 1000px; margin: auto; line-height: 1.3;">
+    
+    <!-- Header with Logo and Info -->
+    <div class="d-flex align-items-center justify-content-center mb-2 flex-wrap border-bottom pb-2">
+      <!-- <div class="me-3">
+        <img src="/images/logo.jpg" alt="BYS Logo" style="height: 60px; width: auto;" />
+      </div> -->
       <div class="text-center">
         <h6 class="text-danger fw-bold mb-1">BHARTIYA YOG SANSTHAN (R)</h6>
         <h6 class="mb-1 fw-bold text-primary"><%= (kenderName + " - Yog Sadhna Kender") || 'Your Kender Name' %></h6>
+
+        <% if (startTime) { %>
+         <div class="mt-1">
+  <div class="bg-danger text-white px-3 py-1 rounded d-inline-block shadow-sm">
+    Kender Start Time:
+    <strong>
+      <%= new Date("1970-01-01T" + startTime).toLocaleTimeString('en-IN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      }) %>
+    </strong>
+  </div>
+</div>
+
+        <% } %>
+
         <div class="d-flex justify-content-between" style="gap: 1rem;">
           <span class="small-text"> KP: <span class="text-danger small-text"><%= kenderPramukh.name %></span></span>
           <span class="small-text">M: <span class="text-danger small-text"><%= kenderPramukh.mobile %></span></span>
         </div>
+
         <% if (Array.isArray(sehKenderPramukh) && sehKenderPramukh.length > 0) { %>
           <% sehKenderPramukh.forEach((skp) => { %>
             <div class="d-flex justify-content-between" style="gap: 1rem;">
@@ -47,7 +66,8 @@
             <span class="small-text">M: <span class="text-muted small-text">N/A</span></span>
           </div>
         <% } %>
-        <hr class = "mb-1 mt-1"/>
+
+        <hr class="mb-1 mt-1" />
         <div class="d-flex justify-content-center" style="gap: 1rem;">
           <span><strong>Attendance: <span class="text-danger"><%= attendanceDateFormatted || new Date().toLocaleDateString() %></span></strong></span>
           <span><strong>Present: <span class="text-danger"><%= saadhaks.length %></span></strong></span>
@@ -55,29 +75,23 @@
       </div>
     </div>
 
+    <!-- Attendance Table or Message -->
     <% if (saadhaks.length === 0) { %>
       <p class="text-center mt-3"><%= message %></p>
     <% } else { %>
       <% 
         const groupSize = Math.ceil(saadhaks.length / 2);
-        
         const chunks = [];
         for (let i = 0; i < saadhaks.length; i += groupSize) {
           chunks.push(saadhaks.slice(i, i + groupSize));
         }
       %>
 
-      <!-- Forced horizontal layout for export -->
       <div class="table-flex-container">
         <% chunks.forEach((group, colIndex) => { %>
           <div class="table-wrapper">
             <table class="table table-sm table-bordered">
-              <thead class="table-dark">
-                <tr>
-                  <th style="width: 25px;">#</th>
-                  <th>Saadhak Name</th>
-                </tr>
-              </thead>
+              
               <tbody>
                 <% group.forEach((attendance, index) => { %>
                   <tr>
@@ -93,52 +107,32 @@
     <% } %>
 
     <!-- Ksheter Team Info -->
-<div class="text-center mt-3">
-  <hr class="mb-2 mt-3" />
-  <h6 class="fw-bold text-primary">
-    <%= ksheterName ? ksheterName + " - क्षेत्र टीम" : "क्षेत्र टीम" %>
-  </h6>
-  <div class="d-flex justify-content-center" style="gap: 1rem;">
-    <span class="small-text">Pradhan: 
-      <span class="text-danger small-text">
-        <%= ksheterPradhan.name || 'N/A' %>
-      </span>
-    </span>
-    <span class="small-text">M: 
-      <span class="text-danger small-text">
-        <%= ksheterPradhan.mobile || 'N/A' %>
-      </span>
-    </span>
-  </div>
-  <div class="d-flex justify-content-center" style="gap: 1rem;">
-    <span class="small-text">Mantri: 
-      <span class="text-danger small-text">
-        <%= ksheterMantri.name || 'N/A' %>
-      </span>
-    </span>
-    <span class="small-text">M: 
-      <span class="text-danger small-text">
-        <%= ksheterMantri.mobile || 'N/A' %>
-      </span>
-    </span>
-  </div>
-</div>
-
+    <div class="text-center border-top pt-1">
+      <h6 class="text-primary">
+        <%= ksheterName ? ksheterName + " - क्षेत्र टीम" : "क्षेत्र टीम" %>
+      </h6>
+      <div class="d-flex justify-content-center" style="gap: 1rem;">
+        <span class="small-text">Pradhan: <span class="text-danger small-text"><%= ksheterPradhan.name || 'N/A' %></span></span>
+        <span class="small-text">M: <span class="text-danger small-text"><%= ksheterPradhan.mobile || 'N/A' %></span></span>
+      </div>
+      <div class="d-flex justify-content-center" style="gap: 1rem;">
+        <span class="small-text">Mantri: <span class="text-danger small-text"><%= ksheterMantri.name || 'N/A' %></span></span>
+        <span class="small-text">M: <span class="text-danger small-text"><%= ksheterMantri.mobile || 'N/A' %></span></span>
+      </div>
+    </div>
 
     <!-- Motivational Message -->
     <div class="text-center">
       <hr />
-      <p class="fst-italic mt-1 mb-1 fw-bold text-danger"><%= randomMessage %></p>
-      <!-- <p class="text-primary mb-0">~ Bhartiya Yog Sansthan (R)</p> -->
+      <p class="fst-italic mt-1 mb-1 fw-semibold text-danger"><%= randomMessage %></p>
     </div>
   </div>
 </section>
 
-<!-- Custom Style -->
+<!-- Styles -->
 <style>
-  /* Wrapper for side-by-side tables */
-   .small-text {
-    font-size: 0.8rem; /* Adjust the size as needed */
+  .small-text {
+    font-size: 0.8rem;
   }
 
   .table-flex-container {
@@ -154,6 +148,40 @@
     width: 145px;
   }
 
+  #attendanceExportWrapper {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Watermark background */
+  #attendanceExportWrapper::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url('/images/logo.jpg'); /* ✅ Make sure the path is correct */
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 250px auto;
+    opacity: 0.2; /* ✅ Adjust for subtlety or testing (e.g., 0.3 for test) */
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* Transparent background for table to let watermark show */
+  #attendanceExportWrapper table,
+  #attendanceExportWrapper thead,
+  #attendanceExportWrapper tbody,
+  #attendanceExportWrapper td,
+  #attendanceExportWrapper th {
+    background-color: transparent !important;
+    border: 1px solid #333 !important; /* Darker border */
+    position: relative;
+    z-index: 1;
+  }
+
   #attendanceExportWrapper td,
   #attendanceExportWrapper th {
     font-size: 0.85rem;
@@ -162,9 +190,13 @@
     word-wrap: break-word;
   }
 
-  /* Optional: Hide horizontal scroll bar while viewing */
   .table-flex-container::-webkit-scrollbar {
     display: none;
+  }
+
+  hr {
+    margin: 0;
+    padding: 0;
   }
 </style>
 
@@ -179,15 +211,6 @@
       link.href = canvas.toDataURL('image/png');
       link.click();
     });
-  });
-</script>
-
-<script>
-  document.getElementById('attendanceDate').addEventListener('change', function () {
-    const selectedDate = this.value;
-    const url = new URL(window.location.href);
-    url.searchParams.set('date', selectedDate);
-    window.location.href = url.toString();
   });
 </script>
 

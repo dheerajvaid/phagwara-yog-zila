@@ -54,6 +54,17 @@
         <% } %>
       </div>
 
+      <!-- ✅ Kender Start Time -->
+      <div class="col-md-6">
+        <label class="form-label">Kender Start Time</label>
+        <input
+          type="time"
+          name="startTime"
+          class="form-control"
+          value="<%= formData?.startTime || '' %>"
+        >
+      </div>
+
       <div class="text-end mt-3">
         <button class="btn btn-success">💾 Save Kender</button>
       </div>

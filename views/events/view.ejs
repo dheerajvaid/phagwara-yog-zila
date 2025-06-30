@@ -1,72 +1,48 @@
 <%- include('../partials/header') %> 
 <%- include('../partials/navbar') %>
 
-<div class="container my-2">
-   <div class="mb-2">
+<div class="container my-4">
+  <div class="mb-3">
     <a href="/events" class="btn btn-outline-primary">← Back to Events</a>
   </div>
+
   <div class="card shadow-lg">
-    <% if (event.imageUrls && event.imageUrls.length > 0) { %>
-    <!-- Bootstrap Carousel for multiple images -->
-    <div id="eventMediaCarousel" class="carousel slide" data-bs-ride="carousel">
-      <div class="carousel-inner">
-        <% event.imageUrls.forEach((url, index) => { %>
-        <div class="carousel-item <%= index === 0 ? 'active' : '' %>">
-          <img
-            src="<%= url %>"
-            class="d-block w-100"
-            alt="Event Image"
-            style="max-height: 400px; object-fit: cover"
-          />
+    <% if (Array.isArray(event.imageUrls) && event.imageUrls.length > 0) { %>
+      <div id="eventMediaCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+          <% event.imageUrls.forEach((img, index) => { %>
+            <div class="carousel-item <%= index === 0 ? 'active' : '' %>">
+              <img src="<%= img.url %>" class="d-block w-100" alt="Event Image <%= index+1 %>" style="max-height: 400px; object-fit: cover;" />
+            </div>
+          <% }) %>
         </div>
-        <% }) %>
+        <% if (event.imageUrls.length > 1) { %>
+          <button class="carousel-control-prev" type="button" data-bs-target="#eventMediaCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+          </button>
+          <button class="carousel-control-next" type="button" data-bs-target="#eventMediaCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+          </button>
+        <% } %>
       </div>
-      <% if (event.imageUrls.length > 1) { %>
-      <button
-        class="carousel-control-prev"
-        type="button"
-        data-bs-target="#eventMediaCarousel"
-        data-bs-slide="prev"
-      >
-        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-        <span class="visually-hidden">Previous</span>
-      </button>
-      <button
-        class="carousel-control-next"
-        type="button"
-        data-bs-target="#eventMediaCarousel"
-        data-bs-slide="next"
-      >
-        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-        <span class="visually-hidden">Next</span>
-      </button>
-      <% } %>
-    </div>
     <% } else { %>
-    <img
-      src="/default-image.jpg"
-      class="card-img-top"
-      alt="No Media Available"
-      style="max-height: 400px; object-fit: cover"
-    />
+      <img src="/images/default-event.jpg" class="card-img-top" alt="No Image Available" style="max-height: 400px; object-fit: cover;" />
     <% } %>
 
     <div class="card-body">
       <h2 class="card-title text-success"><%= event.title %></h2>
-      <p class="text-muted">
-        <strong>Date:</strong> <%= new Date(event.date).toDateString() %>
-      </p>
-      <p class="card-text fs-5" style="white-space: pre-wrap">
-        <%= event.description %>
-      </p>
+      <p class="text-muted"><strong>📅 Date:</strong> <%= new Date(event.date).toDateString() %></p>
+      <p class="card-text fs-5" style="white-space: pre-wrap;"><%= event.description %></p>
 
       <% if (event.videoUrl) { 
         const videoExt = event.videoUrl.split('.').pop().toLowerCase(); 
       %>
       <div class="mt-4">
-        <h5>Video</h5>
-        <div style="width: 100%; max-width: 800px; margin: auto">
-          <video class="w-100" controls style="height: auto; display: block">
+        <h5 class="text-primary">🎥 Video</h5>
+        <div style="max-width: 800px; margin: auto;">
+          <video class="w-100" controls>
             <source src="<%= event.videoUrl %>" type="video/<%= videoExt %>" />
             Your browser does not support the video tag.
           </video>
@@ -78,7 +54,7 @@
         const audioExt = event.audioUrl.split('.').pop().toLowerCase(); 
       %>
       <div class="mt-4">
-        <h5>Audio</h5>
+        <h5 class="text-primary">🔊 Audio</h5>
         <audio class="w-100" controls>
           <source src="<%= event.audioUrl %>" type="audio/<%= audioExt %>" />
           Your browser does not support the audio element.
@@ -90,7 +66,7 @@
         const fileName = event.fileUrl.split('/').pop().split('?')[0];
       %>
       <div class="mt-4">
-        <h5>Downloadable File</h5>
+        <h5 class="text-primary">📎 File Attachment</h5>
         <a href="<%= event.fileUrl %>" download class="btn btn-outline-secondary">
           📥 Download <%= decodeURIComponent(fileName) %>
         </a>
@@ -99,7 +75,7 @@
     </div>
   </div>
 
-  <div class="mt-4">
+  <div class="mt-4 text-center">
     <a href="/events" class="btn btn-outline-primary">← Back to Events</a>
   </div>
 </div>
