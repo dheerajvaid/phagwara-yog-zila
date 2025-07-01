@@ -10,14 +10,22 @@ exports.showMarkAttendanceForm = async (req, res) => {
   try {
     const user = req.session.user;
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const now = new Date();
+    const istOffset = 5.5 * 60 * 60000; // 5.5 hours in milliseconds
+    const istNow = new Date(now.getTime() + istOffset);
 
-    const start = new Date();
+    // Set to IST 00:00
+    const today = new Date(
+      istNow.getFullYear(),
+      istNow.getMonth(),
+      istNow.getDate()
+    );
+
+    const start = new Date(today);
     start.setHours(0, 0, 0, 0); // today at 00:00:00
 
-    const end = new Date();
-    end.setHours(24, 0, 0, 0); // today at 23:59:59.999
+    const end = new Date(today);
+    end.setHours(23, 59, 59, 999); // today at 23:59:59.999
 
     let query = {};
     const ksheterRoles = ["Ksheter Pradhan", "Ksheter Mantri"];

@@ -352,7 +352,7 @@ exports.showEditForm = async (req, res) => {
     const user = req.session.user;
     const saadhak = await Saadhak.findById(req.params.id);
 
-    // console.log(req.session.user);
+    //console.log(req.session.user);
 
     const zilas = await Zila.find().sort({ name: 1 });
     const ksheters = await Ksheter.find({ zila: saadhak.zila }).sort({
@@ -361,7 +361,7 @@ exports.showEditForm = async (req, res) => {
     const kenders = await Kender.find({ ksheter: saadhak.ksheter }).sort({
       name: 1,
     });
-
+    
     // console.log(kenders);
 
     // ✅ Determine allowedRoles based on the logged-in user
@@ -397,7 +397,9 @@ exports.showEditForm = async (req, res) => {
     // console.log(kenders);
     // console.log("------");
     // console.log(saadhak);
-
+    // console.log(zilas);
+    // console.log(ksheters);
+    // console.log(kenders);
     res.render("saadhak/edit", {
       saadhak,
       zilas,
