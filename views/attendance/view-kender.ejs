@@ -1,6 +1,14 @@
 <%- include('../partials/header') %>
 <%- include('../partials/navbar') %>
 
+<style>
+  .table-wrapper {
+    overflow-x: auto;
+    max-height: 450px;
+    -webkit-overflow-scrolling: touch;
+  }
+</style>
+
 <div class="container mt-3">
   <div id="attendanceWrapper">
     <h4 class="text-center mb-3 fw-bold border-bottom pb-2">📊 View Kender Attendance (Monthly)</h4>
@@ -40,14 +48,18 @@
       <div class="text-end mb-2">
         <button id="exportPdfBtn" class="btn btn-sm btn-danger">📄 Export as PDF</button>
       </div>
+
       <!-- Attendance Table -->
-      <div class="table-responsive-sm custom-scroll" style="max-height: 450px;">
-        <table class="table table-bordered table-sm text-center align-middle" style="border: 1px solid black;">
+      <div class="table-wrapper">
+        <table class="table table-bordered table-sm text-center align-middle" style="border: 1px solid black; width: auto; margin: 0 auto; table-layout: auto;">
           <thead class="bg-light">
             <tr>
-              <th class="bg-primary text-white border" style="border: 1px solid black;">Kender</th>
+              <th class="bg-primary text-white border" style="border: 1px solid black; white-space: nowrap; width: 1%;">Kender</th>
               <% activeDays.forEach(day => { %>
-                <th class="bg-primary text-white border" style="width: 32px; font-size: 0.85rem; border: 1px solid black;"><%= day %></th>
+                <th class="bg-primary text-white border text-center"
+                    style="min-width: 28px; max-width: 32px; width: 32px; padding: 4px; font-size: 0.75rem; white-space: nowrap;">
+                  <%= day %>
+                </th>
               <% }) %>
             </tr>
             <tr>
@@ -78,13 +90,12 @@
                 <td class="fw-bold" style="white-space: nowrap; font-size: 0.85rem;">
                   <%= k.name %> <span class="text-primary">(<%= k.presentCount %>)</span>
                 </td>
-
                 <% activeDays.forEach(day => {
                   const dateStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                   const count = (kenderDateCountMap[k._id.toString()] && kenderDateCountMap[k._id.toString()][dateStr]) || 0;
                 %>
                   <td class="<%= count > 0 ? 'bg-success text-white fw-bold' : 'bg-light text-black' %>"
-                      style="width: 30px; font-size: 0.8rem; padding: 4px;">
+                      style="min-width: 28px; max-width: 32px; width: 32px; height: 32px; font-size: 0.75rem; padding: 4px; text-align: center;">
                       <%= count > 0 ? count : '' %>
                   </td> 
                 <% }) %>
@@ -93,7 +104,7 @@
           </tbody>
         </table>
       </div>
-     
+
       <div id="pdfCloneContainer" style="position: absolute; left: -9999px; top: -9999px;"></div>
     <% } else if (selectedMonth && selectedYear) { %>
       <p class="text-muted text-center">No attendance found for selected month.</p>
@@ -104,30 +115,49 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
   document.getElementById("exportPdfBtn")?.addEventListener("click", function () {
-    const originalTable = document.querySelector(".custom-scroll table");
+    const originalTable = document.querySelector(".table-wrapper table");
     const cloneContainer = document.getElementById("pdfCloneContainer");
 
     cloneContainer.innerHTML = '';
 
     const clone = originalTable.cloneNode(true);
-    clone.style.width = '100%';
+    clone.style.borderCollapse = 'collapse';
+    clone.style.width = 'auto';
+    clone.style.margin = '0 auto';
+    clone.style.tableLayout = 'fixed';
+
+    const rows = clone.rows;
+    for (let row of rows) {
+      for (let cell of row.cells) {
+        if (cell.cellIndex === 0) {
+          cell.style.width = '180px'; // slightly increased
+          cell.style.maxWidth = '180px';
+          cell.style.whiteSpace = 'normal'; // allow wrapping
+          cell.style.overflow = 'visible';
+          cell.style.wordBreak = 'break-word';
+          cell.style.textAlign = 'left';
+          cell.style.padding = '2px';
+          cell.style.fontSize = '9px'; // slightly smaller
+          cell.style.border = '1px solid #888';
+        } else {
+          // Date columns
+          cell.style.width = '28px';
+          cell.style.minWidth = '28px';
+          cell.style.maxWidth = '28px';
+          cell.style.height = '28px';
+          cell.style.textAlign = 'center';
+          cell.style.fontSize = '10px';
+          cell.style.padding = '2px';
+          cell.style.border = '1px solid #888';
+        }
+      }
+    }
 
     const wrapper = document.createElement('div');
-
     const heading = document.createElement('h4');
     heading.innerText = "📊 Kender Attendance Report - <%= new Date(2000, selectedMonth - 1).toLocaleString('default', { month: 'long' }) %> <%= selectedYear %>";
     heading.style.textAlign = "center";
 
-    const style = document.createElement('style');
-    style.textContent = `
-      table { border-collapse: collapse; width: 100%; font-size: 10px; }
-      tr { page-break-inside: avoid !important; break-inside: avoid; }
-      thead { display: table-header-group; }
-      tfoot { display: table-footer-group; }
-      th, td { border: 1px solid #888 !important; padding: 4px; }
-    `;
-
-    wrapper.appendChild(style);
     wrapper.appendChild(heading);
     wrapper.appendChild(clone);
     cloneContainer.appendChild(wrapper);
@@ -135,13 +165,13 @@
     const opt = {
       margin:       0.3,
       filename:     'Kender_Attendance_<%= selectedMonth %>_<%= selectedYear %>.pdf',
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2, scrollY: 0 },
+      image:        { type: 'jpeg', quality: 0.92 },
+      html2canvas:  { scale: 2, scrollY: 0, useCORS: true },
       jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
     };
 
     html2pdf().set(opt).from(wrapper).save();
-  });
+  }); 
 </script>
 
 <%- include('../partials/footer') %>
