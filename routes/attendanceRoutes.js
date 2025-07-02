@@ -81,9 +81,19 @@ router.get(
 ); // ✅ This returns JSON
 
 // GET view form and report
-router.get("/view", requireLogin, canManage(saadhakManagerRoles), attendanceController.viewAttendance);
+router.get(
+  "/view",
+  requireLogin,
+  canManage(saadhakManagerRoles),
+  attendanceController.viewAttendance
+);
 
-router.get('/view-kender', requireLogin, canManage(saadhakManagerRoles), attendanceController.viewKenderWiseAttendance);
+router.get(
+  "/view-kender",
+  requireLogin,
+  canManage(saadhakManagerRoles),
+  attendanceController.viewKenderWiseAttendance
+);
 
 router.get(
   "/top10",
@@ -92,4 +102,28 @@ router.get(
   attendanceController.viewTop10Attendance
 );
 
+// View filter form and results
+router.get(
+  "/missing",
+  requireLogin,
+  canManage(saadhakManagerRoles),
+  attendanceController.getMissingForm
+);
+router.post(
+  "/missing/report",
+  requireLogin,
+  canManage(saadhakManagerRoles),
+  attendanceController.generateMissingReport
+);
+
+// Export PDF
+router.get(
+  "/export/pdf/missing",
+  requireLogin,
+  canManage(saadhakManagerRoles),
+  attendanceController.exportMissingPDF
+);
+
 module.exports = router;
+
+

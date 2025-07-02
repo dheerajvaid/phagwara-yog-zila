@@ -1,0 +1,33 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-4">
+  <h5>Absent Saadhaks from <%= from %> to <%= to %></h5>
+  <p>Total: <strong><%= total %></strong> saadhaks didn’t attend</p>
+
+  <a href="/attendance/export/pdf/missing?from=<%= from %>&to=<%= to %>&kender=<%= kender %>" class="btn btn-sm btn-danger mb-2">
+    📄 Export PDF
+  </a>
+
+  <table class="table table-bordered table-striped table-sm">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Name</th>
+      <th>Mobile</th>
+      <th>Last Attended</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% missing.forEach((s, i) => { %>
+      <tr>
+        <td><%= i + 1 %></td>
+        <td><a href="/saadhak/edit/<%= s._id %>"><%= s.name %></a></td>
+        <td><%= s.mobile %></td>
+        <td><%= s.lastAttended ? s.lastAttended.toDateString() : "Never" %></td>
+      </tr>
+    <% }) %>
+  </tbody>
+</table>
+
+</div>

@@ -4,6 +4,7 @@ const Ksheter = require("../models/Ksheter");
 const Kender = require("../models/Kender");
 const Attendance = require("../models/Attendance");
 const messages = require("../utils/motivationalMessages");
+const pdfExport = require("../utils/pdfExport");
 
 // Show attendance marking form
 exports.showMarkAttendanceForm = async (req, res) => {
@@ -863,4 +864,127 @@ exports.viewTop10Attendance = async (req, res) => {
     console.error("Error loading top 10 saadhaks:", err);
     res.status(500).send("Server Error");
   }
+};
+
+exports.getMissingForm = async (req, res) => {
+  const kendras = await Kender.find().sort({ name: 1 });
+
+  // Compute default dates
+  const toDate = new Date();
+  const fromDate = new Date();
+  fromDate.setDate(toDate.getDate() - 4); // 5 days total (inclusive)
+
+  // Format to YYYY-MM-DD
+  const format = (d) => d.toISOString().slice(0, 10);
+  
+  res.render("attendance/missingForm", {
+    kendras,
+    defaultFrom: format(fromDate),
+    defaultTo: format(toDate),
+  });
+};
+
+
+exports.generateMissingReport = async (req, res) => {
+  const { from, to, kender } = req.body;
+
+  const query = { kender };
+  
+  const saadhaks = await Saadhak.find(query).sort({ name: 1 });
+  const saadhakIds = saadhaks.map(s => s._id);
+
+  // Get attendance during range
+  const attendance = await Attendance.find({
+    saadhak: { $in: saadhakIds },
+    date: { $gte: new Date(from), $lte: new Date(to) },
+  });
+
+  const attendedIds = new Set(attendance.map(a => a.saadhak.toString()));
+
+  // Filter out those who DIDN’T attend
+  const missing = saadhaks.filter(s => !attendedIds.has(s._id.toString()));
+
+  // 🔁 Fetch last attendance date (even outside selected range)
+  const lastAttendanceMap = {};
+  const lastAttendance = await Attendance.aggregate([
+    { $match: { saadhak: { $in: saadhakIds } } },
+    { $sort: { date: -1 } },
+    {
+      $group: {
+        _id: "$saadhak",
+        lastDate: { $first: "$date" },
+      },
+    },
+  ]);
+
+  lastAttendance.forEach(entry => {
+    lastAttendanceMap[entry._id.toString()] = entry.lastDate;
+  });
+
+  // Attach last attended date to each missing saadhak
+  const result = missing.map(s => ({
+    _id: s._id,
+    name: s.name,
+    mobile: s.mobile,
+    lastAttended: lastAttendanceMap[s._id.toString()] || null,
+  }));
+
+  res.render("attendance/missingReport", {
+    missing: result,
+    from,
+    to,
+    total: result.length,
+    kender,    
+  });
+};
+
+exports.exportMissingPDF = async (req, res) => {
+  const { from, to, kender, includeInactive } = req.query;
+
+  if (!from || !to || !kender) {
+    return res.status(400).send("Missing required parameters");
+  }
+
+  const query = { kender };
+  if (!includeInactive) query["role"] = { $ne: "Inactive" }; // Or your own logic
+
+  const saadhaks = await Saadhak.find(query).sort({ name: 1 });
+  const saadhakIds = saadhaks.map(s => s._id);
+
+  const attendance = await Attendance.find({
+    saadhak: { $in: saadhakIds },
+    date: { $gte: new Date(from), $lte: new Date(to) },
+  });
+
+  const attendedIds = new Set(attendance.map(a => a.saadhak.toString()));
+  const missing = saadhaks.filter(s => !attendedIds.has(s._id.toString()));
+
+  const lastAttendanceMap = {};
+  const lastAttendance = await Attendance.aggregate([
+    { $match: { saadhak: { $in: saadhakIds } } },
+    { $sort: { date: -1 } },
+    { $group: { _id: "$saadhak", lastDate: { $first: "$date" } } }
+  ]);
+
+  lastAttendance.forEach(entry => {
+    lastAttendanceMap[entry._id.toString()] = entry.lastDate;
+  });
+
+  const result = missing.map(s => ({
+    name: s.name,
+    mobile: s.mobile,
+    lastAttended: lastAttendanceMap[s._id.toString()] || null
+  }));
+
+  pdfExport.renderPDF(
+    res,
+    "attendance/pdfMissing", // View path
+    {
+      missing: result,
+      from,
+      to,
+      total: result.length,
+    },
+    `Missing_Attendance_${from}_to_${to}.pdf`
+  );
 };
