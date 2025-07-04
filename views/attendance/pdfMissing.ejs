@@ -1,20 +1,100 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Missing Attendance Report</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { font-family: Arial, sans-serif; font-size: 12px; }
-    h2 { text-align: center; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    th { background-color: #f2f2f2; }
+    body {
+      font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+      font-size: 16px;
+      color: #2c3e50;
+      margin: 16px;
+      background-color: #fff;
+    }
+
+    h2 {
+      text-align: center;
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #2c3e50;
+    }
+
+    .summary {
+      font-size: 16px;
+      margin-bottom: 24px;
+      color: #34495e;
+    }
+
+    .summary p {
+      margin: 6px 0;
+    }
+
+    .summary strong {
+      display: inline-block;
+      width: 130px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    th, td {
+      padding: 14px 10px;
+      border: 1px solid #ccc;
+      text-align: left;
+      font-size: 15px;
+    }
+
+    th {
+      background-color: #ecf0f1;
+      font-weight: 600;
+      color: #2c3e50;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+
+    .nowrap {
+      white-space: nowrap;
+    }
+
+    .footer {
+      margin-top: 30px;
+      text-align: right;
+      font-size: 14px;
+      color: #555;
+    }
+
+    @media (max-width: 480px) {
+      th, td {
+        font-size: 16px;
+        padding: 16px 10px;
+      }
+
+      .summary {
+        font-size: 17px;
+      }
+
+      h2 {
+        font-size: 26px;
+      }
+    }
   </style>
 </head>
 <body>
+
   <h2>Missing Attendance Report</h2>
-  <p>From: <%= from %> &nbsp;&nbsp; To: <%= to %></p>
-  <p>Total Missing: <%= total %></p>
+
+  <div class="summary">
+    <p><strong>From:</strong> <%= from %></p>
+    <p><strong>To:</strong> <%= to %></p>
+    <p><strong>Total Missing:</strong> <%= total %></p>
+  </div>
 
   <table>
     <thead>
@@ -22,7 +102,7 @@
         <th>#</th>
         <th>Name</th>
         <th>Mobile</th>
-        <th>Last Attended</th>
+        <th class="nowrap">Last Attended</th>
       </tr>
     </thead>
     <tbody>
@@ -31,10 +111,25 @@
           <td><%= i + 1 %></td>
           <td><%= s.name %></td>
           <td><%= s.mobile %></td>
-          <td><%= s.lastAttended ? s.lastAttended.toDateString() : 'Never' %></td>
+          <td class="nowrap">
+            <%= s.lastAttended 
+              ? new Date(s.lastAttended).toLocaleDateString('en-IN', {
+                  day: 'numeric', month: 'short', year: 'numeric',
+                  timeZone: 'Asia/Kolkata'
+                }) 
+              : 'Never' %>
+          </td>
         </tr>
       <% }) %>
     </tbody>
   </table>
+
+  <div class="footer">
+    Generated on: <%= new Date().toLocaleDateString('en-IN', {
+      day: 'numeric', month: 'short', year: 'numeric',
+      timeZone: 'Asia/Kolkata'
+    }) %>
+  </div>
+
 </body>
 </html>

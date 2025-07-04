@@ -1,0 +1,210 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-5 mb-5">
+  <div class="card shadow p-4">
+    <h3 class="mb-4 text-success text-center">🎁 Generate Attendance Appreciation Cards</h3>
+
+    <div class="row mb-3">
+      <% const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December']; %>
+
+      <div class="col-md-4">
+        <label for="month" class="form-label fw-bold">Select Month</label>
+        <select name="month" id="month" class="form-select" required>
+          <% monthNames.forEach((m, index) => { %>
+            <option value="<%= index + 1 %>" <%= (index + 1) === selectedMonth ? 'selected' : '' %>><%= m %></option>
+          <% }) %>
+        </select>
+      </div>
+
+      <div class="col-md-4">
+        <label for="year" class="form-label fw-bold">Select Year</label>
+        <select name="year" id="year" class="form-select" required>
+          <% for(let y = 2025; y <= 2030; y++) { %>
+            <option value="<%= y %>" <%= y === selectedYear ? 'selected' : '' %>><%= y %></option>
+          <% } %>
+        </select>
+      </div>
+    </div>
+
+    <hr class="my-4">
+
+    <h5 class="mb-2 fw-bold">🧘 Select Saadhaks (from your Kender)</h5>
+
+    <div class="row mb-3">
+      <div class="col-md-2">
+        <div class="form-check">
+          <input type="checkbox" class="form-check-input" id="selectAll">
+          <label for="selectAll" class="form-check-label">Select All</label>
+        </div>
+      </div>
+      <% const ranges = [
+        { id: 'r0', label: '0 Days', min: 0, max: 0 },
+        { id: 'r1to5', label: '1–5 Days', min: 1, max: 5 },
+        { id: 'r6to10', label: '6–10 Days', min: 6, max: 10 },
+        { id: 'r11to20', label: '11–20 Days', min: 11, max: 20 },
+        { id: 'r21plus', label: '21+ Days', min: 21, max: 31 },
+      ]; %>
+      <% ranges.forEach((range) => { %>
+        <div class="col-md-2">
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input range-filter" id="<%= range.id %>" data-min="<%= range.min %>" data-max="<%= range.max %>">
+            <label for="<%= range.id %>" class="form-check-label"><%= range.label %></label>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+
+    <form method="POST" action="/kender/print-cards" id="printForm">
+      <input type="hidden" name="month" id="hiddenMonth" value="<%= selectedMonth %>">
+      <input type="hidden" name="year" id="hiddenYear" value="<%= selectedYear %>">
+
+      <div class="table-responsive">
+        <table class="table table-bordered align-middle">
+          <thead class="table-light">
+            <tr>
+              <th style="width: 40px;"></th>
+              <th>Name (Attendance)</th>
+              <th>Mobile</th>
+            </tr>
+          </thead>
+          <tbody id="saadhakTableBody">
+            <% saadhaks.forEach((s, idx) => {
+              const count = attendanceCountMap[s._id] || 0;
+            %>
+              <tr data-attendance="<%= count %>">
+                <td>
+                  <input 
+                    type="checkbox" 
+                    class="form-check-input saadhak-checkbox" 
+                    name="selectedSaadhaks" 
+                    value="<%= s._id %>" 
+                    id="saadhak-<%= idx %>">
+                </td>
+                <td>
+                  <label for="saadhak-<%= idx %>" class="form-check-label fw-semibold">
+                    <%= s.name %> (<%= count %> days)
+                  </label>
+                </td>
+                <td><%= s.mobile %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="text-center mt-4">
+        <button type="submit" class="btn btn-primary btn-lg" id="generateBtn" disabled>
+          🖨️ Generate Appreciation Cards (ZIP)
+        </button>
+      </div>
+      
+    </form>
+  </div>
+</div>
+
+<script>
+  const selectAll = document.getElementById('selectAll');
+  const checkboxes = document.querySelectorAll('.saadhak-checkbox');
+  const generateBtn = document.getElementById('generateBtn');
+  const rangeFilters = document.querySelectorAll('.range-filter');
+  const monthSelect = document.getElementById("month");
+  const yearSelect = document.getElementById("year");
+  const tableBody = document.getElementById("saadhakTableBody");
+
+  function bindCheckboxLogic() {
+    const checkboxes = document.querySelectorAll('.saadhak-checkbox');
+    const selectAll = document.getElementById('selectAll');
+
+    selectAll.addEventListener('change', () => {
+      checkboxes.forEach(cb => cb.checked = selectAll.checked);
+      toggleGenerateButton();
+    });
+
+    checkboxes.forEach(cb => {
+      cb.addEventListener('change', () => {
+        selectAll.checked = [...checkboxes].every(cb => cb.checked);
+        toggleGenerateButton();
+      });
+    });
+
+    toggleGenerateButton();
+  }
+
+  function toggleGenerateButton() {
+    const anyChecked = [...document.querySelectorAll('.saadhak-checkbox')].some(cb => cb.checked);
+    generateBtn.disabled = !anyChecked;
+  }
+
+  rangeFilters.forEach(filter => {
+    filter.addEventListener('change', () => {
+      applyRangeSelection();
+      toggleGenerateButton();
+    });
+  });
+
+  function applyRangeSelection() {
+    const selectedRanges = [...rangeFilters].filter(r => r.checked).map(r => ({
+      min: parseInt(r.dataset.min),
+      max: parseInt(r.dataset.max),
+    }));
+
+    document.querySelectorAll('.saadhak-checkbox').forEach(cb => {
+      const row = cb.closest('tr');
+      const count = parseInt(row.dataset.attendance || 0);
+      const match = selectedRanges.some(r => count >= r.min && count <= r.max);
+      cb.checked = match;
+    });
+
+    document.getElementById('selectAll').checked = [...document.querySelectorAll('.saadhak-checkbox')].every(cb => cb.checked);
+  }
+
+  async function fetchUpdatedSaadhaks() {
+    const month = monthSelect.value;
+    const year = yearSelect.value;
+
+    document.getElementById('hiddenMonth').value = month;
+    document.getElementById('hiddenYear').value = year;
+
+    const res = await fetch(`/kender/print-cards/data?month=${month}&year=${year}`);
+    const data = await res.json();
+
+    let html = '';
+    data.saadhaks.forEach((s, idx) => {
+      html += `
+        <tr data-attendance="${s.attendance}">
+          <td>
+            <input type="checkbox" class="form-check-input saadhak-checkbox" name="selectedSaadhaks" value="${s._id}" id="saadhak-${idx}">
+          </td>
+          <td>
+            <label for="saadhak-${idx}" class="form-check-label fw-semibold">${s.name} (${s.attendance} days)</label>
+          </td>
+          <td>${s.mobile}</td>
+        </tr>
+      `;
+    });
+
+    tableBody.innerHTML = html;
+    bindCheckboxLogic();
+  }
+
+    
+  monthSelect.addEventListener("change", fetchUpdatedSaadhaks);
+  yearSelect.addEventListener("change", fetchUpdatedSaadhaks);
+
+  bindCheckboxLogic(); // Initial bind
+</script>
+
+<script>
+  const printForm = document.getElementById('printForm');
+
+  printForm.addEventListener('submit', function () {
+    // Keep showing spinner for a short time and then hide it automatically
+    setTimeout(() => {
+      const spinner = document.getElementById('loadingSpinner');
+      if (spinner) spinner.style.display = 'none';
+    }, 5000); // 5 seconds delay (adjust if needed)
+  });
+</script>
+
+<%- include('../partials/footer') %>

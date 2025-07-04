@@ -88,14 +88,22 @@
         const checkbox = document.getElementById('toggleDiv');
           
         const today = new Date();
-        const fifteenDaysAgo = new Date(today);
-        fifteenDaysAgo.setDate(today.getDate() - 15);
 
+// Convert to IST
+        const istOffset = 5.5 * 60 * 60 * 1000; // 5 hours 30 minutes in ms
+        const istToday = new Date(today.getTime() + istOffset);
+
+        // Format as YYYY-MM-DD
         const formatDate = (d) => d.toISOString().split("T")[0];
 
-        attendanceDateInput.max = formatDate(today);
+        // Set range
+        const fifteenDaysAgo = new Date(istToday);
+        fifteenDaysAgo.setDate(istToday.getDate() - 15);
+
+        attendanceDateInput.max = formatDate(istToday);
         attendanceDateInput.min = formatDate(fifteenDaysAgo);
-        attendanceDateInput.value = formatDate(today);
+        attendanceDateInput.value = formatDate(istToday);
+
 
         function renderTable() {
           tableBody.innerHTML = "";

@@ -17,5 +17,8 @@
       <li><a class="dropdown-item" href="/report/attendance-summary">📋 Attendance Summary</a></li>
       <li><a class="dropdown-item" href="/attendance/missing">📋 Non-Attendance Report</a></li>
       <li><a class="dropdown-item" href="/attendance/top10">📋 TOP 10 Attendance</a></li>
+      <% if (user.roles.includes('Kender Pramukh') || user.roles.includes('Seh Kender Pramukh')) { %>
+        <li><a class="dropdown-item" href="/kender/print-cards">📋 Print Monthly Attendance Cards</a></li>
+      <% } %>
     </ul>
   </li>

@@ -889,22 +889,55 @@ exports.generateMissingReport = async (req, res) => {
   const { from, to, kender } = req.body;
 
   const query = { kender };
-  
   const saadhaks = await Saadhak.find(query).sort({ name: 1 });
   const saadhakIds = saadhaks.map(s => s._id);
 
-  // Get attendance during range
+  // ✅ Set from and to to IST range for the day
+  const fromDate = new Date(from);
+  fromDate.setUTCHours(0, 0, 0, 0); // Midnight UTC = 5:30 AM IST
+
+  const toDate = new Date(to);
+  toDate.setUTCHours(23, 59, 59, 999); // End of day UTC = 5:29 AM next day IST
+
+  // ✅ Get attendance within full IST-aware range
   const attendance = await Attendance.find({
     saadhak: { $in: saadhakIds },
-    date: { $gte: new Date(from), $lte: new Date(to) },
+    date: { $gte: fromDate, $lte: toDate },
   });
 
-  const attendedIds = new Set(attendance.map(a => a.saadhak.toString()));
+  // ✅ Map of saadhakId => Set of attended date strings (yyyy-mm-dd)
+  const attendanceMap = new Map();
 
-  // Filter out those who DIDN’T attend
-  const missing = saadhaks.filter(s => !attendedIds.has(s._id.toString()));
+  attendance.forEach(a => {
+    const sid = a.saadhak.toString();
+    // Convert to IST date string (yyyy-mm-dd)
+    const localDate = new Date(a.date);
+    localDate.setMinutes(localDate.getMinutes() + 330); // shift to IST
+    const dateStr = localDate.toISOString().split("T")[0];
 
-  // 🔁 Fetch last attendance date (even outside selected range)
+    if (!attendanceMap.has(sid)) attendanceMap.set(sid, new Set());
+    attendanceMap.get(sid).add(dateStr);
+  });
+
+  // ✅ Full date list in IST
+  const dateList = [];
+  let current = new Date(fromDate);
+  while (current <= toDate) {
+    const temp = new Date(current);
+    temp.setMinutes(temp.getMinutes() + 330); // shift to IST
+    dateList.push(temp.toISOString().split("T")[0]);
+    current.setDate(current.getDate() + 1);
+  }
+
+  // ✅ Saadhaks who missed all dates
+  const missing = saadhaks.filter(s => {
+    const sid = s._id.toString();
+    const attendedDates = attendanceMap.get(sid) || new Set();
+    const attendedAny = dateList.some(d => attendedDates.has(d));
+    return !attendedAny;
+  });
+
+  // ✅ Last attendance (for reference)
   const lastAttendanceMap = {};
   const lastAttendance = await Attendance.aggregate([
     { $match: { saadhak: { $in: saadhakIds } } },
@@ -916,12 +949,11 @@ exports.generateMissingReport = async (req, res) => {
       },
     },
   ]);
-
   lastAttendance.forEach(entry => {
     lastAttendanceMap[entry._id.toString()] = entry.lastDate;
   });
 
-  // Attach last attended date to each missing saadhak
+  // ✅ Final result
   const result = missing.map(s => ({
     _id: s._id,
     name: s.name,
@@ -934,9 +966,10 @@ exports.generateMissingReport = async (req, res) => {
     from,
     to,
     total: result.length,
-    kender,    
+    kender,
   });
 };
+
 
 exports.exportMissingPDF = async (req, res) => {
   const { from, to, kender, includeInactive } = req.query;
@@ -946,19 +979,28 @@ exports.exportMissingPDF = async (req, res) => {
   }
 
   const query = { kender };
-  if (!includeInactive) query["role"] = { $ne: "Inactive" }; // Or your own logic
+  if (!includeInactive) query["role"] = { $ne: "Inactive" };
 
   const saadhaks = await Saadhak.find(query).sort({ name: 1 });
   const saadhakIds = saadhaks.map(s => s._id);
 
+  // ✅ Adjust date range to full IST day range
+  const fromDate = new Date(from);
+  fromDate.setUTCHours(0, 0, 0, 0); // 00:00 IST = 18:30 UTC previous day
+
+  const toDate = new Date(to);
+  toDate.setUTCHours(23, 59, 59, 999); // 23:59 IST = 18:29 UTC next day
+
   const attendance = await Attendance.find({
     saadhak: { $in: saadhakIds },
-    date: { $gte: new Date(from), $lte: new Date(to) },
+    date: { $gte: fromDate, $lte: toDate },
   });
 
+  // ✅ Use Set of present saadhak IDs
   const attendedIds = new Set(attendance.map(a => a.saadhak.toString()));
   const missing = saadhaks.filter(s => !attendedIds.has(s._id.toString()));
 
+  // ✅ Get last attendance dates
   const lastAttendanceMap = {};
   const lastAttendance = await Attendance.aggregate([
     { $match: { saadhak: { $in: saadhakIds } } },
@@ -978,7 +1020,7 @@ exports.exportMissingPDF = async (req, res) => {
 
   pdfExport.renderPDF(
     res,
-    "attendance/pdfMissing", // View path
+    "attendance/pdfMissing",
     {
       missing: result,
       from,
