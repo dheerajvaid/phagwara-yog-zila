@@ -29,6 +29,12 @@ function canManage(allowedRoles, calledBy = "") {
       calledBy == "event"
     )
       return next();
+
+     if (
+      userRoles.includes("Sangathan Mantri") &&
+      calledBy == "event"
+    )
+      return next();  
     // console.log(allowedRoles);
     // console.log(req.session.user.roles);
     // Check if any of the user roles is allowed

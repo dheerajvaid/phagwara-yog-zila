@@ -37,7 +37,7 @@
       <a href="/events/<%= event._id %>" class="btn btn-sm btn-outline-success">👉 Read More</a>
 
       <div class="d-flex justify-content-start mt-2 gap-1">
-        <% if (user && user.roles && user.roles.includes('Admin')) { %> 
+        <% if (user && user.roles && (user.roles.includes('Admin') || user.roles.includes('Sangathan Mantri'))) { %> 
           <a href="/events/<%= event._id %>/edit" class="btn btn-sm btn-outline-primary">✏️ Edit</a>
           <button onclick="openDeleteModal('<%= event._id %>')" class="btn btn-sm btn-outline-danger">🗑️ Delete</button>
         <% } %>    

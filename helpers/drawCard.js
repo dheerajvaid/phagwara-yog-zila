@@ -92,14 +92,14 @@ async function drawCard({
   // Saadhak Info
   ctx.textAlign = "left";
   ctx.font = "bold 48px Arial";
-  ctx.fillText(`👤 Name: ${saadhak.name}`, 80, y);
+  ctx.fillText(`> Name: ${saadhak.name}`, 80, y);
   y += 85;
-  ctx.fillText(`📱 Mobile: ${saadhak.mobile}`, 80, y);
+  ctx.fillText(`> Mobile: ${saadhak.mobile}`, 80, y);
   y += 85;
-  ctx.fillText(`🏠 Kender: ${kender.name}`, 80, y);
+  ctx.fillText(`> Kender: ${kender.name}`, 80, y);
   y += 85;
   if (startTime) {
-    ctx.fillText(`🕖 Kender Start Time: ${formatTime(startTime)}`, 80, y);
+    ctx.fillText(`> Kender Start Time: ${formatTime(startTime)}`, 80, y);
     y += 85;
   }
 
@@ -137,7 +137,7 @@ async function drawCard({
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
   ctx.fillText(
-    `🧾 Your Total Attendance: ${attendanceDays.length} Days`,
+    `> Your Total Attendance: ${attendanceDays.length} Days`,
     width / 2,
     messageY
   );
@@ -155,7 +155,7 @@ async function drawCard({
   let wishesY = messageY + 220;
   ctx.font = "bold 48px Arial";
   ctx.fillStyle = "#00796b";
-  ctx.fillText("💐 With Best Wishes From 💐", width / 2, wishesY);
+  ctx.fillText("With Best Wishes From -", width / 2, wishesY);
   wishesY += 50;
 
   ctx.font = "48px Arial";
@@ -187,7 +187,7 @@ async function drawCard({
   ctx.fillStyle = "#555";
   ctx.textAlign = "left";
   ctx.fillText(
-    `🕒 Generated on: ${today.getDate()}-${today.getMonth() + 1}-${today.getFullYear()}`,
+    `Generated on: ${today.getDate()}-${today.getMonth() + 1}-${today.getFullYear()}`,
     80,
     footerY
   );
