@@ -2,42 +2,48 @@
 <%- include('../partials/navbar') %>
 
 <div class="container mt-3">
-  <h4 class="text-center fw-bold mb-3">🔥 Top 10 Saadhaks in Attendance</h4>
+  <h3 class="text-center mb-4 fw-bold text-danger">
+    <img src="/images/logo.jpg" alt="BYS Logo" style="height: 40px; vertical-align: middle; margin-right: 10px;" />
+    Top 10 Attendance
+  </h3>
 
-  <form method="GET" action="/attendance/top10" class="row g-2 mb-4">
-  <div class="col-6 col-md-3">
-    <select name="month" class="form-control" required>
-      <option value="">Month</option>
-      <% for (let m = 1; m <= 12; m++) { %>
-        <option value="<%= m %>" <%= selectedMonth == m ? 'selected' : '' %>>
-          <%= new Date(2000, m - 1).toLocaleString('default', { month: 'long' }) %>
-        </option>
-      <% } %>
-    </select>
-  </div>
+  <!-- Filter Form -->
+  <form method="GET" action="/attendance/top10" class="row g-2 mb-4 align-items-end">
+    <div class="col-6 col-md-3">
+      <label class="form-label">Select Month</label>
+      <select name="month" class="form-control" required>
+        <option value="">Month</option>
+        <% for (let m = 1; m <= 12; m++) { %>
+          <option value="<%= m %>" <%= selectedMonth == m ? 'selected' : '' %>>
+            <%= new Date(2000, m - 1).toLocaleString('default', { month: 'long' }) %>
+          </option>
+        <% } %>
+      </select>
+    </div>
 
-  <div class="col-6 col-md-3">
-    <select name="year" class="form-control" required>
-      <option value="">Year</option>
-      <% for (let y = 2024; y <= 2030; y++) { %>
-        <option value="<%= y %>" <%= selectedYear == y ? 'selected' : '' %>><%= y %></option>
-      <% } %>
-    </select>
-  </div>
+    <div class="col-6 col-md-3">
+      <label class="form-label">Select Year</label>
+      <select name="year" class="form-control" required>
+        <option value="">Year</option>
+        <% for (let y = 2024; y <= 2030; y++) { %>
+          <option value="<%= y %>" <%= selectedYear == y ? 'selected' : '' %>><%= y %></option>
+        <% } %>
+      </select>
+    </div>
 
-  <div class="col-6 col-md-3">
-    <select name="scope" class="form-control" onchange="this.form.submit()">
-      <option value="zila" <%= selectedScope === 'zila' ? 'selected' : '' %>>Zila</option>
-      <option value="ksheter" <%= selectedScope === 'ksheter' ? 'selected' : '' %>>Ksheter</option>
-      <option value="kender" <%= selectedScope === 'kender' ? 'selected' : '' %>>Kender</option>
-    </select>
-  </div>
+    <div class="col-6 col-md-3">
+      <label class="form-label">Scope</label>
+      <select name="scope" class="form-control" onchange="this.form.submit()">
+        <option value="zila" <%= selectedScope === 'zila' ? 'selected' : '' %>>Zila</option>
+        <option value="ksheter" <%= selectedScope === 'ksheter' ? 'selected' : '' %>>Ksheter</option>
+        <option value="kender" <%= selectedScope === 'kender' ? 'selected' : '' %>>Kender</option>
+      </select>
+    </div>
 
-  <div class="col-12 col-md-3">
-    <button class="btn btn-primary w-100">🔍 View Report</button>
-  </div>
-</form>
-
+    <div class="col-12 col-md-3">
+      <button class="btn btn-primary w-100">🔍 View Report</button>
+    </div>
+  </form>
 
   <% if (attendanceData.length > 0 && !noData) { %>
     <div class="text-end mb-2">
@@ -45,8 +51,8 @@
     </div>
 
     <div class="table-responsive">
-      <table class="table table-bordered table-striped align-middle text-center">
-        <thead class="bg-primary text-white">
+      <table class="table table-bordered table-striped align-middle text-center shadow-sm">
+        <thead class="bg-danger text-white">
           <tr>
             <th>Saadhak</th>
             <th>Ksheter</th>
@@ -57,22 +63,24 @@
         <tbody>
           <% attendanceData.forEach((s, index) => { %>
             <tr>
-              <td class="fw-bold text-start"><%= s.name %></td>
+              <td class="fw-semibold text-start"><%= s.name %></td>
               <td><%= s.ksheter %></td>
               <td><%= s.kender %></td>
-              <td><%= s.presentCount %></td>
+              <td class="fw-bold text-danger"><%= s.presentCount %></td>
             </tr>
           <% }) %>
         </tbody>
       </table>
     </div>
   <% } else { %>
-    <p class="text-muted text-center">No data found for selected month.</p>
+    <p class="text-muted text-center mt-4">No data found for selected month.</p>
   <% } %>
 </div>
 
+<!-- PDF clone area (hidden) -->
 <div id="pdfCloneContainer" style="position: absolute; left: -9999px;"></div>
 
+<!-- Export Script -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
   document.getElementById("exportPdfBtn")?.addEventListener("click", () => {
@@ -81,18 +89,68 @@
 
     const clone = document.querySelector("table").cloneNode(true);
     const wrapper = document.createElement("div");
+    wrapper.style.padding = "15px"; // ✅ Reduce padding to avoid cutoff
+    wrapper.style.border = "3px solid #dc3545";
+    wrapper.style.boxSizing = "border-box";
+    wrapper.style.fontFamily = "'Segoe UI', 'Roboto', sans-serif";
+    wrapper.style.backgroundColor = "#fff";
+    wrapper.style.width = "100%";
+    wrapper.style.maxWidth = "700px"; // ✅ Reduced to prevent clipping
+    wrapper.style.margin = "0 auto";
+    wrapper.style.fontSize = "13px";
 
-    const heading = document.createElement("h4");
-    heading.innerText = "🔥 Top 10 Saadhaks in Attendance - <%= new Date(2000, selectedMonth - 1).toLocaleString('default', { month: 'long' }) %> <%= selectedYear %>";
-    heading.style.textAlign = "center";
 
-    wrapper.appendChild(heading);
+    // ✅ Header
+    const header = document.createElement("div");
+    header.style.textAlign = "center";
+    header.style.marginBottom = "20px";
+
+    const logo = document.createElement("img");
+    logo.src = "/images/logo.jpg";
+    logo.alt = "BYS Logo";
+    logo.style.height = "50px";
+    logo.style.marginBottom = "5px";
+
+    const title = document.createElement("h4");
+    title.innerHTML = `
+      <span style="color: #dc3545;">BHARTIYA YOG SANSTHAN (Regd.)</span><br/>
+      <small style="color: #333;">
+        Top 10 Saadhaks in Attendance – 
+        <%= new Date(2000, selectedMonth - 1).toLocaleString('default', { month: 'long' }) %> 
+        <%= selectedYear %>
+      </small>
+    `;
+    title.style.marginTop = "10px";
+    title.style.marginBottom = "0";
+
+    header.appendChild(logo);
+    header.appendChild(title);
+
+    const hr = document.createElement("hr");
+    hr.style.border = "1px solid #ccc";
+    hr.style.margin = "10px 0";
+
+    // ✅ Table styling
+    clone.style.borderCollapse = "collapse";
+    clone.style.width = "100%";
+    clone.style.tableLayout = "fixed"; // ✅ Prevents cell overflow
+    clone.querySelectorAll("td, th").forEach(cell => {
+      cell.style.border = "1px solid #999";
+      cell.style.padding = "6px";
+      cell.style.textAlign = "center";
+      cell.style.wordWrap = "break-word";
+      cell.style.whiteSpace = "normal";
+
+    });
+
+    wrapper.appendChild(header);
+    wrapper.appendChild(hr);
     wrapper.appendChild(clone);
     cloneContainer.appendChild(wrapper);
 
     html2pdf().set({
-      margin: 0.3,
-      filename: 'Top10_Attendance_<%= selectedMonth %>_<%= selectedYear %>.pdf',
+      margin: [0.3, 0.3, 0.3, 0.3], 
+      filename: `Top10_Attendance_<%= selectedMonth %>_<%= selectedYear %>.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2 },
       jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }

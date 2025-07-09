@@ -130,23 +130,22 @@
     for (let row of rows) {
       for (let cell of row.cells) {
         if (cell.cellIndex === 0) {
-          cell.style.width = '180px'; // slightly increased
+          cell.style.width = '180px';
           cell.style.maxWidth = '180px';
-          cell.style.whiteSpace = 'normal'; // allow wrapping
+          cell.style.whiteSpace = 'normal';
           cell.style.overflow = 'visible';
           cell.style.wordBreak = 'break-word';
           cell.style.textAlign = 'left';
           cell.style.padding = '2px';
-          cell.style.fontSize = '9px'; // slightly smaller
+          cell.style.fontSize = '12px';
           cell.style.border = '1px solid #888';
         } else {
-          // Date columns
           cell.style.width = '28px';
           cell.style.minWidth = '28px';
           cell.style.maxWidth = '28px';
           cell.style.height = '28px';
           cell.style.textAlign = 'center';
-          cell.style.fontSize = '10px';
+          cell.style.fontSize = '12px';
           cell.style.padding = '2px';
           cell.style.border = '1px solid #888';
         }
@@ -154,24 +153,52 @@
     }
 
     const wrapper = document.createElement('div');
-    const heading = document.createElement('h4');
-    heading.innerText = "📊 Kender Attendance Report - <%= new Date(2000, selectedMonth - 1).toLocaleString('default', { month: 'long' }) %> <%= selectedYear %>";
-    heading.style.textAlign = "center";
+    wrapper.style.padding = '15px';
+    wrapper.style.border = '3px solid #dc3545';
+    wrapper.style.boxSizing = 'border-box';
+    wrapper.style.width = '100%';
+    wrapper.style.maxWidth = '1050px'; // safe for landscape A4
+    wrapper.style.margin = '0 auto';
+    wrapper.style.fontFamily = "'Segoe UI', 'Roboto', sans-serif";
+    wrapper.style.backgroundColor = '#fff';
 
-    wrapper.appendChild(heading);
+    // Add BYS logo + title
+    const headerDiv = document.createElement('div');
+    headerDiv.style.textAlign = 'center';
+    headerDiv.style.marginBottom = '10px';
+
+    const logo = document.createElement('img');
+    logo.src = '/images/logo.jpg';
+    logo.alt = 'BYS Logo';
+    logo.style.height = '45px';
+    logo.style.verticalAlign = 'middle';
+    logo.style.marginRight = '10px';
+
+    const title = document.createElement('span');
+    title.innerHTML = `Kender Attendance Report – <%= new Date(2000, selectedMonth - 1).toLocaleString('default', { month: 'long' }) %> <%= selectedYear %>`;
+    title.style.fontSize = '20px';
+    title.style.fontWeight = 'bold';
+    title.style.verticalAlign = 'middle';
+
+    headerDiv.appendChild(logo);
+    headerDiv.appendChild(title);
+
+    // Build final layout
+    wrapper.appendChild(headerDiv);
     wrapper.appendChild(clone);
     cloneContainer.appendChild(wrapper);
 
     const opt = {
-      margin:       0.3,
+      margin:       [0.3, 0.3, 0.3, 0.3], // top, right, bottom, left (in inches)
       filename:     'Kender_Attendance_<%= selectedMonth %>_<%= selectedYear %>.pdf',
-      image:        { type: 'jpeg', quality: 0.92 },
-      html2canvas:  { scale: 2, scrollY: 0, useCORS: true },
+      image:        { type: 'jpeg', quality: 1 },
+      html2canvas:  { scale: 3, scrollY: 0, useCORS: true },
       jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
     };
 
     html2pdf().set(opt).from(wrapper).save();
-  }); 
+  });
 </script>
+
 
 <%- include('../partials/footer') %>
