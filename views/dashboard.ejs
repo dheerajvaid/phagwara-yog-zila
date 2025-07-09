@@ -2,17 +2,20 @@
 <%- include('./partials/navbar') %>
 
 <section class="container mt-5 text-center">
-  <h2>Welcome, <%= user.name %> 👋</h2>
-  <p>Your mobile: <strong><%= user.mobile %></strong></p>
+  <div class="card shadow-sm p-4 border-0 rounded-4">
+    <h2 class="mb-3 fw-bold">Welcome, <%= user.name %> 👋</h2>
+    <p class="mb-4 fs-6 text-muted">Your mobile: <strong><%= user.mobile %></strong></p>
 
-  <div class="mt-4">
-    <% /* Show button only for Kender-team roles */ %>
-    <% if (user.roles && user.roles.some(r =>
-          ['Kender Pramukh', 'Seh Kender Pramukh', 'Shikshak', 'Karyakarta'].includes(r))) { %>
-      <a href="/attendance/mark" class="btn btn-success me-2">Mark Attendance</a>
-    <% } %>
-    <a href="/attendance/top10" class="btn btn-primary me-2">Top 10</a>
-    <a href="/auth/logout" class="btn btn-danger">Logout</a>
+    <div class="d-grid gap-3">
+      <% /* Show button only for Kender-team roles */ %>
+      <% if (user.roles && user.roles.some(r =>
+            ['Kender Pramukh', 'Seh Kender Pramukh', 'Shikshak', 'Karyakarta'].includes(r))) { %>
+        <a href="/attendance/mark" class="btn btn-success btn-lg">📌 Mark Attendance</a>
+      <% } %>
+      <a href="/attendance/top10" class="btn btn-primary btn-lg">🏆 Top 10</a>
+      <a href="/auth/change-password" class="btn btn-warning btn-lg">🔐 Change Password</a>
+      <a href="/auth/logout" class="btn btn-danger btn-lg">🚪 Logout</a>
+    </div>
   </div>
 </section>
 

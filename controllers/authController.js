@@ -122,3 +122,53 @@ exports.logout = (req, res) => {
     res.redirect("/");
   });
 };
+
+exports.getChangePassword = (req, res) => {
+  res.render('auth/change-password'); // Ensure you have this EJS file
+};
+
+
+
+exports.changePassword = async (req, res) => {
+  try {
+
+    
+    const { newPassword, confirmPassword } = req.body || {};
+
+    // Basic validations
+    if (!newPassword || !confirmPassword) {
+      return res.render('auth/change-password', { message: 'Please fill in all fields.' });
+    }
+
+    if (newPassword.length < 1) {
+      return res.render('auth/change-password', { message: 'Password must be at least 1 characters.' });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.render('auth/change-password', { message: 'Passwords do not match.' });
+    }
+
+    // Find logged-in user
+    const user = await Saadhak.findById(req.session.user.id);
+    if (!user) {
+      return res.render('auth/change-password', { message: 'User not found.' });
+    }
+
+    // Optional: Check if new password is same as old one
+    const isSame = await bcrypt.compare(newPassword, user.password);
+    if (isSame) {
+      return res.render('auth/change-password', { message: 'New password must be different from the old password.' });
+    }
+
+    // Hash and save new password
+    const hashed = await bcrypt.hash(newPassword, 12);
+    user.password = hashed;
+    await user.save();
+
+    return res.render('auth/change-password', { message: '✅ Password changed successfully.' });
+  } catch (err) {
+    console.error('Error changing password:', err);
+    return res.render('auth/change-password', { message: 'An error occurred. Please try again.' });
+  }
+};
+
