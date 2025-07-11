@@ -1,0 +1,51 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-4">
+  <h4 class="mb-3">✏️ Edit Question</h4>
+  
+  <form action="/question/edit/<%= question._id %>" method="POST">
+    <div class="mb-3">
+      <label class="form-label">Question Text</label>
+      <textarea class="form-control" name="text" rows="2" required><%= question.text %></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Options</label>
+      <% question.options.forEach((opt, i) => { %>
+        <input type="text" class="form-control mb-2" name="options" value="<%= opt %>" required>
+      <% }) %>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Correct Answer(s)</label>
+      <select name="correctAnswers" multiple class="form-select">
+        <% question.options.forEach((_, i) => { %>
+          <option value="<%= i %>" <%= question.correctAnswers.includes(i) ? 'selected' : '' %>>Option <%= i + 1 %></option>
+        <% }) %>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Category</label>
+      <input type="text" class="form-control" name="category" value="<%= question.category %>" required>
+    </div>
+
+    <hr class="my-4">
+    <h6 class="text-muted">✍️ Contributor Information (optional)</h6>
+
+    <div class="mb-3">
+      <label class="form-label">Contributor Name</label>
+      <input type="text" class="form-control" name="contributedBy[name]" value="<%= question.contributedBy?.name || '' %>">
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Designation</label>
+      <input type="text" class="form-control" name="contributedBy[designation]" value="<%= question.contributedBy?.designation || '' %>">
+    </div>
+
+    <button type="submit" class="btn btn-primary">💾 Save Changes</button>
+  </form>
+</div>
+
+<%- include('../partials/footer') %>

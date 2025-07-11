@@ -1,0 +1,75 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-5">
+  <h3>🧘‍♀️ Start Your Yoga Quiz</h3>
+  <form action="/quiz/start" method="POST" class="mt-4" id="quizStartForm">
+
+    <div class="mb-3">
+      <label for="numQuestions" class="form-label">How many questions?</label>
+      <input type="number" name="numQuestions" class="form-control" min="5" max="20" value="5" required>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Select Categories</label>
+      <div class="form-check mb-2">
+        <input type="checkbox" class="form-check-input" id="selectAll">
+        <label class="form-check-label fw-bold" for="selectAll">Select / Deselect All</label>
+      </div>
+
+      <% categories.forEach(c => { %>
+        <div class="form-check">
+          <input class="form-check-input category-checkbox" type="checkbox" name="categories" value="<%= c %>" id="<%= c %>">
+          <label class="form-check-label" for="<%= c %>"><%= c %></label>
+        </div>
+      <% }) %>
+    </div>
+
+    <button type="submit" class="btn btn-success">Start Quiz</button>
+  </form>
+</div>
+
+<!-- Category Validation Modal -->
+<div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="categoryModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-warning">
+        <h5 class="modal-title" id="categoryModalLabel">⚠️ Attention</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Please select at least one category before starting the quiz.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Select/Deselect All logic
+  document.getElementById('selectAll').addEventListener('change', function () {
+    const checkboxes = document.querySelectorAll('.category-checkbox');
+    checkboxes.forEach(cb => cb.checked = this.checked);
+  });
+
+  // Validate form before submission
+  document.getElementById('quizStartForm').addEventListener('submit', function (e) {
+    const selected = document.querySelectorAll('.category-checkbox:checked');
+    if (selected.length === 0) {
+      e.preventDefault(); // prevent submit
+      e.stopImmediatePropagation(); // stop any further handlers
+
+      // Hide any loading spinners manually if needed here
+      // Example: document.querySelector('.spinner').style.display = 'none';
+
+      // Show modal
+      const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryModal'));
+      modal.show();
+    }
+  });
+</script>
+
+
+<%- include('../partials/footer') %>

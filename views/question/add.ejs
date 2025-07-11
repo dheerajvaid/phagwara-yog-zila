@@ -1,40 +1,54 @@
-<%- include('../partials/header') %>
-<%- include('../partials/navbar') %>
+  <%- include('../partials/header') %>
+  <%- include('../partials/navbar') %>
 
-<div class="container mt-4">
-  <h4 class="mb-3">➕ Add New Question</h4>
-  
-  <form action="/question/add" method="POST">
-    <div class="mb-3">
-      <label for="text" class="form-label">Question Text</label>
-      <textarea class="form-control" name="text" id="text" rows="2" required></textarea>
-    </div>
+  <div class="container mt-4">
+    <h4 class="mb-3">➕ Add New Question</h4>
+    
+    <form action="/question/add" method="POST">
+      <div class="mb-3">
+        <label for="text" class="form-label">Question Text</label>
+        <textarea class="form-control" name="text" id="text" rows="2" required></textarea>
+      </div>
 
-    <div class="mb-3">
-      <label class="form-label">Options (Add 4)</label>
-      <% for (let i = 0; i < 4; i++) { %>
-        <input type="text" class="form-control mb-2" name="options" placeholder="Option <%= i + 1 %>" required>
-      <% } %>
-    </div>
+      <div class="mb-3">
+        <label class="form-label">Options (Add 4)</label>
+        <% for (let i = 0; i < 4; i++) { %>
+          <input type="text" class="form-control mb-2" name="options" placeholder="Option <%= i + 1 %>" required>
+        <% } %>
+      </div>
 
-    <div class="mb-3">
-      <label class="form-label">Correct Answer(s)</label>
-      <div class="form-text">Select all correct option indexes (0-based). Hold Ctrl for multiple.</div>
-      <select name="correctAnswers" multiple class="form-select">
-        <option value="0">Option 1</option>
-        <option value="1">Option 2</option>
-        <option value="2">Option 3</option>
-        <option value="3">Option 4</option>
-      </select>
-    </div>
+      <div class="mb-3">
+        <label class="form-label">Correct Answer(s)</label>
+        <div class="form-text">Select all correct option indexes (0-based). Hold Ctrl for multiple.</div>
+        <select name="correctAnswers" multiple class="form-select">
+          <option value="0">Option 1</option>
+          <option value="1">Option 2</option>
+          <option value="2">Option 3</option>
+          <option value="3">Option 4</option>
+        </select>
+      </div>
 
-    <div class="mb-3">
-      <label for="category" class="form-label">Category / Tag</label>
-      <input type="text" class="form-control" name="category" id="category" placeholder="e.g., Yoga, Pranayama" required>
-    </div>
+      <div class="mb-3">
+        <label for="category" class="form-label">Category / Tag</label>
+        <input type="text" class="form-control" name="category" id="category" placeholder="e.g., Yoga, Pranayama" required>
+      </div>
 
-    <button type="submit" class="btn btn-primary">Save Question</button>
-  </form>
-</div>
+      <hr class="my-4">
 
-<%- include('../partials/footer') %>
+      <h6 class="text-muted">✍️ Contributor Information (optional)</h6>
+
+      <div class="mb-3">
+        <label for="contributorName" class="form-label">Name</label>
+        <input type="text" class="form-control" name="contributedBy[name]" id="contributorName" placeholder="e.g., Dheeraj Vaid">
+      </div>
+
+      <div class="mb-3">
+        <label for="designation" class="form-label">Designation</label>
+        <input type="text" class="form-control" name="contributedBy[designation]" id="designation" placeholder="e.g., Zila Mantri, BYS Phagwara">
+      </div>
+
+      <button type="submit" class="btn btn-primary">Save Question</button>
+    </form>
+  </div>
+
+  <%- include('../partials/footer') %>

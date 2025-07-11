@@ -1,0 +1,43 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-5">
+  <h3>📊 आपका परिणाम</h3>
+  <ul class="list-group mb-4">
+    <li class="list-group-item">कुल प्रश्न: <strong><%= result.total %></strong></li>
+    <li class="list-group-item text-success">सही उत्तर: <strong><%= result.correct %></strong></li>
+    <li class="list-group-item text-danger">गलत उत्तर: <strong><%= result.wrong %></strong></li>
+  </ul>
+
+  <% if (result.wrongDetails.length > 0) { %>
+    <h5>❌ गलत उत्तर:</h5>
+    <% result.wrongDetails.forEach((w, idx) => { %>
+      <div class="card mb-3">
+        <div class="card-header">Q<%= idx + 1 %>: <%= w.question %></div>
+        <div class="card-body">
+          <p><strong>आपका उत्तर:</strong>
+            <% if (Array.isArray(w.userAns)) {
+              w.userAns.forEach(i => { %>
+                <span class="badge bg-danger me-1"><%= w.options[i] %></span>
+            <% }) } else { %>
+              <span class="badge bg-danger"><%= w.options[w.userAns] || "❌ कोई उत्तर नहीं" %></span>
+            <% } %>
+          </p>
+
+          <p><strong>सही उत्तर:</strong>
+            <% w.correctAns.forEach(i => { %>
+              <span class="badge bg-success me-1"><%= w.options[i] %></span>
+            <% }) %>
+          </p>
+        </div>
+      </div>
+    <% }) %>
+  <% } %>
+
+  <div class="mt-4">
+    <a href="/quiz/start" class="btn btn-primary">🔁 फिर से क्विज़ लें</a>
+    <a href="/" class="btn btn-secondary">🏠 मुख्य पृष्ठ</a>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

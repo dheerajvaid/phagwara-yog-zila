@@ -31,6 +31,7 @@ const shivirRegRoutes = require("./routes/shivirRoutes");
 const eventRoutes = require("./routes/eventRoutes");
 const questionRoutes = require('./routes/questionRoutes');
 const subscriptionRoutes = require('./routes/subscriptionRoutes');
+const quizRoutes = require('./routes/quiz');
 
 // Load environment variables from .env file
 dotenv.config();
@@ -102,6 +103,7 @@ app.use("/events", eventRoutes);
 app.use('/api/events', require('./routes/api/events'));
 app.use('/question', questionRoutes);
 app.use('/subscription', subscriptionRoutes);
+app.use('/quiz', quizRoutes);
 // Start the server
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
