@@ -80,8 +80,7 @@
         <!-- Public Links -->
         <li class="nav-item"><a class="nav-link" href="/explore">📂 Explore BYS</a></li>
         <li class="nav-item"><a class="nav-link" href="/events">🎆 Events</a></li>
-        <li class="nav-item"><a class="nav-link" href="/quiz/start">❓Quiz</a></li>
-
+        <%- include('sharpMind') %>
         <% if (user) { %>
           <% if (user.roles.includes('Saadhak') || user.roles.includes('Shikshak') || user.roles.includes('Karyakarta') || user.roles.includes('Kender Pramukh') || user.roles.includes('Seh Kender Pramukh')) { %>
             <li class="nav-item"><a class="nav-link" href="/yog-samagri/report">🛍️ Yog Samagri</a></li>

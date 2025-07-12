@@ -1,31 +1,83 @@
 <%- include('../partials/header') %>
 <%- include('../partials/navbar') %>
 
-<div class="container mt-5">
-  <h3>🧘‍♀️ Start Your Yog Quiz</h3>
-  <form action="/quiz/start" method="POST" class="mt-4" id="quizStartForm">
+<style>
+  .category-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
 
-    <div class="mb-3">
-      <label for="numQuestions" class="form-label">How many questions?</label>
-      <input type="number" name="numQuestions" class="form-control" min="5" max="20" value="5" required>
+  @media (max-width: 768px) {
+    .category-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .category-box {
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    text-align: center;
+    font-weight: 500;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease-in-out;
+  }
+
+  .category-box.active {
+    background-color: #d1e7dd;
+    border-color: #0f5132;
+    color: #0f5132;
+    font-weight: bold;
+  }
+
+  .select-all-box {
+    background-color: #fff3cd;
+    border: 2px solid #ffeeba;
+    border-radius: 8px;
+    padding: 10px;
+    cursor: pointer;
+  }
+
+  .hidden-checkbox {
+    display: none;
+  }
+</style>
+
+<div class="container mt-5 mb-5" style="max-width: 900px;">
+  <div class="text-center mb-4">
+    <h2 class="fw-bold">🧘‍♀️ योग प्रश्नोत्तरी प्रारंभ करें</h2>
+    <p class="text-muted">अपनी पसंदीदा श्रेणियाँ चुनें और क्विज़ शुरू करें</p>
+  </div>
+
+  <form action="/quiz/start" method="POST" class="p-4 border rounded bg-light shadow-sm" id="quizStartForm">
+    <div class="mb-4">
+      <label for="numQuestions" class="form-label fw-semibold fs-5">प्रश्नों की संख्या:</label>
+      <input type="number" name="numQuestions" class="form-control form-control-lg" min="5" max="20" value="5" required>
     </div>
 
-    <div class="mb-3">
-      <label class="form-label">Select Categories</label>
-      <div class="form-check mb-2">
-        <input type="checkbox" class="form-check-input" id="selectAll">
-        <label class="form-check-label fw-bold" for="selectAll">Select / Deselect All</label>
+    <div class="mb-4">
+      <label class="form-label fw-semibold fs-5">श्रेणियाँ चुनें:</label>
+
+      <div class="select-all-box mb-3" id="selectAllBox">
+        <input type="checkbox" class="form-check-input me-2" id="selectAll">
+        <label class="form-check-label fw-bold" for="selectAll">✔️ सभी को चुनें / हटाएँ</label>
       </div>
 
-      <% categories.forEach(c => { %>
-        <div class="form-check">
-          <input class="form-check-input category-checkbox" type="checkbox" name="categories" value="<%= c %>" id="<%= c %>">
-          <label class="form-check-label" for="<%= c %>"><%= c %></label>
-        </div>
-      <% }) %>
+      <!-- ✅ Toggle boxes styled as selectable grid -->
+      <div class="category-grid">
+        <% categories.forEach(c => { %>
+          <div class="category-box" data-category="<%= c %>"><%= c %></div>
+          <input type="checkbox" class="hidden-checkbox category-checkbox" name="categories" value="<%= c %>" id="cb_<%= c %>">
+        <% }) %>
+      </div>
     </div>
 
-    <button type="submit" class="btn btn-success">Start Quiz</button>
+    <div class="d-grid mt-4">
+      <button type="submit" class="btn btn-success btn-lg">🚀 क्विज़ प्रारंभ करें</button>
+    </div>
   </form>
 </div>
 
@@ -34,42 +86,56 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header bg-warning">
-        <h5 class="modal-title" id="categoryModalLabel">⚠️ Attention</h5>
+        <h5 class="modal-title" id="categoryModalLabel">⚠️ ध्यान दें</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        Please select at least one category before starting the quiz.
+        कृपया कम से कम एक श्रेणी का चयन करें।
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">ठीक है</button>
       </div>
     </div>
   </div>
 </div>
 
 <script>
+  // Toggle selection of category boxes
+  document.querySelectorAll('.category-box').forEach(box => {
+    box.addEventListener('click', () => {
+      const val = box.dataset.category;
+      const checkbox = document.querySelector(`#cb_${CSS.escape(val)}`);
+      checkbox.checked = !checkbox.checked;
+      box.classList.toggle('active');
+    });
+  });
+
   // Select/Deselect All logic
   document.getElementById('selectAll').addEventListener('change', function () {
-    const checkboxes = document.querySelectorAll('.category-checkbox');
-    checkboxes.forEach(cb => cb.checked = this.checked);
+    const allBoxes = document.querySelectorAll('.category-box');
+    const allChecks = document.querySelectorAll('.category-checkbox');
+
+    allChecks.forEach(cb => cb.checked = this.checked);
+    allBoxes.forEach(box => {
+      if (this.checked) {
+        box.classList.add('active');
+      } else {
+        box.classList.remove('active');
+      }
+    });
   });
 
   // Validate form before submission
   document.getElementById('quizStartForm').addEventListener('submit', function (e) {
     const selected = document.querySelectorAll('.category-checkbox:checked');
     if (selected.length === 0) {
-      e.preventDefault(); // prevent submit
-      e.stopImmediatePropagation(); // stop any further handlers
+      e.preventDefault();
+      e.stopImmediatePropagation();
 
-      // Hide any loading spinners manually if needed here
-      // Example: document.querySelector('.spinner').style.display = 'none';
-
-      // Show modal
       const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryModal'));
       modal.show();
     }
   });
 </script>
-
 
 <%- include('../partials/footer') %>
