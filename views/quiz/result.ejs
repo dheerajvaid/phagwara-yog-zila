@@ -16,14 +16,15 @@
         <div class="card-header">Q<%= idx + 1 %>: <%= w.question %></div>
         <div class="card-body">
           <p><strong>आपका उत्तर:</strong>
-            <% if (Array.isArray(w.userAns)) {
+            <% if (Array.isArray(w.userAns) && w.userAns.length > 0) {
               w.userAns.forEach(i => { %>
                 <span class="badge bg-danger me-1"><%= w.options[i] %></span>
-            <% }) } else { %>
-              <span class="badge bg-danger"><%= w.options[w.userAns] || "❌ कोई उत्तर नहीं" %></span>
+            <% }) } else if (typeof w.userAns === 'number') { %>
+              <span class="badge bg-danger"><%= w.options[w.userAns] %></span>
+            <% } else { %>
+              <span class="badge bg-danger">❌ कोई उत्तर नहीं</span>
             <% } %>
           </p>
-
           <p><strong>सही उत्तर:</strong>
             <% w.correctAns.forEach(i => { %>
               <span class="badge bg-success me-1"><%= w.options[i] %></span>

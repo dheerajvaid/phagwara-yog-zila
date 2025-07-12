@@ -2,46 +2,42 @@
 <%- include('../partials/navbar') %>
 
 <div class="container mt-4">
-
   <div class="d-flex justify-content-between align-items-center">
     <h5>🧘 प्रश्न <%= current + 1 %> / <%= total %></h5>
-
     <div>
-      <!-- Exit and Restart Buttons -->
       <button class="btn btn-outline-danger btn-sm me-2" data-bs-toggle="modal" data-bs-target="#exitQuizModal">⛔️ Exit Quiz</button>
       <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#restartQuizModal">🔄 Restart</button>
     </div>
   </div>
 
-  <!-- Progress Bar -->
   <div class="progress mb-3 mt-2">
     <div class="progress-bar" style="width: <%= ((current + 1) / total) * 100 %>%;"><%= current + 1 %> / <%= total %></div>
   </div>
 
-  <form id="quizForm" action="/quiz/<%= sessionId %>/answer?idx=<%= current %>" method="POST">
+  <form id="answerForm" action="/quiz/<%= sessionId %>/answer?idx=<%= current %>" method="POST">
     <div class="mb-4">
-      <h5><%= question.text %></h5>
-       <% if (question.contributedBy?.name) { %>
-        <p class="text-muted fst-italic small mt-2">
-          📝 Contributed by: <%= question.contributedBy.name %> 
+      <h5 class="text-danger fw-bold"><%= question.text %></h5>
+
+      <% if (question.contributedBy?.name) { %>
+        <p class="text-primary fst-italic small mt-2">
+          <span class="text-dark">📝 Contributed by: </span><span class="text-danger"><%= question.contributedBy.name %></span>
           <% if (question.contributedBy.designation) { %>
             (<%= question.contributedBy.designation %>)
           <% } %>
         </p>
-      <% } %>  
+      <% } %>
+
       <% question.options.forEach((opt, i) => { %>
         <div class="form-check">
-          <input class="form-check-input" 
-                 type="<%= question.correctAnswers.length > 1 ? 'checkbox' : 'radio' %>" 
-                 name="answer" 
-                 value="<%= i %>" 
+          <input class="form-check-input"
+                 type="<%= question.correctAnswers.length > 1 ? 'checkbox' : 'radio' %>"
+                 name="answer"
+                 value="<%= i %>"
                  id="opt<%= i %>"
                  <%= (Array.isArray(selectedAnswer) && selectedAnswer.includes(i)) || selectedAnswer == i ? 'checked' : '' %>>
           <label class="form-check-label" for="opt<%= i %>"><%= opt %></label>
         </div>
       <% }) %>
-
-     
     </div>
 
     <div class="d-flex justify-content-between">
@@ -54,16 +50,14 @@
       <% if (current < total - 1) { %>
         <button type="submit" class="btn btn-primary">अगला ➡️</button>
       <% } else { %>
-        <!-- Trigger modal instead of form submit -->
-        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#submitModal">
-          📨 उत्तर सबमिट करें
-        </button>
+        <!-- Final submit button triggers modal -->
+        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#submitModal">📨 उत्तर सबमिट करें</button>
       <% } %>
     </div>
   </form>
 </div>
 
-<!-- 🔔 Modal: Final Submit Confirmation -->
+<!-- 🔔 Final Submit Modal -->
 <div class="modal fade" id="submitModal" tabindex="-1" aria-labelledby="submitModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow">
@@ -76,7 +70,10 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">❌ नहीं</button>
-        <form action="/quiz/<%= sessionId %>/submit" method="POST">
+
+        <!-- ✅ This form will save final answer and redirect to /submit -->
+        <form id="finalSubmitForm" action="/quiz/<%= sessionId %>/answer?idx=<%= current %>" method="POST">
+          <input type="hidden" name="finalAnswer" id="finalAnswerInput">
           <button type="submit" class="btn btn-success">✅ हाँ, सबमिट करें</button>
         </form>
       </div>
@@ -84,7 +81,7 @@
   </div>
 </div>
 
-<!-- 🔔 Modal: Exit Quiz -->
+<!-- 🔔 Exit Modal -->
 <div class="modal fade" id="exitQuizModal" tabindex="-1" aria-labelledby="exitQuizModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow">
@@ -103,7 +100,7 @@
   </div>
 </div>
 
-<!-- 🔁 Modal: Restart Quiz -->
+<!-- 🔁 Restart Modal -->
 <div class="modal fade" id="restartQuizModal" tabindex="-1" aria-labelledby="restartQuizModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow">
@@ -121,5 +118,27 @@
     </div>
   </div>
 </div>
+
+<!-- ✅ JS to collect final selected answers into hidden field -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const finalSubmitBtn = document.querySelector('[data-bs-target="#submitModal"]');
+    const finalAnswerInput = document.getElementById("finalAnswerInput");
+
+    if (!finalSubmitBtn || !finalAnswerInput) return;
+
+    finalSubmitBtn.addEventListener("click", function () {
+      const selected = document.querySelectorAll('input[name="answer"]:checked');
+
+      if (selected.length === 0) {
+        finalAnswerInput.value = '';
+      } else if (selected.length === 1) {
+        finalAnswerInput.value = selected[0].value;
+      } else {
+        finalAnswerInput.value = Array.from(selected).map(i => i.value).join(',');
+      }
+    });
+  });
+</script>
 
 <%- include('../partials/footer') %>

@@ -61,20 +61,32 @@ exports.getQuizPage = (req, res) => {
 exports.postAnswer = (req, res) => {
   const { sessionId } = req.params;
   const idx = parseInt(req.query.idx || 0);
-  const selected = req.body.answer;
 
   const session = quizSessions[sessionId];
   if (!session) return res.status(404).send('Quiz session not found');
 
-  // Store answer
-  session.answers[idx] = Array.isArray(selected) ? selected.map(Number) : Number(selected);
+  // ✅ Handle both regular and final answer submission
+  const raw = req.body?.answer ?? req.body?.finalAnswer ?? null;
+  // console.log("Submitted answer:", raw);
 
-  // Go to next or redirect
+  let normalizedAnswer = null;
+
+  if (Array.isArray(raw)) {
+    normalizedAnswer = raw.map(val => Number(val));
+  } else if (typeof raw === 'string' && raw.includes(',')) {
+    normalizedAnswer = raw.split(',').map(val => Number(val));
+  } else if (raw !== null && raw !== '') {
+    normalizedAnswer = Number(raw);
+  }
+
+  session.answers[idx] = normalizedAnswer;
+
   const next = idx + 1;
   if (next < session.questions.length) {
     res.redirect(`/quiz/${sessionId}?idx=${next}`);
   } else {
-    res.redirect(`/quiz/${sessionId}?idx=${idx}`); // Stay on current
+    // ✅ Final redirect on last question
+    res.redirect(`/quiz/${sessionId}/submit`);
   }
 };
 
@@ -91,17 +103,26 @@ exports.submitQuiz = (req, res) => {
   questions.forEach((q, i) => {
     const userAns = answers[i];
 
+    if (userAns === null || userAns === undefined) {
+      wrongDetails.push({
+        question: q.text,
+        options: q.options,
+        userAns: [], // ✅ No answer case
+        correctAns: q.correctAnswers
+      });
+      return;
+    }
+
     const submittedAns = Array.isArray(userAns)
       ? userAns.map(Number)
-      : userAns !== undefined
-        ? [Number(userAns)]
-        : [];
+      : [Number(userAns)];
 
     const correctAns = q.correctAnswers;
 
     const isCorrect =
       submittedAns.length === correctAns.length &&
-      submittedAns.every(val => correctAns.includes(val));
+      submittedAns.every(val => correctAns.includes(val)) &&
+      correctAns.every(val => submittedAns.includes(val)); // ✅ Strict match
 
     if (isCorrect) {
       correct++;
@@ -122,7 +143,7 @@ exports.submitQuiz = (req, res) => {
     wrongDetails
   };
 
-  delete quizSessions[sessionId]; // Clean up memory if needed
+  delete quizSessions[sessionId]; // ✅ Cleanup
 
   res.render('quiz/result', {
     title: 'Your Quiz Result',
