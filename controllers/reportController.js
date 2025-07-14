@@ -88,17 +88,14 @@ exports.attendanceSummary = async (req, res) => {
   };
 
   if (user.kender) {
-    // Direct match on Attendance.kender
     attendanceQuery.kender = user.kender;
   } else if (user.zila || user.ksheter) {
-    // Find relevant kender IDs based on zila/ksheter
     const kenderFilter = {};
     if (user.zila) kenderFilter.zila = user.zila;
     if (user.ksheter) kenderFilter.ksheter = user.ksheter;
 
     const relevantKenders = await Kender.find(kenderFilter).select("_id");
     const kenderIds = relevantKenders.map((k) => k._id);
-
     attendanceQuery.kender = { $in: kenderIds };
   }
 
@@ -125,29 +122,52 @@ exports.attendanceSummary = async (req, res) => {
     const saadhak = a.saadhak;
     const kender = a.kender;
 
-    // Check that all required fields are present
     if (!saadhak || !kender || !kender.zila || !kender.ksheter) return;
 
     const zilaName = kender.zila.name;
     const ksheterName = kender.ksheter.name;
     const kenderName = kender.name;
 
-    // Zila → Ksheter → Kender summary
     summary[zilaName] = summary[zilaName] || {};
     summary[zilaName][ksheterName] = summary[zilaName][ksheterName] || {};
     summary[zilaName][ksheterName][kenderName] =
       summary[zilaName][ksheterName][kenderName] || 0;
     summary[zilaName][ksheterName][kenderName]++;
 
-    // Ksheter total per Zila
     ksheterTotals[zilaName] = ksheterTotals[zilaName] || {};
     ksheterTotals[zilaName][ksheterName] =
       ksheterTotals[zilaName][ksheterName] || 0;
     ksheterTotals[zilaName][ksheterName]++;
 
-    // Zila total
     zilaTotals[zilaName] = zilaTotals[zilaName] || 0;
     zilaTotals[zilaName]++;
+  });
+
+  // 🆕 Include all Kenders with 0 or no attendance
+  const allKenders = await Kender.find(
+    user.kender
+      ? { _id: user.kender }
+      : {
+          ...(user.zila ? { zila: user.zila } : {}),
+          ...(user.ksheter ? { ksheter: user.ksheter } : {}),
+        }
+  )
+    .populate("zila", "name")
+    .populate("ksheter", "name");
+
+  allKenders.forEach((kender) => {
+    if (!kender.zila || !kender.ksheter) return;
+
+    const zilaName = kender.zila.name;
+    const ksheterName = kender.ksheter.name;
+    const kenderName = kender.name;
+
+    summary[zilaName] = summary[zilaName] || {};
+    summary[zilaName][ksheterName] = summary[zilaName][ksheterName] || {};
+
+    if (!(kenderName in summary[zilaName][ksheterName])) {
+      summary[zilaName][ksheterName][kenderName] = "unmarked";
+    }
   });
 
   res.render("report/attendanceSummary", {
