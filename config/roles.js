@@ -28,7 +28,9 @@ module.exports = {
 
   kenderMainRoles: [
     "Kender Pramukh",
-    "Seh Kender Pramukh"
+    "Seh Kender Pramukh",
+    "Shikshak",
+    "Karyakarta",
   ],
 
   saadhakRoles: [
