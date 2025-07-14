@@ -6,7 +6,7 @@
   <% if (error) { %>
     <div class="alert alert-danger"><%= error %></div>
   <% } %>
-  <form action="/auth/login" method="POST">
+  <form action="/auth/login" method="POST" onsubmit="cleanMobileNumber()">
     <div class="mb-3">
       <label for="mobile" class="form-label">Mobile Number</label>
       <input type="text" name="mobile" id="mobile" class="form-control" autofocus required>
@@ -14,5 +14,20 @@
     <button type="submit" class="btn btn-primary">Next</button>
   </form>
 </div>
+
+<script>
+  function cleanMobileNumber() {
+    const input = document.getElementById('mobile');
+    let value = input.value.trim().replace(/\s+/g, '');
+
+    if (value.startsWith('+91')) {
+      value = value.slice(3);
+    } else if (value.startsWith('91') && value.length === 12) {
+      value = value.slice(2);
+    }
+
+    input.value = value;
+  }
+</script>
 
 <%- include('../partials/footer') %>

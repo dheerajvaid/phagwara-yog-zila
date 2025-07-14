@@ -100,7 +100,7 @@
             <%- include('ksheter') %>
             <%- include('kender') %>
             <%- include('saadhak') %>
-            <%- include('shivir') %>
+            <%- include('attendance') %>
             <%- include('yog-samagri') %>
             <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
             <li class="nav-item"><a class="nav-link" href="/roles/manage">🎖️ Role Management</a></li>
@@ -109,7 +109,7 @@
               <%- include('ksheter') %>
               <%- include('kender') %>
               <%- include('saadhak') %>
-              <%- include('shivir') %>
+              <%- include('attendance') %>
               <%- include('yog-samagri') %>
               <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
             <% } %>
@@ -117,13 +117,14 @@
             <% if (user.roles.includes('Ksheter Pradhan') || user.roles.includes('Ksheter Mantri')) { %>
               <%- include('kender') %>
               <%- include('saadhak') %>
-              <%- include('shivir') %>
+              <%- include('attendance') %>
               <%- include('yog-samagri') %>
               <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
             <% } %>
 
             <% if (user.roles.includes('Kender Pramukh') || user.roles.includes('Seh Kender Pramukh') || user.roles.includes('Shikshak') || user.roles.includes('Karyakarta')) { %>
               <%- include('saadhak') %>
+              <%- include('attendance') %>
               <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
             <% } %>
 

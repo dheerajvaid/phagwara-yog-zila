@@ -82,10 +82,21 @@ exports.attendanceSummary = async (req, res) => {
   const nextDate = new Date(date);
   nextDate.setDate(date.getDate() + 1);
 
+  // console.log(user);
+
   let attendanceQuery = {
     date: { $gte: date, $lt: nextDate },
     status: "Present",
   };
+
+  // Role-based correction: prioritize higher role over stored data
+  if (user.roles && user.roles.some((r) => r.includes("Ksheter"))) {
+    user.kender = null; // Treat Ksheter-level users as Ksheter, not Kender.
+  }
+  if (user.roles && user.roles.some((r) => r.includes("Zila"))) {
+    user.kender = null;
+    user.ksheter = null; // Treat Zila-level users as Zila, ignore lower-level assignments.
+  }
 
   if (user.kender) {
     attendanceQuery.kender = user.kender;
@@ -171,23 +182,27 @@ exports.attendanceSummary = async (req, res) => {
   // 🆕 SORTING before rendering
   const sortedSummary = {};
 
-  Object.keys(summary).sort().forEach(zilaName => {
-    sortedSummary[zilaName] = {};
-    const ksheterNames = Object.keys(summary[zilaName]).sort();
+  Object.keys(summary)
+    .sort()
+    .forEach((zilaName) => {
+      sortedSummary[zilaName] = {};
+      const ksheterNames = Object.keys(summary[zilaName]).sort();
 
-    ksheterNames.forEach(ksheterName => {
-      const kenderEntries = Object.entries(summary[zilaName][ksheterName]);
-      const sortedKenderEntries = kenderEntries.sort((a, b) => a[0].localeCompare(b[0]));
+      ksheterNames.forEach((ksheterName) => {
+        const kenderEntries = Object.entries(summary[zilaName][ksheterName]);
+        const sortedKenderEntries = kenderEntries.sort((a, b) =>
+          a[0].localeCompare(b[0])
+        );
 
-      sortedSummary[zilaName][ksheterName] = {};
-      sortedKenderEntries.forEach(([kenderName, value]) => {
-        sortedSummary[zilaName][ksheterName][kenderName] = value;
+        sortedSummary[zilaName][ksheterName] = {};
+        sortedKenderEntries.forEach(([kenderName, value]) => {
+          sortedSummary[zilaName][ksheterName][kenderName] = value;
+        });
       });
     });
-  });
 
   res.render("report/attendanceSummary", {
-    summary: sortedSummary,  // 👈 Use sorted summary
+    summary: sortedSummary, // 👈 Use sorted summary
     ksheterTotals,
     zilaTotals,
     selectedDate: dateStr,
