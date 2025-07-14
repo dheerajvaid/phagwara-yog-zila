@@ -39,11 +39,11 @@
           </tr>
         </table>
 
-        <table class="table table-bordered table-sm fw-semibold" style="width: 80%; margin: auto;">
+        <table class="table table-bordered table-sm fw-semibold" style="width: 95%; margin: auto;">
           <thead class="table-light text-center">
             <tr class="bg-warning-subtle text-dark">
-              <th style="width: 50%">Kender Name</th>
-              <th style="width: 30%">Present Count</th>
+              <th style="width: 70%">Kender Name</th>
+              <th style="width: 25%">Present</th>
             </tr>
           </thead>
           <tbody class="text-center">
@@ -52,7 +52,7 @@
               <td class="text-start fs-6"><%= kender %></td>
               <td class="fs-6">
                 <% if (summary[zila][ksheter][kender] === "unmarked") { %>
-                  <span class="text-danger fst-italic fw-normal">Yet to Mark</span>
+                  <span class="text-danger fst-italic fw-normal">TBM*</span>
                 <% } else { %>
                   <%= summary[zila][ksheter][kender] %>
                 <% } %>
@@ -75,14 +75,14 @@
               <td class="text-center text-white">Zila Total</td>
               <td class="text-white"><%= zilaTotals[zila] %></td>
             </tr>
-            <% } %>
+          <% } %>
           </tbody>
         </table>
       </div>
       <% }); %>
     </div>
     <% } %>
-
+    <p class="fst-italic text-danger text-end">*TBM - Attendance to be marked!</p>
     <!-- Watermark Text -->
     <div id="summaryWatermark" class="text-center small mt-3" style="display: none; font-size: 0.8rem;">
       ~ Exported from Bhartiya Yog Sansthan (R) Attendance App
@@ -114,7 +114,7 @@
     background-repeat: no-repeat;
     background-position: center;
     background-size: 500px auto;
-    opacity: 0.08;
+    opacity: 0.12;
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
     z-index: 0;
@@ -159,7 +159,7 @@
     watermarkText.style.display = 'block';
 
     setTimeout(() => {
-      html2canvas(exportArea, { scale: 3 }).then(canvas => {
+      html2canvas(exportArea, { scale: 4 }).then(canvas => {
         const link = document.createElement('a');
         link.download = `attendance_summary_<%= selectedDate %>.png`;
         link.href = canvas.toDataURL('image/png');

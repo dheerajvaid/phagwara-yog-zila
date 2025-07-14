@@ -99,7 +99,6 @@ exports.attendanceSummary = async (req, res) => {
     attendanceQuery.kender = { $in: kenderIds };
   }
 
-  // Get Present attendance records
   const attendance = await Attendance.find(attendanceQuery)
     .populate({
       path: "saadhak",
@@ -143,7 +142,6 @@ exports.attendanceSummary = async (req, res) => {
     zilaTotals[zilaName]++;
   });
 
-  // 🆕 Include all Kenders with 0 or no attendance
   const allKenders = await Kender.find(
     user.kender
       ? { _id: user.kender }
@@ -170,8 +168,26 @@ exports.attendanceSummary = async (req, res) => {
     }
   });
 
+  // 🆕 SORTING before rendering
+  const sortedSummary = {};
+
+  Object.keys(summary).sort().forEach(zilaName => {
+    sortedSummary[zilaName] = {};
+    const ksheterNames = Object.keys(summary[zilaName]).sort();
+
+    ksheterNames.forEach(ksheterName => {
+      const kenderEntries = Object.entries(summary[zilaName][ksheterName]);
+      const sortedKenderEntries = kenderEntries.sort((a, b) => a[0].localeCompare(b[0]));
+
+      sortedSummary[zilaName][ksheterName] = {};
+      sortedKenderEntries.forEach(([kenderName, value]) => {
+        sortedSummary[zilaName][ksheterName][kenderName] = value;
+      });
+    });
+  });
+
   res.render("report/attendanceSummary", {
-    summary,
+    summary: sortedSummary,  // 👈 Use sorted summary
     ksheterTotals,
     zilaTotals,
     selectedDate: dateStr,
