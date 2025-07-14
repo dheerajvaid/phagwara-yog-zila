@@ -97,18 +97,33 @@
       font-size: 11px;
     }
 
+    .thinking-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Press Start 2P', sans-serif;
+      font-size: 14px;
+      color: white;
+    }
+
     .main-container {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
       gap: 16px;
       padding: 40px 10px;
+      max-width: 100vw;
+      overflow-x: auto;
     }
 
     .main-box {
       display: grid;
-      grid-template-columns: repeat(4, 45px);
-      grid-template-rows: repeat(4, 45px);
+      grid-template-columns: repeat(4, minmax(30px, 45px));
+      grid-template-rows: repeat(4, minmax(30px, 45px));
       gap: 6px;
       background: #ffffff;
       padding: 12px;
@@ -118,13 +133,13 @@
     }
 
     .box {
-      width: 45px;
-      height: 45px;
+      width: 100%;
+      aspect-ratio: 1/1;
       background-color: var(--box-empty);
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 16px;
+      font-size: clamp(10px, 4vw, 16px);
       font-weight: bold;
       border-radius: 6px;
       cursor: pointer;
@@ -163,20 +178,6 @@
         padding: 20px 10px;
       }
 
-      .main-box {
-        grid-template-columns: repeat(4, 36px);
-        grid-template-rows: repeat(4, 36px);
-        gap: 5px;
-        padding: 8px;
-        border-width: 2px;
-      }
-
-      .box {
-        width: 36px;
-        height: 36px;
-        font-size: 14px;
-      }
-
       .modal-content {
         width: 90%;
       }
@@ -193,6 +194,9 @@
   </style>
 </head>
 <body>
+  <audio id="beepSound" src="https://www.soundjay.com/button/beep-07.wav" preload="auto"></audio>
+  <div class="thinking-overlay" id="thinkingOverlay">💡 Computer Thinking...</div>
+
   <button id="exitBtn" onclick="window.location.href='/'">❌ Exit</button>
   <div id="winner" class="winner-display"></div>
 
@@ -224,7 +228,6 @@
           <option value="4">Level 4 - Expert</option>
           <option value="5" selected>Level 5 - Impossible</option>
         </select>
-
         <button id="levelStartBtn" onclick="startGame(true)">Start Game</button>
       </div>
     </div>
@@ -232,18 +235,26 @@
 
   <button id="resetBtn">🔁</button>
 
- <script>
+  <script>
   document.addEventListener("DOMContentLoaded", () => {
     let board = Array(4).fill().map(() => Array(4).fill().map(() => Array(4).fill(0)));
     let currentPlayer = "X";
     let isVsComputer = false;
     let gameOver = false;
     let level = 1;
+    let computerThinking = false;
 
+    const beepSound = document.getElementById("beepSound");
+    const thinkingOverlay = document.getElementById("thinkingOverlay");
     const boxes = document.querySelectorAll(".box");
     const winnerDiv = document.getElementById("winner");
     const modal = document.getElementById("startModal");
     const levelSelect = document.getElementById("levelSelector");
+
+    function playBeep() {
+      beepSound.currentTime = 0;
+      beepSound.play();
+    }
 
     window.showLevelSelector = () => {
       isVsComputer = true;
@@ -267,24 +278,34 @@
       winnerDiv.innerHTML = "";
       currentPlayer = "X";
       gameOver = false;
+      computerThinking = false;
+      thinkingOverlay.style.display = "none";
     }
 
     boxes.forEach((box) => {
       box.addEventListener("click", () => {
-        if (gameOver || box.innerHTML !== "") return;
+        if (gameOver || box.innerHTML !== "" || computerThinking) return;
         const [i, j, k] = box.id.slice(-3).split("").map(Number);
         if (board[i][j][k] !== 0) return;
-
         makeMove(i, j, k, currentPlayer);
         if (checkWin(currentPlayer)) return;
-
         currentPlayer = currentPlayer === "X" ? "O" : "X";
-
         if (isVsComputer && currentPlayer === "O" && !gameOver) {
-          setTimeout(computerMove, 300);
+          setTimeout(computerMoveWithOverlay, 300);
         }
       });
     });
+
+    function computerMoveWithOverlay() {
+      computerThinking = true;
+      thinkingOverlay.style.display = "flex";
+      setTimeout(() => {
+        playBeep();
+        computerMove();
+        thinkingOverlay.style.display = "none";
+        computerThinking = false;
+      }, 600);
+    }
 
     function makeMove(i, j, k, player) {
       board[i][j][k] = player;
@@ -308,7 +329,7 @@
       return false;
     }
 
-    function isWinningMove(player) {
+    function checkWinVirtual(player) {
       const lines = generateLines();
       return lines.some(line => line.every(([x, y, z]) => board[x][y][z] === player));
     }
@@ -335,8 +356,8 @@
     }
 
     function minimax(depth, isMaximizing, alpha, beta, maxDepth) {
-      if (checkWin("O")) return 100 - depth;
-      if (checkWin("X")) return -100 + depth;
+      if (checkWinVirtual("O")) return 100 - depth;
+      if (checkWinVirtual("X")) return -100 + depth;
       if (boardFull() || depth >= maxDepth) return 0;
 
       if (isMaximizing) {
@@ -366,7 +387,6 @@
 
     function generateLines() {
       const lines = [];
-
       for (let i = 0; i < 4; i++) {
         for (let j = 0; j < 4; j++) {
           lines.push([[i, j, 0], [i, j, 1], [i, j, 2], [i, j, 3]]);
@@ -380,12 +400,10 @@
         lines.push([[0, 0, i], [1, 1, i], [2, 2, i], [3, 3, i]]);
         lines.push([[0, 3, i], [1, 2, i], [2, 1, i], [3, 0, i]]);
       }
-
       lines.push([[0, 0, 0], [1, 1, 1], [2, 2, 2], [3, 3, 3]]);
       lines.push([[0, 0, 3], [1, 1, 2], [2, 2, 1], [3, 3, 0]]);
       lines.push([[0, 3, 0], [1, 2, 1], [2, 1, 2], [3, 0, 3]]);
       lines.push([[0, 3, 3], [1, 2, 2], [2, 1, 1], [3, 0, 0]]);
-
       return lines;
     }
 
@@ -400,32 +418,28 @@
       } else if (level === 2 || level === 3) {
         for (const [i, j, k] of empty) {
           board[i][j][k] = "O";
-          if (isWinningMove("O")) {
+          if (checkWinVirtual("O")) {
             board[i][j][k] = 0;
             move = [i, j, k];
             break;
           }
           board[i][j][k] = 0;
-
           board[i][j][k] = "X";
-          if (isWinningMove("X")) {
+          if (checkWinVirtual("X")) {
             board[i][j][k] = 0;
             move = [i, j, k];
             break;
           }
           board[i][j][k] = 0;
         }
-
         if (!move) move = empty[Math.floor(Math.random() * empty.length)];
       } else if (level === 4 || level === 5) {
         let bestScore = -Infinity;
         const maxDepth = level === 5 ? 5 : 3;
-
         for (const [i, j, k] of empty) {
           board[i][j][k] = "O";
           let score = minimax(0, false, -Infinity, Infinity, maxDepth);
           board[i][j][k] = 0;
-
           if (score > bestScore) {
             bestScore = score;
             move = [i, j, k];
@@ -444,6 +458,8 @@
     document.getElementById("resetBtn").addEventListener("click", resetGame);
   });
 </script>
+
+ 
 
 </body>
 </html>
