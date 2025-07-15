@@ -115,7 +115,21 @@ async function drawCard({
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
 
-  for (let i = 1; i <= totalDays; i++) {
+  const monthNames = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+
+  const todayDate = new Date();
+  const currentMonthName = monthNames[todayDate.getMonth()];
+
+  const isCurrentMonth =
+    currentMonthName.toLowerCase() === monthName.toLowerCase() &&
+    todayDate.getFullYear() === parseInt(year);
+
+  const maxDay = isCurrentMonth ? todayDate.getDate() : totalDays;
+
+  for (let i = 1; i <= maxDay; i++) {
     const col = (i - 1) % cols;
     const row = Math.floor((i - 1) / cols);
     const x = startX + col * (cellSize + gap);
@@ -128,7 +142,8 @@ async function drawCard({
     ctx.fillText(i.toString(), x + cellSize / 2, yy + cellSize / 2);
   }
 
-  const gridRows = Math.ceil(totalDays / cols);
+
+  const gridRows = Math.ceil(maxDay / cols);
   const messageY = gridStartY + gridRows * (cellSize + gap) + 60;
 
   // Total Attendance Message
