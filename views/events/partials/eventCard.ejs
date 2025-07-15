@@ -1,12 +1,19 @@
 <div class="col">
   <div class="card shadow-sm h-100">
-    <div class="image-container">
-      <% if (Array.isArray(event.imageUrls) && event.imageUrls.length > 0) { %>
-        <img src="<%= event.imageUrls[0].url %>" alt="Event image: <%= event.title %>" class="event-img">
-      <% } else { %>
-        <img src="/images/default-event.jpg" alt="Default Event Image" class="event-img">
-      <% } %>
-    </div>
+    <div class="image-container"
+     style="background-color: #f9f9f9; display: flex; justify-content: center; align-items: center; min-height: 200px; max-height: 300px; padding: 10px; overflow: hidden;">
+        <% if (Array.isArray(event.imageUrls) && event.imageUrls.length > 0) { %>
+          <img src="<%= event.imageUrls[0].url %>"
+              alt="Event image: <%= event.title %>"
+              class="event-img"
+              style="max-height: 100%; max-width: 100%; object-fit: contain; display: block;" />
+        <% } else { %>
+          <img src="/images/default-event.jpg"
+              alt="Default Event Image"
+              class="event-img"
+              style="max-height: 100%; max-width: 100%; object-fit: contain; display: block;" />
+        <% } %>
+      </div>
 
     <div class="card-body p-3">
       <h5 class="card-title text-primary mb-1"><%= event.title %></h5>
