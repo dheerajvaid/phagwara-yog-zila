@@ -4,7 +4,7 @@
 <div class="container mt-3">
   <h3 class="text-center mb-4 fw-bold text-danger">
     <img src="/images/logo.jpg" alt="BYS Logo" style="height: 40px; vertical-align: middle; margin-right: 10px;" />
-    Top 10 Attendance
+    Top <%= topN %> Attendance
   </h3>
 
   <!-- Filter Form -->
@@ -40,6 +40,20 @@
       </select>
     </div>
 
+    <div class="col-6 col-md-3">
+      <label class="form-label">Top N (10–20)</label>
+      <input
+        type="number"
+        name="top"
+        min="10"
+        max="20"
+        value="<%= topN %>"
+        class="form-control"
+        required
+      />
+    </div>
+
+
     <div class="col-12 col-md-3">
       <button class="btn btn-primary w-100">🔍 View Report</button>
     </div>
@@ -48,7 +62,9 @@
   <% if (attendanceData.length > 0 && !noData) { %>
     <div class="text-end mb-2">
       <button class="btn btn-danger btn-sm" id="exportPdfBtn">📄 Export PDF</button>
+      <button class="btn btn-success btn-sm" id="exportImageBtn">🖼️ Export Image</button>
     </div>
+
 
     <div class="table-responsive">
       <table class="table table-bordered table-striped align-middle text-center shadow-sm">
@@ -57,7 +73,7 @@
             <th>Saadhak</th>
             <th>Ksheter</th>
             <th>Kender</th>
-            <th>Total Present</th>
+            <th style="width: 60px;">Days</th> 
           </tr>
         </thead>
         <tbody>
@@ -88,19 +104,50 @@
     cloneContainer.innerHTML = "";
 
     const clone = document.querySelector("table").cloneNode(true);
-    const wrapper = document.createElement("div");
-    wrapper.style.padding = "15px"; // ✅ Reduce padding to avoid cutoff
-    wrapper.style.border = "3px solid #dc3545";
-    wrapper.style.boxSizing = "border-box";
-    wrapper.style.fontFamily = "'Segoe UI', 'Roboto', sans-serif";
+
+    // Table Styling
+    clone.style.borderCollapse = "collapse";
+    clone.style.width = "100%";
+    clone.style.tableLayout = "fixed";
+    clone.style.fontSize = "12px";
+
+    clone.querySelectorAll("th").forEach((cell) => {
+      cell.style.backgroundColor = "#dc3545";
+      cell.style.color = "#fff";
+      cell.style.fontWeight = "bold";
+      cell.style.fontSize = "13px";
+      cell.style.border = "1px solid #bbb";
+      cell.style.padding = "8px";
+      if (cell.textContent.trim() === "Days") {
+        cell.style.width = "60px"; // 👈 narrow column
+      }
+    });
+
+    clone.querySelectorAll("td").forEach((cell) => {
+      cell.style.border = "1px solid #bbb";
+      cell.style.padding = "6px";
+      cell.style.textAlign = "center";
+      cell.style.wordWrap = "break-word";
+      cell.style.whiteSpace = "normal";
+      cell.style.fontSize = "12px";
+    });
+
+    // Wrapper Styling
+   const wrapper = document.createElement("div");
+    wrapper.style.padding = "20px";
+    wrapper.style.border = "4px solid #dc3545";  // ✅ Thick solid red border
+    wrapper.style.boxSizing = "border-box";      // ✅ Ensure border is included within size
     wrapper.style.backgroundColor = "#fff";
-    wrapper.style.width = "100%";
-    wrapper.style.maxWidth = "700px"; // ✅ Reduced to prevent clipping
+    wrapper.style.fontFamily = "'Segoe UI', 'Roboto', sans-serif";
+    wrapper.style.maxWidth = "700px";
     wrapper.style.margin = "0 auto";
-    wrapper.style.fontSize = "13px";
-
-
-    // ✅ Header
+    wrapper.style.width = "100%";
+    wrapper.style.boxShadow = "0 0 10px rgba(0,0,0,0.15)";
+    wrapper.style.webkitFontSmoothing = "antialiased";
+    wrapper.style.textRendering = "optimizeLegibility";
+    wrapper.style.fontSmoothing = "antialiased";
+    wrapper.style.backgroundColor = "#fff";  
+    // Header Section
     const header = document.createElement("div");
     header.style.textAlign = "center";
     header.style.marginBottom = "20px";
@@ -108,54 +155,156 @@
     const logo = document.createElement("img");
     logo.src = "/images/logo.jpg";
     logo.alt = "BYS Logo";
-    logo.style.height = "50px";
-    logo.style.marginBottom = "5px";
+    logo.style.height = "60px";
+    logo.style.marginBottom = "10px";
 
-    const title = document.createElement("h4");
-    title.innerHTML = `
-      <span style="color: #dc3545;">BHARTIYA YOG SANSTHAN (Regd.)</span><br/>
-      <small style="color: #333;">
-        Top 10 Saadhaks in Attendance – 
-        <%= new Date(2000, selectedMonth - 1).toLocaleString('default', { month: 'long' }) %> 
-        <%= selectedYear %>
-      </small>
-    `;
-    title.style.marginTop = "10px";
-    title.style.marginBottom = "0";
+    const title = document.createElement("h2");
+    title.style.color = "#dc3545";
+    title.style.margin = "5px 0";
+    title.style.fontSize = "18px";
+    title.textContent = "BHARTIYA YOG SANSTHAN (Regd.)";
+
+    const zilaLine = document.createElement("p");
+    zilaLine.style.margin = "0";
+    zilaLine.style.fontSize = "13px";
+    zilaLine.style.color = "#444";
+    zilaLine.style.fontWeight = "bold";
+    zilaLine.textContent = "<%= zilaName %>"; 
+
+    const subtitle = document.createElement("p");
+    subtitle.style.margin = "0";
+    subtitle.style.fontSize = "13px";
+    subtitle.style.color = "#333";
+    subtitle.textContent = `Top <%= topN %> Saadhaks – <%= new Date(2000, selectedMonth - 1).toLocaleString('default', { month: 'long' }) %> <%= selectedYear %>`;
 
     header.appendChild(logo);
     header.appendChild(title);
+    header.appendChild(zilaLine); 
+    header.appendChild(subtitle);
 
-    const hr = document.createElement("hr");
-    hr.style.border = "1px solid #ccc";
-    hr.style.margin = "10px 0";
+    // Footer Section
+    const footerNote = document.createElement("p");
+    footerNote.style.marginTop = "20px";
+    footerNote.style.fontSize = "11px";
+    footerNote.style.color = "#888";
+    footerNote.style.textAlign = "center";
+    footerNote.textContent = "Exported from Bhartiya Yog Sansthan App";
 
-    // ✅ Table styling
+    wrapper.appendChild(header);
+    wrapper.appendChild(clone);
+    wrapper.appendChild(footerNote);
+
+    cloneContainer.appendChild(wrapper);
+
+    html2pdf().set({
+      margin: [0.4, 0.4, 0.4, 0.4],
+      filename: `Top<%= topN %>_Attendance_<%= selectedMonth %>_<%= selectedYear %>.pdf`,
+      image: { type: 'jpeg', quality: 1 },      // ✅ Keep JPEG for lighter PDF
+      html2canvas: { scale: 4, useCORS: true },    // ✅ Use scale 3 (balanced)
+      jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+    }).from(wrapper).save();
+  });
+
+  document.getElementById("exportImageBtn")?.addEventListener("click", () => {
+    const cloneContainer = document.getElementById("pdfCloneContainer");
+    cloneContainer.innerHTML = "";
+
+    const clone = document.querySelector("table").cloneNode(true);
+
     clone.style.borderCollapse = "collapse";
     clone.style.width = "100%";
-    clone.style.tableLayout = "fixed"; // ✅ Prevents cell overflow
-    clone.querySelectorAll("td, th").forEach(cell => {
-      cell.style.border = "1px solid #999";
+    clone.style.tableLayout = "fixed";
+    clone.style.fontSize = "12px";
+
+    clone.querySelectorAll("th").forEach((cell) => {
+      cell.style.backgroundColor = "#dc3545";
+      cell.style.color = "#fff";
+      cell.style.fontWeight = "bold";
+      cell.style.fontSize = "13px";
+      cell.style.border = "1px solid #bbb";
+      cell.style.padding = "8px";
+      if (cell.textContent.trim() === "Days") {
+        cell.style.width = "60px";
+      }
+    });
+
+    clone.querySelectorAll("td").forEach((cell) => {
+      cell.style.border = "1px solid #bbb";
       cell.style.padding = "6px";
       cell.style.textAlign = "center";
       cell.style.wordWrap = "break-word";
       cell.style.whiteSpace = "normal";
-
+      cell.style.fontSize = "12px";
     });
 
+    const wrapper = document.createElement("div");
+    wrapper.style.padding = "20px";
+    wrapper.style.border = "4px solid #dc3545";
+    wrapper.style.boxSizing = "border-box";
+    wrapper.style.backgroundColor = "#fff";
+    wrapper.style.fontFamily = "'Segoe UI', 'Roboto', sans-serif";
+    wrapper.style.maxWidth = "700px";
+    wrapper.style.margin = "0 auto";
+    wrapper.style.width = "100%";
+    wrapper.style.boxShadow = "0 0 10px rgba(0,0,0,0.15)";
+    wrapper.style.webkitFontSmoothing = "antialiased";
+    wrapper.style.textRendering = "optimizeLegibility";
+
+    const header = document.createElement("div");
+    header.style.textAlign = "center";
+    header.style.marginBottom = "20px";
+
+    const logo = document.createElement("img");
+    logo.src = "/images/logo.jpg";
+    logo.alt = "BYS Logo";
+    logo.style.height = "60px";
+    logo.style.marginBottom = "10px";
+
+    const title = document.createElement("h2");
+    title.style.color = "#dc3545";
+    title.style.margin = "5px 0";
+    title.style.fontSize = "18px";
+    title.textContent = "BHARTIYA YOG SANSTHAN (Regd.)";
+
+    const zilaLine = document.createElement("p");
+    zilaLine.style.margin = "0";
+    zilaLine.style.fontSize = "13px";
+    zilaLine.style.color = "#444";
+    zilaLine.style.fontWeight = "bold";
+    zilaLine.textContent = "<%= zilaName %>";
+
+    const subtitle = document.createElement("p");
+    subtitle.style.margin = "0";
+    subtitle.style.fontSize = "13px";
+    subtitle.style.color = "#333";
+    subtitle.textContent = `Top <%= topN %> Saadhaks – <%= new Date(2000, selectedMonth - 1).toLocaleString('default', { month: 'long' }) %> <%= selectedYear %>`;
+
+    header.appendChild(logo);
+    header.appendChild(title);
+    header.appendChild(zilaLine);
+    header.appendChild(subtitle);
+
+    const footerNote = document.createElement("p");
+    footerNote.style.marginTop = "20px";
+    footerNote.style.fontSize = "11px";
+    footerNote.style.color = "#888";
+    footerNote.style.textAlign = "center";
+    footerNote.textContent = "Exported from Bhartiya Yog Sansthan App";
+
     wrapper.appendChild(header);
-    wrapper.appendChild(hr);
     wrapper.appendChild(clone);
+    wrapper.appendChild(footerNote);
+
     cloneContainer.appendChild(wrapper);
 
-    html2pdf().set({
-      margin: [0.3, 0.3, 0.3, 0.3], 
-      filename: `Top10_Attendance_<%= selectedMonth %>_<%= selectedYear %>.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-    }).from(wrapper).save();
+    html2canvas(wrapper, { scale: 4, useCORS: true }).then((canvas) => {
+      const link = document.createElement('a');
+      link.download = `Top<%= topN %>_Attendance_<%= selectedMonth %>_<%= selectedYear %>.jpg`;
+      link.href = canvas.toDataURL('image/jpeg', 1.0);
+      link.click();
+    });
   });
 </script>
+
 
 <%- include('../partials/footer') %>

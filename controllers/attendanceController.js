@@ -784,6 +784,17 @@ exports.viewTop10Attendance = async (req, res) => {
 
     const selectedScope = req.query.scope || "zila";
 
+    let zilaName = '';
+
+    try {
+      const zila = await Zila.findById(zilaId).lean();
+      if (zila) {
+        zilaName = zila.name; // or zila.title, as per your schema
+      }
+    } catch (err) {
+      console.error("Error fetching Zila:", err.message);
+    }
+
     let filter = {};
     if (selectedScope === "zila") {
       filter.zila = zilaId;
@@ -831,9 +842,20 @@ exports.viewTop10Attendance = async (req, res) => {
         };
       })
       .filter((s) => s.presentCount > 0)
-      .sort((a, b) => b.presentCount - a.presentCount);
+      .sort((a, b) => {
+        if (b.presentCount !== a.presentCount) {
+          return b.presentCount - a.presentCount;
+        }
+        if (a.ksheter !== b.ksheter) {
+          return a.ksheter.localeCompare(b.ksheter);
+        }
+        if (a.kender !== b.kender) {
+          return a.kender.localeCompare(b.kender);
+        }
+        return a.name.localeCompare(b.name);
+      });
 
-    const topN = 10;
+    const topN = parseInt(req.query.top) || 10;
     const cutoffCount =
       sortedData.length >= topN ? sortedData[topN - 1].presentCount : 0;
 
@@ -848,6 +870,8 @@ exports.viewTop10Attendance = async (req, res) => {
         selectedMonth,
         selectedYear,
         selectedScope,
+        topN,
+        zilaName,
         noData: true, // 👉 pass flag to EJS
       });
     }
@@ -858,6 +882,8 @@ exports.viewTop10Attendance = async (req, res) => {
       selectedMonth,
       selectedYear,
       selectedScope,
+      topN,
+      zilaName,
       noData: false,
     });
   } catch (err) {
@@ -876,7 +902,7 @@ exports.getMissingForm = async (req, res) => {
 
   // Format to YYYY-MM-DD
   const format = (d) => d.toISOString().slice(0, 10);
-  
+
   res.render("attendance/missingForm", {
     kendras,
     defaultFrom: format(fromDate),
@@ -884,13 +910,12 @@ exports.getMissingForm = async (req, res) => {
   });
 };
 
-
 exports.generateMissingReport = async (req, res) => {
   const { from, to, kender } = req.body;
 
   const query = { kender };
   const saadhaks = await Saadhak.find(query).sort({ name: 1 });
-  const saadhakIds = saadhaks.map(s => s._id);
+  const saadhakIds = saadhaks.map((s) => s._id);
 
   // ✅ Set from and to to IST range for the day
   const fromDate = new Date(from);
@@ -908,7 +933,7 @@ exports.generateMissingReport = async (req, res) => {
   // ✅ Map of saadhakId => Set of attended date strings (yyyy-mm-dd)
   const attendanceMap = new Map();
 
-  attendance.forEach(a => {
+  attendance.forEach((a) => {
     const sid = a.saadhak.toString();
     // Convert to IST date string (yyyy-mm-dd)
     const localDate = new Date(a.date);
@@ -930,10 +955,10 @@ exports.generateMissingReport = async (req, res) => {
   }
 
   // ✅ Saadhaks who missed all dates
-  const missing = saadhaks.filter(s => {
+  const missing = saadhaks.filter((s) => {
     const sid = s._id.toString();
     const attendedDates = attendanceMap.get(sid) || new Set();
-    const attendedAny = dateList.some(d => attendedDates.has(d));
+    const attendedAny = dateList.some((d) => attendedDates.has(d));
     return !attendedAny;
   });
 
@@ -949,12 +974,12 @@ exports.generateMissingReport = async (req, res) => {
       },
     },
   ]);
-  lastAttendance.forEach(entry => {
+  lastAttendance.forEach((entry) => {
     lastAttendanceMap[entry._id.toString()] = entry.lastDate;
   });
 
   // ✅ Final result
-  const result = missing.map(s => ({
+  const result = missing.map((s) => ({
     _id: s._id,
     name: s.name,
     mobile: s.mobile,
@@ -970,7 +995,6 @@ exports.generateMissingReport = async (req, res) => {
   });
 };
 
-
 exports.exportMissingPDF = async (req, res) => {
   const { from, to, kender, includeInactive } = req.query;
 
@@ -982,7 +1006,7 @@ exports.exportMissingPDF = async (req, res) => {
   if (!includeInactive) query["role"] = { $ne: "Inactive" };
 
   const saadhaks = await Saadhak.find(query).sort({ name: 1 });
-  const saadhakIds = saadhaks.map(s => s._id);
+  const saadhakIds = saadhaks.map((s) => s._id);
 
   // ✅ Adjust date range to full IST day range
   const fromDate = new Date(from);
@@ -997,25 +1021,25 @@ exports.exportMissingPDF = async (req, res) => {
   });
 
   // ✅ Use Set of present saadhak IDs
-  const attendedIds = new Set(attendance.map(a => a.saadhak.toString()));
-  const missing = saadhaks.filter(s => !attendedIds.has(s._id.toString()));
+  const attendedIds = new Set(attendance.map((a) => a.saadhak.toString()));
+  const missing = saadhaks.filter((s) => !attendedIds.has(s._id.toString()));
 
   // ✅ Get last attendance dates
   const lastAttendanceMap = {};
   const lastAttendance = await Attendance.aggregate([
     { $match: { saadhak: { $in: saadhakIds } } },
     { $sort: { date: -1 } },
-    { $group: { _id: "$saadhak", lastDate: { $first: "$date" } } }
+    { $group: { _id: "$saadhak", lastDate: { $first: "$date" } } },
   ]);
 
-  lastAttendance.forEach(entry => {
+  lastAttendance.forEach((entry) => {
     lastAttendanceMap[entry._id.toString()] = entry.lastDate;
   });
 
-  const result = missing.map(s => ({
+  const result = missing.map((s) => ({
     name: s.name,
     mobile: s.mobile,
-    lastAttended: lastAttendanceMap[s._id.toString()] || null
+    lastAttended: lastAttendanceMap[s._id.toString()] || null,
   }));
 
   pdfExport.renderPDF(
