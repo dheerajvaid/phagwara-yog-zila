@@ -915,51 +915,60 @@ exports.getMissingForm = async (req, res) => {
   });
 };
 
-exports.generateMissingReport = async (req, res) => {
-  const { from, to, kender } = req.body;
+const normalizeScopeValue = (value) => {
+  if (!value) return "";
+  if (Array.isArray(value)) return value[0] || "";
+  return String(value);
+};
 
-  const query = { kender };
+exports.generateMissingReport = async (req, res) => {
+  const { from, to } = req.body;
+
+  const zilaValue = normalizeScopeValue(req.body.zila);
+  const ksheterValue = normalizeScopeValue(req.body.ksheter);
+  const kender = normalizeScopeValue(req.body.kender); // Extract kender directly (as you want to send it to view)
+
+  let query = {};
+
+  if (zilaValue.trim() !== "") query.zila = zilaValue;
+  if (ksheterValue.trim() !== "") query.ksheter = ksheterValue;
+  if (kender.trim() !== "") query.kender = kender;
+
   const saadhaks = await Saadhak.find(query).sort({ name: 1 });
   const saadhakIds = saadhaks.map((s) => s._id);
 
-  // ✅ Set from and to to IST range for the day
   const fromDate = new Date(from);
-  fromDate.setUTCHours(0, 0, 0, 0); // Midnight UTC = 5:30 AM IST
+  fromDate.setUTCHours(0, 0, 0, 0);
 
   const toDate = new Date(to);
-  toDate.setUTCHours(23, 59, 59, 999); // End of day UTC = 5:29 AM next day IST
+  toDate.setUTCHours(23, 59, 59, 999);
 
-  // ✅ Get attendance within full IST-aware range
   const attendance = await Attendance.find({
     saadhak: { $in: saadhakIds },
     date: { $gte: fromDate, $lte: toDate },
   });
 
-  // ✅ Map of saadhakId => Set of attended date strings (yyyy-mm-dd)
   const attendanceMap = new Map();
 
   attendance.forEach((a) => {
     const sid = a.saadhak.toString();
-    // Convert to IST date string (yyyy-mm-dd)
     const localDate = new Date(a.date);
-    localDate.setMinutes(localDate.getMinutes() + 330); // shift to IST
+    localDate.setMinutes(localDate.getMinutes() + 330);
     const dateStr = localDate.toISOString().split("T")[0];
 
     if (!attendanceMap.has(sid)) attendanceMap.set(sid, new Set());
     attendanceMap.get(sid).add(dateStr);
   });
 
-  // ✅ Full date list in IST
   const dateList = [];
   let current = new Date(fromDate);
   while (current <= toDate) {
     const temp = new Date(current);
-    temp.setMinutes(temp.getMinutes() + 330); // shift to IST
+    temp.setMinutes(temp.getMinutes() + 330);
     dateList.push(temp.toISOString().split("T")[0]);
     current.setDate(current.getDate() + 1);
   }
 
-  // ✅ Saadhaks who missed all dates
   const missing = saadhaks.filter((s) => {
     const sid = s._id.toString();
     const attendedDates = attendanceMap.get(sid) || new Set();
@@ -967,23 +976,16 @@ exports.generateMissingReport = async (req, res) => {
     return !attendedAny;
   });
 
-  // ✅ Last attendance (for reference)
   const lastAttendanceMap = {};
   const lastAttendance = await Attendance.aggregate([
     { $match: { saadhak: { $in: saadhakIds } } },
     { $sort: { date: -1 } },
-    {
-      $group: {
-        _id: "$saadhak",
-        lastDate: { $first: "$date" },
-      },
-    },
+    { $group: { _id: "$saadhak", lastDate: { $first: "$date" } } },
   ]);
   lastAttendance.forEach((entry) => {
     lastAttendanceMap[entry._id.toString()] = entry.lastDate;
   });
 
-  // ✅ Final result
   const result = missing.map((s) => ({
     _id: s._id,
     name: s.name,
@@ -996,47 +998,77 @@ exports.generateMissingReport = async (req, res) => {
     from,
     to,
     total: result.length,
+    zila: zilaValue,
+    ksheter: ksheterValue,
     kender,
   });
 };
 
 exports.exportMissingPDF = async (req, res) => {
-  const { from, to, kender, includeInactive } = req.query;
+  const { from, to } = req.query;
 
-  if (!from || !to || !kender) {
+  const zilaValue = normalizeScopeValue(req.query.zila);
+  const ksheterValue = normalizeScopeValue(req.query.ksheter);
+  const kender = normalizeScopeValue(req.query.kender);
+
+  if (!from || !to) {
     return res.status(400).send("Missing required parameters");
   }
 
-  const query = { kender };
-  if (!includeInactive) query["role"] = { $ne: "Inactive" };
+  let query = {};
+
+  if (zilaValue.trim() !== "") query.zila = zilaValue;
+  if (ksheterValue.trim() !== "") query.ksheter = ksheterValue;
+  if (kender.trim() !== "") query.kender = kender;
 
   const saadhaks = await Saadhak.find(query).sort({ name: 1 });
   const saadhakIds = saadhaks.map((s) => s._id);
 
-  // ✅ Adjust date range to full IST day range
   const fromDate = new Date(from);
-  fromDate.setUTCHours(0, 0, 0, 0); // 00:00 IST = 18:30 UTC previous day
+  fromDate.setUTCHours(0, 0, 0, 0);
 
   const toDate = new Date(to);
-  toDate.setUTCHours(23, 59, 59, 999); // 23:59 IST = 18:29 UTC next day
+  toDate.setUTCHours(23, 59, 59, 999);
 
   const attendance = await Attendance.find({
     saadhak: { $in: saadhakIds },
     date: { $gte: fromDate, $lte: toDate },
   });
 
-  // ✅ Use Set of present saadhak IDs
-  const attendedIds = new Set(attendance.map((a) => a.saadhak.toString()));
-  const missing = saadhaks.filter((s) => !attendedIds.has(s._id.toString()));
+  const attendanceMap = new Map();
 
-  // ✅ Get last attendance dates
+  attendance.forEach((a) => {
+    const sid = a.saadhak.toString();
+    const localDate = new Date(a.date);
+    localDate.setMinutes(localDate.getMinutes() + 330);
+    const dateStr = localDate.toISOString().split("T")[0];
+
+    if (!attendanceMap.has(sid)) attendanceMap.set(sid, new Set());
+    attendanceMap.get(sid).add(dateStr);
+  });
+
+  const dateList = [];
+  let current = new Date(fromDate);
+  while (current <= toDate) {
+    const temp = new Date(current);
+    temp.setMinutes(temp.getMinutes() + 330);
+    dateList.push(temp.toISOString().split("T")[0]);
+    current.setDate(current.getDate() + 1);
+  }
+
+  const missing = saadhaks.filter((s) => {
+    const sid = s._id.toString();
+    const attendedDates = attendanceMap.get(sid) || new Set();
+    const attendedAny = dateList.some((d) => attendedDates.has(d));
+    return !attendedAny;
+  });
+
   const lastAttendanceMap = {};
   const lastAttendance = await Attendance.aggregate([
     { $match: { saadhak: { $in: saadhakIds } } },
     { $sort: { date: -1 } },
     { $group: { _id: "$saadhak", lastDate: { $first: "$date" } } },
   ]);
-
   lastAttendance.forEach((entry) => {
     lastAttendanceMap[entry._id.toString()] = entry.lastDate;
   });

@@ -1,33 +1,106 @@
 <%- include('../partials/header') %>
 <%- include('../partials/navbar') %>
 
-<div class="container mt-4">
-  <h5>Absent Saadhaks from <%= from %> to <%= to %></h5>
-  <p>Total: <strong><%= total %></strong> saadhaks didn’t attend</p>
+<div class="container my-4">
+  <div class="mb-3">
+    <h5 class="fw-bold text-danger">Absent Saadhaks from <%= from %> to <%= to %></h5>
+    <p>Total: <strong><%= total %></strong> saadhaks didn’t attend</p>
+  </div>
 
-  <a href="/attendance/export/pdf/missing?from=<%= from %>&to=<%= to %>&kender=<%= kender %>" class="btn btn-sm btn-danger mb-2">
-    📄 Export PDF
-  </a>
+  <!-- Action Buttons -->
+  <div class="d-flex flex-wrap gap-2 mb-3">
+    <a href="/attendance/missing" class="btn btn-outline-primary btn-sm">
+      ← Back to Missing Form
+    </a>
+    <a href="/attendance/export/pdf/missing?from=<%= from %>&to=<%= to %>&zila=<%= zila %>&ksheter=<%= ksheter %>&kender=<%= kender %>"
+      id="exportPdfBtn"
+      class="btn btn-sm btn-danger">
+      📄 Export PDF
+    </a>
+  </div>
 
-  <table class="table table-bordered table-striped table-sm">
-  <thead>
-    <tr>
-      <th>#</th>
-      <th>Name</th>
-      <th>Mobile</th>
-      <th>Last Attended</th>
-    </tr>
-  </thead>
-  <tbody>
-    <% missing.forEach((s, i) => { %>
-      <tr>
-        <td><%= i + 1 %></td>
-        <td><a href="/saadhak/edit/<%= s._id %>"><%= s.name %></a></td>
-        <td><%= s.mobile %></td>
-        <td><%= s.lastAttended ? s.lastAttended.toDateString() : "Never" %></td>
-      </tr>
-    <% }) %>
-  </tbody>
-</table>
+  <!-- Filter Dropdown -->
+  <div class="mb-3">
+    <label class="form-label fw-semibold">Filter By Last Attendance:</label>
+    <select id="attendanceFilter" class="form-select form-select-sm shadow-sm"
+            style="max-width: 220px;">
+      <option value="all">Show All</option>
+      <option value="never">Only Never Attended</option>
+      <option value="attended">Only Attended Previously</option>
+    </select>
+  </div>
 
+  <!-- Data Table -->
+  <div class="card shadow-sm">
+    <div class="card-body p-0">
+      <table id="missingTable" class="table table-striped table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th style="width: 40px;">#</th>
+            <th>Name</th>
+            <th>Mobile</th>
+            <th>Last Attended</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% missing.forEach((s, i) => { %>
+            <tr data-lastattended="<%= s.lastAttended ? 'attended' : 'never' %>">
+              <td class="text-center"><%= i + 1 %></td>
+              <td>
+                <a href="/saadhak/edit/<%= s._id %>" class="fw-semibold text-decoration-none">
+                  <%= s.name %>
+                </a>
+              </td>
+              <td><%= s.mobile %></td>
+              <td>
+                <% if (s.lastAttended) { %>
+                  <%= s.lastAttended.toDateString() %>
+                <% } else { %>
+                  <span class='badge bg-warning text-dark'>Never Attended</span>
+                <% } %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
+
+<script>
+  const filterDropdown = document.getElementById('attendanceFilter');
+  const tableRows = document.querySelectorAll('#missingTable tbody tr');
+
+  filterDropdown.addEventListener('change', () => {
+    const filter = filterDropdown.value;
+    tableRows.forEach(row => {
+      const status = row.dataset.lastattended;
+      if (filter === 'all') {
+        row.style.display = '';
+      } else if (filter === 'never') {
+        row.style.display = (status === 'never') ? '' : 'none';
+      } else if (filter === 'attended') {
+        row.style.display = (status === 'attended') ? '' : 'none';
+      }
+    });
+  });
+
+  const exportBtn = document.getElementById('exportPdfBtn');
+
+  if (exportBtn) {
+    exportBtn.addEventListener('click', function () {
+      const spinner = document.getElementById('loadingSpinner');
+      if (spinner) spinner.style.display = 'block';
+      setTimeout(() => {
+        if (spinner) spinner.style.display = 'none';
+      }, 3000);
+    });
+  }
+
+  window.addEventListener('load', () => {
+    const spinner = document.getElementById('loadingSpinner');
+    if (spinner) spinner.style.display = 'none';
+  });
+</script>
+
+<%- include('../partials/footer') %>

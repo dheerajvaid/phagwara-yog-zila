@@ -7,33 +7,42 @@
   <style>
     body {
       font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
-      font-size: 16px;
+      font-size: 15px;
       color: #2c3e50;
-      margin: 16px;
+      margin: 20px;
       background-color: #fff;
+    }
+
+    .header-logo {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .header-logo img {
+      max-height: 70px;
     }
 
     h2 {
       text-align: center;
-      font-size: 24px;
-      font-weight: 600;
-      margin-bottom: 16px;
-      color: #2c3e50;
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 12px;
+      color: #b22222; /* Dark Red */
     }
 
     .summary {
-      font-size: 16px;
-      margin-bottom: 24px;
+      font-size: 15px;
+      margin-bottom: 15px;
       color: #34495e;
     }
 
     .summary p {
-      margin: 6px 0;
+      margin: 4px 0;
     }
 
     .summary strong {
       display: inline-block;
-      width: 130px;
+      width: 140px;
     }
 
     table {
@@ -43,20 +52,32 @@
     }
 
     th, td {
-      padding: 14px 10px;
+      padding: 10px 8px;
       border: 1px solid #ccc;
       text-align: left;
-      font-size: 15px;
+      font-size: 14px;
     }
 
     th {
-      background-color: #ecf0f1;
-      font-weight: 600;
-      color: #2c3e50;
+      background-color: #dc3545;  /* BYS Red */
+      color: #fff;
+      font-weight: bold;
     }
 
     tr:nth-child(even) {
       background-color: #f9f9f9;
+    }
+
+    td.never {
+      background-color: #fff3cd;
+      color: #856404;
+      font-weight: bold;
+    }
+
+    td.attended {
+      background-color: #d4edda;
+      color: #155724;
+      font-weight: bold;
     }
 
     .nowrap {
@@ -64,30 +85,35 @@
     }
 
     .footer {
-      margin-top: 30px;
+      margin-top: 25px;
       text-align: right;
-      font-size: 14px;
+      font-size: 13px;
       color: #555;
     }
 
-    @media (max-width: 480px) {
-      th, td {
+    @media (max-width: 600px) {
+      body {
         font-size: 16px;
-        padding: 16px 10px;
       }
-
-      .summary {
-        font-size: 17px;
-      }
-
       h2 {
-        font-size: 26px;
+        font-size: 24px;
+      }
+      th, td {
+        font-size: 15px;
+        padding: 12px 8px;
+      }
+      .summary {
+        font-size: 16px;
       }
     }
   </style>
 </head>
 <body>
 
+  <div class="header-logo">
+    <img src="/images/logo.jpg" alt="Bharatiya Yog Sansthan Logo">
+  </div>
+  
   <h2>Missing Attendance Report</h2>
 
   <div class="summary">
@@ -111,13 +137,13 @@
           <td><%= i + 1 %></td>
           <td><%= s.name %></td>
           <td><%= s.mobile %></td>
-          <td class="nowrap">
+          <td class="nowrap <%= s.lastAttended ? 'attended' : 'never' %>">
             <%= s.lastAttended 
               ? new Date(s.lastAttended).toLocaleDateString('en-IN', {
                   day: 'numeric', month: 'short', year: 'numeric',
                   timeZone: 'Asia/Kolkata'
                 }) 
-              : 'Never' %>
+              : 'Never Attended' %>
           </td>
         </tr>
       <% }) %>
