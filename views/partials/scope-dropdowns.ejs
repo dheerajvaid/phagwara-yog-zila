@@ -1,0 +1,145 @@
+<div class="col-6 col-md-3">
+  <label class="form-label">Zila</label>
+  <select
+    name="zila"
+    id="zilaDropdown"
+    class="form-control"
+    <%= user.roleLevel < 100 ? 'disabled' : '' %>
+    required
+  >
+    <% if (user.roleLevel >= 100) { %>
+      <option value="">Select Zila</option>
+    <% } %>
+    <% zilaList.forEach(zila => { %>
+      <option
+        value="<%= zila._id %>"
+        <%= String(selectedZila) === String(zila._id) ? 'selected' : '' %>
+      >
+        <%= zila.name %>
+      </option>
+    <% }) %>
+  </select>
+  <input type="hidden" name="zila" id="zilaHidden" value="<%= selectedZila %>">
+</div>
+
+
+<div class="col-6 col-md-3">
+  <label class="form-label">Ksheter</label>
+  <select
+    name="ksheter"
+    id="ksheterDropdown"
+    class="form-control"
+    <%= user.roleLevel < 80 && !user.roles.includes('Admin') ? 'disabled' : '' %>
+  >
+    <option value="">Select Ksheter</option>
+  </select>
+  <input type="hidden" name="ksheter" id="ksheterHidden" value="<%= selectedKsheter %>">
+</div>
+
+<div class="col-6 col-md-3">
+  <label class="form-label">Kender</label>
+  <select
+    name="kender"
+    id="kenderDropdown"
+    class="form-control"
+    <%= user.roleLevel < 60 ? 'disabled' : '' %>
+  >
+    <option value="">Select Kender</option>
+  </select>
+  <input type="hidden" name="kender" id="kenderHidden" value="<%= selectedKender %>">
+</div>
+
+<script>
+  const zilaDropdown = document.getElementById('zilaDropdown');
+  const ksheterDropdown = document.getElementById('ksheterDropdown');
+  const kenderDropdown = document.getElementById('kenderDropdown');
+
+  const ksheterList = <%- JSON.stringify(ksheterList) %>;
+  const kenderList = <%- JSON.stringify(kenderList) %>;
+
+  const userRoleLevel = parseInt("<%= user.roleLevel %>");
+  const userKsheter = "<%= selectedKsheter %>";
+  const userKender = "<%= selectedKender %>";
+
+  function populateKsheter(zilaId) {
+    ksheterDropdown.innerHTML = '<option value="">Select Ksheter</option>';
+
+    if (userRoleLevel >= 40 && userRoleLevel < 60) {
+      // Kender-level user: show only their ksheter, preselect, disable
+      const ksheter = ksheterList.find(k => String(k._id) === userKsheter);
+      if (ksheter) {
+        const option = document.createElement('option');
+        option.value = ksheter._id;
+        option.textContent = ksheter.name;
+        option.selected = true;
+        ksheterDropdown.appendChild(option);
+      }
+      ksheterDropdown.disabled = true;
+    } else {
+      const filteredKsheter = ksheterList.filter(k => String(k.zila) === zilaId);
+      filteredKsheter.forEach(k => {
+        const option = document.createElement('option');
+        option.value = k._id;
+        option.textContent = k.name;
+        if (String(k._id) === userKsheter) option.selected = true;
+        ksheterDropdown.appendChild(option);
+      });
+    }
+
+    // Reset kender always after changing ksheter
+    kenderDropdown.innerHTML = '<option value="">Select Kender</option>';
+  }
+
+  function populateKender(ksheterId) {
+    kenderDropdown.innerHTML = '<option value="">Select Kender</option>';
+
+    if (userRoleLevel >= 40 && userRoleLevel < 60) {
+      // Kender-level user: show only their kender, preselect, disable
+      const kender = kenderList.find(k => String(k._id) === userKender);
+      if (kender) {
+        const option = document.createElement('option');
+        option.value = kender._id;
+        option.textContent = kender.name;
+        option.selected = true;
+        kenderDropdown.appendChild(option);
+      }
+      kenderDropdown.disabled = true;
+    } else {
+      const filteredKenders = kenderList.filter(k => String(k.ksheter) === ksheterId);
+      filteredKenders.forEach(k => {
+        const option = document.createElement('option');
+        option.value = k._id;
+        option.textContent = k.name;
+        if (String(k._id) === userKender) option.selected = true;
+        kenderDropdown.appendChild(option);
+      });
+    }
+  }
+
+  function updateHiddenInputs() {
+    document.getElementById('zilaHidden').value = zilaDropdown.value;
+    document.getElementById('ksheterHidden').value = ksheterDropdown.value;
+    document.getElementById('kenderHidden').value = kenderDropdown.value;
+  }
+
+  zilaDropdown.addEventListener('change', function () {
+    populateKsheter(this.value);
+    updateHiddenInputs();
+  });
+
+  ksheterDropdown.addEventListener('change', function () {
+    populateKender(this.value);
+    updateHiddenInputs();
+  });
+
+  kenderDropdown.addEventListener('change', updateHiddenInputs);
+
+  // Initialize on page load
+  if (zilaDropdown.value) {
+    populateKsheter(zilaDropdown.value);
+  }
+  if (ksheterDropdown.value) {
+    populateKender(ksheterDropdown.value);
+  }
+  updateHiddenInputs();
+</script>

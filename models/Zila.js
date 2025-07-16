@@ -12,4 +12,4 @@ const zilaSchema = new mongoose.Schema({
   cashier: String
 });
 
-module.exports = mongoose.model('Zila', zilaSchema);
+module.exports = mongoose.models.Zila || mongoose.model('Zila', zilaSchema);

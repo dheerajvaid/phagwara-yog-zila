@@ -27,4 +27,5 @@ const kenderSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("Kender", kenderSchema);
+// module.exports = mongoose.model("Kender", kenderSchema);
+module.exports = mongoose.models.Kender || mongoose.model('Kender', kenderSchema);

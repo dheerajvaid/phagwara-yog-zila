@@ -14,4 +14,5 @@ const ksheterSchema = new mongoose.Schema({
   }
 });
 
-module.exports = mongoose.model('Ksheter', ksheterSchema);
+// module.exports = mongoose.model('Ksheter', ksheterSchema);
+module.exports = mongoose.models.Ksheter || mongoose.model('Ksheter', ksheterSchema);

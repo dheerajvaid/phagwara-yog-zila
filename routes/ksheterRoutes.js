@@ -38,4 +38,9 @@ router.get(
   ksheterController.deleteKsheter
 );
 
+router.get('/api/ksheters/by-zila/:zilaId', async (req, res) => {
+  const ksheterList = await Ksheter.find({ zila: req.params.zilaId }).sort({ name: 1 }).lean();
+  res.json(ksheterList);
+});
+
 module.exports = router;

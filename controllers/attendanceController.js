@@ -775,116 +775,121 @@ exports.viewTop10Attendance = async (req, res) => {
     ];
 
     const today = new Date();
-
-    const selectedMonth = parseInt(req.query.month) || today.getMonth() + 1; // 1–12
+    const selectedMonth = parseInt(req.query.month) || today.getMonth() + 1;
     const selectedYear = parseInt(req.query.year) || today.getFullYear();
+    const selectedScope = req.query.scope || "zila";
 
     const start = new Date(selectedYear, selectedMonth - 1, 1);
     const end = new Date(selectedYear, selectedMonth, 0, 23, 59, 59);
 
-    const selectedScope = req.query.scope || "zila";
-
-    let zilaName = '';
-
+    let zilaName = "";
     try {
       const zila = await Zila.findById(zilaId).lean();
-      if (zila) {
-        zilaName = zila.name; // or zila.title, as per your schema
-      }
+      if (zila) zilaName = zila.name;
     } catch (err) {
       console.error("Error fetching Zila:", err.message);
     }
 
-    let filter = {};
-    if (selectedScope === "zila") {
-      filter.zila = zilaId;
-    } else if (selectedScope === "ksheter") {
-      filter.ksheter = req.session.user.ksheter;
-    } else if (selectedScope === "kender") {
-      filter.kender = req.session.user.kender;
-    }
-    filter.role = { $nin: excludedRoles };
+    let attendanceData = [];
+    let noData = true;
 
-    const saadhaks = await Saadhak.find(filter)
-      .populate("ksheter", "name")
-      .populate("kender", "name")
-      .lean();
+    const zilaQuery = Array.isArray(req.query.zila)
+      ? req.query.zila[0]
+      : req.query.zila;
+    const ksheterQuery = Array.isArray(req.query.ksheter)
+      ? req.query.ksheter[0]
+      : req.query.ksheter;
+    const kenderQuery = Array.isArray(req.query.kender)
+      ? req.query.kender[0]
+      : req.query.kender;
+    // ✅ Prevent query unless at least one scope filter is selected
+    const scopeSelected =
+      (zilaQuery && zilaQuery.trim() !== "") ||
+      (ksheterQuery && ksheterQuery.trim() !== "") ||
+      (kenderQuery && kenderQuery.trim() !== "");
 
-    const saadhakIds = saadhaks.map((s) => s._id);
+    if (scopeSelected) {
+      let filter = { role: { $nin: excludedRoles } };
 
-    // console.log(start, end);
+      if (zilaQuery && zilaQuery.trim() !== "") {
+        filter.zila = zilaQuery;
+      }
 
-    const attendanceRecords = await Attendance.find({
-      saadhak: { $in: saadhakIds },
-      date: { $gte: start, $lte: end },
-      status: "Present",
-    })
-      .select("saadhak date")
-      .lean();
+      if (ksheterQuery && ksheterQuery.trim() !== "") {
+        filter.ksheter = ksheterQuery;
+      }
 
-    const attendanceMap = {};
-    for (let rec of attendanceRecords) {
-      const id = rec.saadhak.toString();
-      if (!attendanceMap[id]) attendanceMap[id] = [];
-      attendanceMap[id].push(rec.date.toISOString().split("T")[0]);
-    }
+      if (kenderQuery && kenderQuery.trim() !== "") {
+        filter.kender = kenderQuery;
+      }
 
-    const sortedData = saadhaks
-      .map((s) => {
-        const attendance = attendanceMap[s._id.toString()] || [];
-        return {
-          _id: s._id,
-          name: s.name,
-          kender: s.kender?.name || "N/A",
-          ksheter: s.ksheter?.name || "N/A",
-          attendance,
-          presentCount: attendance.length,
-        };
+      const saadhaks = await Saadhak.find(filter)
+        .populate("ksheter", "name")
+        .populate("kender", "name")
+        .lean();
+
+      const saadhakIds = saadhaks.map((s) => s._id);
+
+      const attendanceRecords = await Attendance.find({
+        saadhak: { $in: saadhakIds },
+        date: { $gte: start, $lte: end },
+        status: "Present",
       })
-      .filter((s) => s.presentCount > 0)
-      .sort((a, b) => {
-        if (b.presentCount !== a.presentCount) {
-          return b.presentCount - a.presentCount;
-        }
-        if (a.ksheter !== b.ksheter) {
-          return a.ksheter.localeCompare(b.ksheter);
-        }
-        if (a.kender !== b.kender) {
-          return a.kender.localeCompare(b.kender);
-        }
-        return a.name.localeCompare(b.name);
-      });
+        .select("saadhak date")
+        .lean();
 
-    const topN = parseInt(req.query.top) || 10;
-    const cutoffCount =
-      sortedData.length >= topN ? sortedData[topN - 1].presentCount : 0;
+      const attendanceMap = {};
+      for (let rec of attendanceRecords) {
+        const id = rec.saadhak.toString();
+        if (!attendanceMap[id]) attendanceMap[id] = [];
+        attendanceMap[id].push(rec.date.toISOString().split("T")[0]);
+      }
 
-    const attendanceData = sortedData.filter(
-      (s) => s.presentCount >= cutoffCount
-    );
+      const sortedData = saadhaks
+        .map((s) => {
+          const attendance = attendanceMap[s._id.toString()] || [];
+          return {
+            _id: s._id,
+            name: s.name,
+            kender: s.kender?.name || "N/A",
+            ksheter: s.ksheter?.name || "N/A",
+            attendance,
+            presentCount: attendance.length,
+          };
+        })
+        .filter((s) => s.presentCount > 0)
+        .sort((a, b) => {
+          if (b.presentCount !== a.presentCount)
+            return b.presentCount - a.presentCount;
+          if (a.ksheter !== b.ksheter)
+            return a.ksheter.localeCompare(b.ksheter);
+          if (a.kender !== b.kender) return a.kender.localeCompare(b.kender);
+          return a.name.localeCompare(b.name);
+        });
 
-    // ✅ If no saadhak has any attendance, don't show table
-    if (attendanceData.length === 0) {
-      return res.render("attendance/top10", {
-        attendanceData: [],
-        selectedMonth,
-        selectedYear,
-        selectedScope,
-        topN,
-        zilaName,
-        noData: true, // 👉 pass flag to EJS
-      });
+      const topN = parseInt(req.query.top) || 10;
+      const cutoffCount =
+        sortedData.length >= topN ? sortedData[topN - 1].presentCount : 0;
+      attendanceData = sortedData.filter((s) => s.presentCount >= cutoffCount);
+
+      noData = attendanceData.length === 0;
     }
 
-    // Normal render
-    res.render("attendance/top10", {
+    return res.render("attendance/top10", {
       attendanceData,
       selectedMonth,
       selectedYear,
       selectedScope,
-      topN,
+      topN: parseInt(req.query.top) || 10,
       zilaName,
-      noData: false,
+      noData,
+      reportGenerated: scopeSelected,
+      zilaList: res.locals.zilaList,
+      ksheterList: res.locals.ksheterList,
+      kenderList: res.locals.kenderList,
+      selectedZila: res.locals.selectedZila,
+      selectedKsheter: res.locals.selectedKsheter,
+      selectedKender: res.locals.selectedKender,
     });
   } catch (err) {
     console.error("Error loading top 10 saadhaks:", err);

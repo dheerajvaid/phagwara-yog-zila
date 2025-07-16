@@ -1,7 +1,7 @@
 const roleHierarchy = {
-  Saadhak: 10,
-  Karyakarta: 20,
-  Shikshak: 20,
+  "Saadhak": 10,
+  "Karyakarta": 20,
+  "Shikshak": 20,
   "Seh Kender Pramukh": 40,
   "Kender Pramukh": 40,
   "Ksheter Mantri": 60,
@@ -9,8 +9,8 @@ const roleHierarchy = {
   "Zila Mantri": 80,
   "Zila Pradhan": 80,
   "Sangathan Mantri": 80,
-  Cashier: 80,
-  Admin: 100,
+  "Cashier": 80,
+  "Admin": 100,
 };
 
 function canManage(allowedRoles, calledBy = "") {
@@ -52,7 +52,22 @@ function canManage(allowedRoles, calledBy = "") {
   };
 }
 
+function assignRoleLevel(req, res, next) {
+  const user = req.session.user;
+  if (!user) return next();
+
+  const userRoles = user.roles || [];
+  const roleLevels = userRoles.map(role => roleHierarchy[role] || 0);
+
+  user.roleLevel = Math.max(...roleLevels, 0);  // Highest roleLevel
+  res.locals.user = user;  // Make available in all EJS views
+
+  next();
+}
+
+
 module.exports = {
   canManage,
   roleHierarchy,
+  assignRoleLevel,
 };

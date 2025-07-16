@@ -76,5 +76,9 @@ router.get(
 
 router.get("/kender/print-cards/data", requireLogin, canManage(kenderMainRoles), kenderController.getSaadhakCardData);
 
+router.get('/api/kenders/by-ksheter/:ksheterId', async (req, res) => {
+  const kenderList = await Kender.find({ ksheter: req.params.ksheterId }).sort({ name: 1 }).lean();
+  res.json(kenderList);
+});
 
 module.exports = router;
