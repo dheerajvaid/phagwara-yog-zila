@@ -4,122 +4,120 @@
   <meta charset="UTF-8">
   <title>Missing Attendance Report</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body {
-      font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
-      font-size: 15px;
-      color: #2c3e50;
-      margin: 20px;
-      background-color: #fff;
-    }
 
-    .header-logo {
-      text-align: center;
-      margin-bottom: 10px;
-    }
+<style>
+  body {
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+    font-size: 17px;
+    color: #2c3e50;
+    margin: 20px;
+    background-color: #fff;
+  }
 
-    .header-logo img {
-      max-height: 70px;
-    }
+  .header-logo {
+    text-align: center;
+    margin-bottom: 20px;
+  }
 
-    h2 {
-      text-align: center;
-      font-size: 22px;
-      font-weight: bold;
-      margin-bottom: 12px;
-      color: #b22222; /* Dark Red */
-    }
+  .header-logo img {
+    max-height: 80px;
+  }
 
-    .summary {
-      font-size: 15px;
-      margin-bottom: 15px;
-      color: #34495e;
-    }
+  h2 {
+    text-align: center;
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #b22222;
+  }
 
-    .summary p {
-      margin: 4px 0;
-    }
+  .summary {
+    font-size: 17px;
+    margin-bottom: 20px;
+    color: #34495e;
+    line-height: 1.6;
+  }
 
-    .summary strong {
-      display: inline-block;
-      width: 140px;
-    }
+  .summary p {
+    margin: 5px 0;
+  }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
+  .summary strong {
+    display: inline-block;
+    width: 160px;
+    font-weight: 600;
+    color: #2c3e50;
+  }
 
-    th, td {
-      padding: 10px 8px;
-      border: 1px solid #ccc;
-      text-align: left;
-      font-size: 14px;
-    }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    font-size: 17px;
+  }
 
-    th {
-      background-color: #dc3545;  /* BYS Red */
-      color: #fff;
-      font-weight: bold;
-    }
+  th, td {
+    padding: 16px 10px;
+    border: 1px solid #ccc;
+    text-align: center;
+    font-size: 17px;
+  }
 
-    tr:nth-child(even) {
-      background-color: #f9f9f9;
-    }
+  th {
+    background-color: #dc3545;
+    color: #fff;
+    font-weight: 700;
+  }
 
-    td.never {
-      background-color: #fff3cd;
-      color: #856404;
-      font-weight: bold;
-    }
+  tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
 
-    td.attended {
-      background-color: #d4edda;
-      color: #155724;
-      font-weight: bold;
-    }
+  td.never {
+    background-color: #fff4e5;
+    color: #856404;
+    font-weight: bold;
+  }
 
-    .nowrap {
-      white-space: nowrap;
-    }
+  td.attended {
+    background-color: #e6f4ea;
+    color: #155724;
+    font-weight: bold;
+  }
 
-    .footer {
-      margin-top: 25px;
-      text-align: right;
-      font-size: 13px;
-      color: #555;
-    }
+  .nowrap {
+    white-space: nowrap;
+  }
 
-    @media (max-width: 600px) {
-      body {
-        font-size: 16px;
-      }
-      h2 {
-        font-size: 24px;
-      }
-      th, td {
-        font-size: 15px;
-        padding: 12px 8px;
-      }
-      .summary {
-        font-size: 16px;
-      }
-    }
-  </style>
+  .footer {
+    margin-top: 30px;
+    text-align: right;
+    font-size: 15px;
+    color: #555;
+  }
+</style>
+
 </head>
 <body>
 
   <div class="header-logo">
-    <img src="/images/logo.jpg" alt="Bharatiya Yog Sansthan Logo">
+    <img src="<%= logoBase64 %>/images/logo.jpg" alt="Bharatiya Yog Sansthan Logo">
   </div>
   
-  <h2>Missing Attendance Report</h2>
+  <h2>Non-Attendance Report</h2>
 
   <div class="summary">
-    <p><strong>From:</strong> <%= from %></p>
-    <p><strong>To:</strong> <%= to %></p>
-    <p><strong>Total Missing:</strong> <%= total %></p>
+    <p><strong>From:</strong> 
+      <%= new Date(from).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }) %>
+    </p>
+    <p><strong>To:</strong> 
+      <%= new Date(to).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }) %>
+    </p>
+    <p><strong>Total Count:</strong> <%= total %></p>
+
+    <p><strong>Zila Name:</strong> <%= zilaName && zilaName.trim() !== '' ? zilaName : 'All' %></p>
+    <p><strong>Ksheter Name:</strong> <%= ksheterName && ksheterName.trim() !== '' ? ksheterName : 'All' %></p>
+    <p><strong>Kender Name:</strong> <%= kenderName && kenderName.trim() !== '' ? kenderName : 'All' %></p>
   </div>
 
   <table>
@@ -128,7 +126,8 @@
         <th>#</th>
         <th>Name</th>
         <th>Mobile</th>
-        <th class="nowrap">Last Attended</th>
+        <th>Last Attended</th>
+        <th>Days</th>
       </tr>
     </thead>
     <tbody>
@@ -137,13 +136,22 @@
           <td><%= i + 1 %></td>
           <td><%= s.name %></td>
           <td><%= s.mobile %></td>
-          <td class="nowrap <%= s.lastAttended ? 'attended' : 'never' %>">
-            <%= s.lastAttended 
-              ? new Date(s.lastAttended).toLocaleDateString('en-IN', {
-                  day: 'numeric', month: 'short', year: 'numeric',
-                  timeZone: 'Asia/Kolkata'
-                }) 
-              : 'Never Attended' %>
+          <td class="<%= s.lastAttended ? 'attended' : 'never' %>">
+            <% if (s.lastAttended) { 
+              const d = new Date(s.lastAttended).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' });
+              const wd = new Date(s.lastAttended).toLocaleDateString('en-IN', { weekday: 'short', timeZone: 'Asia/Kolkata' });
+            %>
+              <%= d %> (<%= wd %>)
+            <% } else { %>
+              Never Attended
+            <% } %>
+          </td>
+          <td>
+            <% if (s.lastAttended) { %>
+              <%= Math.floor((Date.now() - new Date(s.lastAttended).getTime()) / (1000 * 60 * 60 * 24)) %>
+            <% } else { %>
+              —
+            <% } %>
           </td>
         </tr>
       <% }) %>

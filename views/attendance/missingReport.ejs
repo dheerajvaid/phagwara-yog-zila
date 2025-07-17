@@ -1,96 +1,181 @@
 <%- include('../partials/header') %>
 <%- include('../partials/navbar') %>
 
+<style>
+  #missingTable th, #missingTable td {
+    border: 1px solid #dee2e6 !important;
+    vertical-align: middle;
+  }
+
+  #missingTable {
+    border: 1px solid #dee2e6;
+  }
+
+  .report-summary {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid #ddd;
+  }
+
+  .report-summary h5 {
+    color: #c0392b;
+    font-weight: bold;
+  }
+
+  .report-summary strong {
+    color: #2c3e50;
+  }
+
+  .action-buttons a {
+    min-width: 120px;
+  }
+
+  .card-body {
+    padding: 0 !important;
+  }
+</style>
+
 <div class="container my-4">
-  <div class="mb-3">
-    <h5 class="fw-bold text-danger">Absent Saadhaks from <%= from %> to <%= to %></h5>
-    <p>Total: <strong><%= total %></strong> saadhaks didn’t attend</p>
+
+  <div class="report-summary mb-4">
+    <h5>
+      Absent Saadhaks from 
+      <%= new Date(from).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Asia/Kolkata' }) %>
+      to 
+      <%= new Date(to).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Asia/Kolkata' }) %>
+    </h5>
+
+    <p class="mb-1">Total: <strong><%= total %></strong> saadhaks didn’t attend.</p>
+
+    <p class="mb-0">
+      <strong>Zila Name:</strong> <%= zilaName && zilaName.trim() !== '' ? zilaName : 'All' %><br>
+      <strong>Ksheter Name:</strong> <%= ksheterName && ksheterName.trim() !== '' ? ksheterName : 'All' %><br>
+      <strong>Kender Name:</strong> <%= kenderName && kenderName.trim() !== '' ? kenderName : 'All' %>
+    </p>
   </div>
 
-  <!-- Action Buttons -->
-  <div class="d-flex flex-wrap gap-2 mb-3">
-    <a href="/attendance/missing" class="btn btn-outline-primary btn-sm">
-      ← Back to Missing Form
+  <div class="d-flex flex-wrap gap-2 action-buttons mb-3">
+    <a href="/attendance/missing" class="btn btn-outline-primary btn-sm fw-bold">
+      ← Back
     </a>
-    <a href="/attendance/export/pdf/missing?from=<%= from %>&to=<%= to %>&zila=<%= zila %>&ksheter=<%= ksheter %>&kender=<%= kender %>"
-      id="exportPdfBtn"
-      class="btn btn-sm btn-danger">
+    <a href="#" id="exportPdfBtn" class="btn btn-danger btn-sm fw-bold">
       📄 Export PDF
     </a>
   </div>
 
-  <!-- Filter Dropdown -->
   <div class="mb-3">
     <label class="form-label fw-semibold">Filter By Last Attendance:</label>
-    <select id="attendanceFilter" class="form-select form-select-sm shadow-sm"
-            style="max-width: 220px;">
+    <select id="attendanceFilter" class="form-select form-select-sm shadow-sm" style="max-width: 220px;">
       <option value="all">Show All</option>
       <option value="never">Only Never Attended</option>
       <option value="attended">Only Attended Previously</option>
     </select>
   </div>
 
-  <!-- Data Table -->
   <div class="card shadow-sm">
-    <div class="card-body p-0">
-      <table id="missingTable" class="table table-striped table-hover mb-0">
-        <thead class="table-light">
-          <tr>
-            <th style="width: 40px;">#</th>
-            <th>Name</th>
-            <th>Mobile</th>
-            <th>Last Attended</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% missing.forEach((s, i) => { %>
-            <tr data-lastattended="<%= s.lastAttended ? 'attended' : 'never' %>">
-              <td class="text-center"><%= i + 1 %></td>
-              <td>
-                <a href="/saadhak/edit/<%= s._id %>" class="fw-semibold text-decoration-none">
-                  <%= s.name %>
-                </a>
-              </td>
-              <td><%= s.mobile %></td>
-              <td>
-                <% if (s.lastAttended) { %>
-                  <%= s.lastAttended.toDateString() %>
-                <% } else { %>
-                  <span class='badge bg-warning text-dark'>Never Attended</span>
-                <% } %>
-              </td>
+    <div class="card-body">
+      <p class="small text-center mt-2">🔽 Click table headers to sort by Name or Days.</p>
+      <div class="table-responsive">
+        <table id="missingTable" class="table table-striped table-hover mb-0">
+          <thead class="table-light text-center">
+            <tr>
+              <th style="width: 40px;">#</th>
+              <th>Name</th>
+              <th>Mobile</th>
+              <th>Last Attended</th>
+              <th>Days</th>
             </tr>
-          <% }) %>
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            <% missing.forEach((s, i) => { %>
+              <tr data-lastattended="<%= s.lastAttended ? 'attended' : 'never' %>">
+                <td class="text-center"><%= i + 1 %></td>
+                <td>
+                  <a href="/saadhak/edit/<%= s._id %>" class="fw-semibold text-decoration-none text-dark">
+                    <%= s.name %>
+                  </a>
+                </td>
+                <td class="text-center"><%= s.mobile %></td>
+                <td class="text-center">
+                  <% if (s.lastAttended) { 
+                      const d = new Date(s.lastAttended).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' });
+                      const wd = new Date(s.lastAttended).toLocaleDateString('en-GB', { weekday: 'short', timeZone: 'Asia/Kolkata' });
+                  %>
+                      <%= d %> (<%= wd %>)
+                  <% } else { %>
+                      <span class="badge bg-warning text-dark">Never Attended</span>
+                  <% } %>
+                </td>
+                <td class="text-center" data-days="<%= s.lastAttended ? Math.floor((Date.now() - new Date(s.lastAttended).getTime()) / (1000 * 60 * 60 * 24)) : '' %>">
+                  <% if (s.lastAttended) { %>
+                    <%= Math.floor((Date.now() - new Date(s.lastAttended).getTime()) / (1000 * 60 * 60 * 24)) %>
+                  <% } else { %>
+                    —
+                  <% } %>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
+
 </div>
 
 <script>
   const filterDropdown = document.getElementById('attendanceFilter');
   const tableRows = document.querySelectorAll('#missingTable tbody tr');
+  const exportBtn = document.getElementById('exportPdfBtn');
 
   filterDropdown.addEventListener('change', () => {
     const filter = filterDropdown.value;
     tableRows.forEach(row => {
       const status = row.dataset.lastattended;
-      if (filter === 'all') {
-        row.style.display = '';
-      } else if (filter === 'never') {
-        row.style.display = (status === 'never') ? '' : 'none';
-      } else if (filter === 'attended') {
-        row.style.display = (status === 'attended') ? '' : 'none';
-      }
+      row.style.display = (
+        filter === 'all' ||
+        (filter === 'never' && status === 'never') ||
+        (filter === 'attended' && status === 'attended')
+      ) ? '' : 'none';
     });
   });
 
-  const exportBtn = document.getElementById('exportPdfBtn');
+  document.querySelectorAll('#missingTable th').forEach((header, colIndex) => {
+    header.style.cursor = 'pointer';
+    let ascending = true;
+
+    header.addEventListener('click', () => {
+      const rows = Array.from(document.querySelectorAll('#missingTable tbody tr'));
+      const isDaysColumn = header.innerText.trim() === 'Days';
+
+      rows.sort((a, b) => {
+        const cellA = a.children[colIndex].innerText.trim();
+        const cellB = b.children[colIndex].innerText.trim();
+
+        if (isDaysColumn) {
+          const daysA = parseInt(a.children[colIndex].dataset.days || 0);
+          const daysB = parseInt(b.children[colIndex].dataset.days || 0);
+          return ascending ? (daysA - daysB) : (daysB - daysA);
+        } else {
+          return ascending ? cellA.localeCompare(cellB) : cellB.localeCompare(cellA);
+        }
+      });
+
+      rows.forEach(row => document.querySelector('#missingTable tbody').appendChild(row));
+      ascending = !ascending;
+    });
+  });
 
   if (exportBtn) {
     exportBtn.addEventListener('click', function () {
+      const filter = filterDropdown.value;
+      const baseUrl = `/attendance/export/pdf/missing?from=<%= from %>&to=<%= to %>&zila=<%= zila %>&ksheter=<%= ksheter %>&kender=<%= kender %>`;
+      exportBtn.href = `${baseUrl}&filter=${filter}`;
+
       const spinner = document.getElementById('loadingSpinner');
       if (spinner) spinner.style.display = 'block';
+
       setTimeout(() => {
         if (spinner) spinner.style.display = 'none';
       }, 3000);

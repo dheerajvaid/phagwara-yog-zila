@@ -926,7 +926,7 @@ exports.generateMissingReport = async (req, res) => {
 
   const zilaValue = normalizeScopeValue(req.body.zila);
   const ksheterValue = normalizeScopeValue(req.body.ksheter);
-  const kender = normalizeScopeValue(req.body.kender); // Extract kender directly (as you want to send it to view)
+  const kender = normalizeScopeValue(req.body.kender);
 
   let query = {};
 
@@ -949,7 +949,6 @@ exports.generateMissingReport = async (req, res) => {
   });
 
   const attendanceMap = new Map();
-
   attendance.forEach((a) => {
     const sid = a.saadhak.toString();
     const localDate = new Date(a.date);
@@ -993,6 +992,11 @@ exports.generateMissingReport = async (req, res) => {
     lastAttended: lastAttendanceMap[s._id.toString()] || null,
   }));
 
+  // Fetch readable names:
+  const zilaName = zilaValue ? (await Zila.findById(zilaValue).select('name'))?.name || '—' : '—';
+  const ksheterName = ksheterValue ? (await Ksheter.findById(ksheterValue).select('name'))?.name || '—' : '—';
+  const kenderName = kender ? (await Kender.findById(kender).select('name'))?.name || '—' : '—';
+
   res.render("attendance/missingReport", {
     missing: result,
     from,
@@ -1001,6 +1005,9 @@ exports.generateMissingReport = async (req, res) => {
     zila: zilaValue,
     ksheter: ksheterValue,
     kender,
+    zilaName,
+    ksheterName,
+    kenderName,
   });
 };
 
@@ -1010,6 +1017,7 @@ exports.exportMissingPDF = async (req, res) => {
   const zilaValue = normalizeScopeValue(req.query.zila);
   const ksheterValue = normalizeScopeValue(req.query.ksheter);
   const kender = normalizeScopeValue(req.query.kender);
+  const filter = req.query.filter || "all";
 
   if (!from || !to) {
     return res.status(400).send("Missing required parameters");
@@ -1020,6 +1028,26 @@ exports.exportMissingPDF = async (req, res) => {
   if (zilaValue.trim() !== "") query.zila = zilaValue;
   if (ksheterValue.trim() !== "") query.ksheter = ksheterValue;
   if (kender.trim() !== "") query.kender = kender;
+
+  // 🛑 Fetch Names for Display (New Code)
+  let zilaName = 'All';
+  let ksheterName = 'All';
+  let kenderName = 'All';
+
+  if (zilaValue.trim() !== "") {
+    const zilaDoc = await Zila.findById(zilaValue).lean();
+    if (zilaDoc) zilaName = zilaDoc.name;
+  }
+
+  if (ksheterValue.trim() !== "") {
+    const ksheterDoc = await Ksheter.findById(ksheterValue).lean();
+    if (ksheterDoc) ksheterName = ksheterDoc.name;
+  }
+
+  if (kender.trim() !== "") {
+    const kenderDoc = await Kender.findById(kender).lean();
+    if (kenderDoc) kenderName = kenderDoc.name;
+  }
 
   const saadhaks = await Saadhak.find(query).sort({ name: 1 });
   const saadhakIds = saadhaks.map((s) => s._id);
@@ -1036,13 +1064,11 @@ exports.exportMissingPDF = async (req, res) => {
   });
 
   const attendanceMap = new Map();
-
   attendance.forEach((a) => {
     const sid = a.saadhak.toString();
     const localDate = new Date(a.date);
     localDate.setMinutes(localDate.getMinutes() + 330);
     const dateStr = localDate.toISOString().split("T")[0];
-
     if (!attendanceMap.has(sid)) attendanceMap.set(sid, new Set());
     attendanceMap.get(sid).add(dateStr);
   });
@@ -1079,14 +1105,35 @@ exports.exportMissingPDF = async (req, res) => {
     lastAttended: lastAttendanceMap[s._id.toString()] || null,
   }));
 
+  let filteredResult = result;
+
+  if (filter === "never") {
+    filteredResult = result.filter((s) => !s.lastAttended);
+  } else if (filter === "attended") {
+    filteredResult = result.filter((s) => !!s.lastAttended);
+  }
+
+  const baseUrl = "https://www.joinyog.in";
+  const fs = require("fs");
+  const path = require("path");
+
+  const logoPath = path.join(__dirname, "../public/images/logo.jpg");
+  const logoData = fs.readFileSync(logoPath).toString("base64");
+  const logoBase64 = `data:image/jpeg;base64,${logoData}`;
+
   pdfExport.renderPDF(
     res,
     "attendance/pdfMissing",
     {
-      missing: result,
+      missing: filteredResult,
       from,
       to,
-      total: result.length,
+      total: filteredResult.length,
+      logoBase64,
+      baseUrl,
+      zilaName,
+      ksheterName,
+      kenderName, // 🛑 Pass Names to EJS
     },
     `Missing_Attendance_${from}_to_${to}.pdf`
   );
