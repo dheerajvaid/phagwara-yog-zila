@@ -235,229 +235,306 @@
 
   <button id="resetBtn">🔁</button>
 
-  <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    let board = Array(4).fill().map(() => Array(4).fill().map(() => Array(4).fill(0)));
-    let currentPlayer = "X";
-    let isVsComputer = false;
-    let gameOver = false;
-    let level = 1;
-    let computerThinking = false;
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  let board = Array(4).fill().map(() => Array(4).fill().map(() => Array(4).fill(0)));
+  let currentPlayer = "X";
+  let isVsComputer = false;
+  let gameOver = false;
+  let level = 1;
+  let computerThinking = false;
 
-    const beepSound = document.getElementById("beepSound");
-    const thinkingOverlay = document.getElementById("thinkingOverlay");
-    const boxes = document.querySelectorAll(".box");
-    const winnerDiv = document.getElementById("winner");
-    const modal = document.getElementById("startModal");
-    const levelSelect = document.getElementById("levelSelector");
+  const beepSound = document.getElementById("beepSound");
+  const thinkingOverlay = document.getElementById("thinkingOverlay");
+  const boxes = document.querySelectorAll(".box");
+  const winnerDiv = document.getElementById("winner");
+  const modal = document.getElementById("startModal");
+  const levelSelect = document.getElementById("levelSelector");
 
-    function playBeep() {
-      beepSound.currentTime = 0;
-      beepSound.play();
-    }
+  function playBeep() {
+    beepSound.currentTime = 0;
+    beepSound.play();
+  }
 
-    window.showLevelSelector = () => {
-      isVsComputer = true;
-      levelSelect.style.display = "block";
-    };
+  window.showLevelSelector = () => {
+    isVsComputer = true;
+    levelSelect.style.display = "block";
+  };
 
-    window.startGame = function (vsComputer = false) {
-      isVsComputer = vsComputer;
-      level = parseInt(document.getElementById("difficultyLevel")?.value || 1);
-      modal.style.display = "none";
-      resetGame();
-    };
+  window.startGame = function (vsComputer = false) {
+    isVsComputer = vsComputer;
+    level = parseInt(document.getElementById("difficultyLevel")?.value || 1);
+    modal.style.display = "none";
+    resetGame();
+  };
 
-    function resetGame() {
-      board = Array(4).fill().map(() => Array(4).fill().map(() => Array(4).fill(0)));
-      boxes.forEach((box) => {
-        box.innerHTML = "";
-        box.classList.remove("filled", "win");
-        box.classList.add("empty");
-      });
-      winnerDiv.innerHTML = "";
-      currentPlayer = "X";
-      gameOver = false;
-      computerThinking = false;
-      thinkingOverlay.style.display = "none";
-    }
-
+  function resetGame() {
+    board = Array(4).fill().map(() => Array(4).fill().map(() => Array(4).fill(0)));
     boxes.forEach((box) => {
-      box.addEventListener("click", () => {
-        if (gameOver || box.innerHTML !== "" || computerThinking) return;
-        const [i, j, k] = box.id.slice(-3).split("").map(Number);
-        if (board[i][j][k] !== 0) return;
-        makeMove(i, j, k, currentPlayer);
-        if (checkWin(currentPlayer)) return;
-        currentPlayer = currentPlayer === "X" ? "O" : "X";
-        if (isVsComputer && currentPlayer === "O" && !gameOver) {
-          setTimeout(computerMoveWithOverlay, 300);
-        }
-      });
+      box.innerHTML = "";
+      box.classList.remove("filled", "win");
+      box.classList.add("empty");
     });
+    winnerDiv.innerHTML = "";
+    currentPlayer = "X";
+    gameOver = false;
+    computerThinking = false;
+    thinkingOverlay.style.display = "none";
+  }
 
-    function computerMoveWithOverlay() {
-      computerThinking = true;
-      thinkingOverlay.style.display = "flex";
-      setTimeout(() => {
-        playBeep();
-        computerMove();
-        thinkingOverlay.style.display = "none";
-        computerThinking = false;
-      }, 600);
-    }
-
-    function makeMove(i, j, k, player) {
-      board[i][j][k] = player;
-      const boxId = `box-${i}${j}${k}`;
-      const el = document.getElementById(boxId);
-      el.innerHTML = player;
-      el.classList.remove("empty");
-      el.classList.add("filled");
-    }
-
-    function checkWin(player) {
-      const lines = generateLines();
-      for (const line of lines) {
-        if (line.every(([x, y, z]) => board[x][y][z] === player)) {
-          line.forEach(([x, y, z]) => document.getElementById(`box-${x}${y}${z}`).classList.add("win"));
-          winnerDiv.innerHTML = `🎉 Player ${player} Wins!`;
-          gameOver = true;
-          return true;
-        }
+  boxes.forEach((box) => {
+    box.addEventListener("click", () => {
+      if (gameOver || box.innerHTML !== "" || computerThinking) return;
+      const [i, j, k] = box.id.slice(-3).split("").map(Number);
+      if (board[i][j][k] !== 0) return;
+      makeMove(i, j, k, currentPlayer);
+      if (checkWin(currentPlayer)) return;
+      currentPlayer = currentPlayer === "X" ? "O" : "X";
+      if (isVsComputer && currentPlayer === "O" && !gameOver) {
+        setTimeout(computerMoveWithOverlay, 300);
       }
-      return false;
-    }
+    });
+  });
 
-    function checkWinVirtual(player) {
-      const lines = generateLines();
-      return lines.some(line => line.every(([x, y, z]) => board[x][y][z] === player));
-    }
+  function computerMoveWithOverlay() {
+    computerThinking = true;
+    thinkingOverlay.style.display = "flex";
+    setTimeout(() => {
+      playBeep();
+      computerMove();
+      thinkingOverlay.style.display = "none";
+      computerThinking = false;
+    }, 600);
+  }
 
-    function boardFull() {
-      return board.every(level => level.every(row => row.every(cell => cell !== 0)));
-    }
+  function makeMove(i, j, k, player) {
+    board[i][j][k] = player;
+    const boxId = `box-${i}${j}${k}`;
+    const el = document.getElementById(boxId);
+    el.innerHTML = player;
+    el.classList.remove("empty");
+    el.classList.add("filled");
+  }
 
-    function allEmptyMoves() {
-      const moves = [];
-      for (let i = 0; i < 4; i++)
-        for (let j = 0; j < 4; j++)
-          for (let k = 0; k < 4; k++)
-            if (board[i][j][k] === 0) moves.push([i, j, k]);
-      return moves;
+  function checkWin(player) {
+    const lines = generateLines();
+    for (const line of lines) {
+      if (line.every(([x, y, z]) => board[x][y][z] === player)) {
+        line.forEach(([x, y, z]) => document.getElementById(`box-${x}${y}${z}`).classList.add("win"));
+        winnerDiv.innerHTML = `🎉 Player ${player} Wins!`;
+        gameOver = true;
+        return true;
+      }
     }
+    return false;
+  }
 
-    function makeVirtualMove([i, j, k], player) {
-      board[i][j][k] = player;
+  function checkWinVirtual(player) {
+    const lines = generateLines();
+    return lines.some(line => line.every(([x, y, z]) => board[x][y][z] === player));
+  }
+
+  function boardFull() {
+    return board.every(level => level.every(row => row.every(cell => cell !== 0)));
+  }
+
+  function allEmptyMoves() {
+    const moves = [];
+    for (let i = 0; i < 4; i++)
+      for (let j = 0; j < 4; j++)
+        for (let k = 0; k < 4; k++)
+          if (board[i][j][k] === 0) moves.push([i, j, k]);
+    return moves;
+  }
+
+  function makeVirtualMove([i, j, k], player) {
+    board[i][j][k] = player;
+  }
+
+  function undoVirtualMove([i, j, k]) {
+    board[i][j][k] = 0;
+  }
+
+  function minimax(depth, isMaximizing, alpha, beta, maxDepth) {
+    if (checkWinVirtual("O")) return 100 - depth;
+    if (checkWinVirtual("X")) return -100 + depth;
+    if (boardFull() || depth >= maxDepth) return 0;
+
+    if (isMaximizing) {
+      let maxEval = -Infinity;
+      for (let m of allEmptyMoves()) {
+        makeVirtualMove(m, "O");
+        let eval = minimax(depth + 1, false, alpha, beta, maxDepth);
+        undoVirtualMove(m);
+        maxEval = Math.max(maxEval, eval);
+        alpha = Math.max(alpha, eval);
+        if (beta <= alpha) break;
+      }
+      return maxEval;
+    } else {
+      let minEval = Infinity;
+      for (let m of allEmptyMoves()) {
+        makeVirtualMove(m, "X");
+        let eval = minimax(depth + 1, true, alpha, beta, maxDepth);
+        undoVirtualMove(m);
+        minEval = Math.min(minEval, eval);
+        beta = Math.min(beta, eval);
+        if (beta <= alpha) break;
+      }
+      return minEval;
     }
+  }
 
-    function undoVirtualMove([i, j, k]) {
+  function generateLines() {
+    const lines = [];
+    for (let i = 0; i < 4; i++) {
+      for (let j = 0; j < 4; j++) {
+        lines.push([[i, j, 0], [i, j, 1], [i, j, 2], [i, j, 3]]);
+        lines.push([[i, 0, j], [i, 1, j], [i, 2, j], [i, 3, j]]);
+        lines.push([[0, i, j], [1, i, j], [2, i, j], [3, i, j]]);
+      }
+      lines.push([[i, 0, 0], [i, 1, 1], [i, 2, 2], [i, 3, 3]]);
+      lines.push([[i, 0, 3], [i, 1, 2], [i, 2, 1], [i, 3, 0]]);
+      lines.push([[0, i, 0], [1, i, 1], [2, i, 2], [3, i, 3]]);
+      lines.push([[0, i, 3], [1, i, 2], [2, i, 1], [3, i, 0]]);
+      lines.push([[0, 0, i], [1, 1, i], [2, 2, i], [3, 3, i]]);
+      lines.push([[0, 3, i], [1, 2, i], [2, 1, i], [3, 0, i]]);
+    }
+    lines.push([[0, 0, 0], [1, 1, 1], [2, 2, 2], [3, 3, 3]]);
+    lines.push([[0, 0, 3], [1, 1, 2], [2, 2, 1], [3, 3, 0]]);
+    lines.push([[0, 3, 0], [1, 2, 1], [2, 1, 2], [3, 0, 3]]);
+    lines.push([[0, 3, 3], [1, 2, 2], [2, 1, 1], [3, 0, 0]]);
+    return lines;
+  }
+
+  function computerMove() {
+  const empty = allEmptyMoves();
+  if (empty.length === 0) return;
+
+  let move = null;
+
+  if (level === 1) {
+    move = empty[Math.floor(Math.random() * empty.length)];
+
+  } else if (level === 2 || level === 3) {
+    for (const [i, j, k] of empty) {
+      board[i][j][k] = "O";
+      if (checkWinVirtual("O")) {
+        board[i][j][k] = 0;
+        move = [i, j, k];
+        break;
+      }
+      board[i][j][k] = 0;
+      board[i][j][k] = "X";
+      if (checkWinVirtual("X")) {
+        board[i][j][k] = 0;
+        move = [i, j, k];
+        break;
+      }
       board[i][j][k] = 0;
     }
+    if (!move) move = empty[Math.floor(Math.random() * empty.length)];
 
-    function minimax(depth, isMaximizing, alpha, beta, maxDepth) {
-      if (checkWinVirtual("O")) return 100 - depth;
-      if (checkWinVirtual("X")) return -100 + depth;
-      if (boardFull() || depth >= maxDepth) return 0;
+  } else if (level === 4) {
 
-      if (isMaximizing) {
-        let maxEval = -Infinity;
-        for (let m of allEmptyMoves()) {
-          makeVirtualMove(m, "O");
-          let eval = minimax(depth + 1, false, alpha, beta, maxDepth);
-          undoVirtualMove(m);
-          maxEval = Math.max(maxEval, eval);
-          alpha = Math.max(alpha, eval);
-          if (beta <= alpha) break;
-        }
-        return maxEval;
-      } else {
-        let minEval = Infinity;
-        for (let m of allEmptyMoves()) {
-          makeVirtualMove(m, "X");
-          let eval = minimax(depth + 1, true, alpha, beta, maxDepth);
-          undoVirtualMove(m);
-          minEval = Math.min(minEval, eval);
-          beta = Math.min(beta, eval);
-          if (beta <= alpha) break;
-        }
-        return minEval;
+  function evaluateBoard() {
+    let score = 0;
+    const lines = generateLines();
+    for (const line of lines) {
+      let oCount = 0;
+      let xCount = 0;
+      for (const [x, y, z] of line) {
+        if (board[x][y][z] === "O") oCount++;
+        else if (board[x][y][z] === "X") xCount++;
+      }
+      if (oCount > 0 && xCount === 0) {
+        score += Math.pow(10, oCount);
+      } else if (xCount > 0 && oCount === 0) {
+        score -= Math.pow(10, xCount);
       }
     }
+    return score;
+  }
 
-    function generateLines() {
-      const lines = [];
-      for (let i = 0; i < 4; i++) {
-        for (let j = 0; j < 4; j++) {
-          lines.push([[i, j, 0], [i, j, 1], [i, j, 2], [i, j, 3]]);
-          lines.push([[i, 0, j], [i, 1, j], [i, 2, j], [i, 3, j]]);
-          lines.push([[0, i, j], [1, i, j], [2, i, j], [3, i, j]]);
-        }
-        lines.push([[i, 0, 0], [i, 1, 1], [i, 2, 2], [i, 3, 3]]);
-        lines.push([[i, 0, 3], [i, 1, 2], [i, 2, 1], [i, 3, 0]]);
-        lines.push([[0, i, 0], [1, i, 1], [2, i, 2], [3, i, 3]]);
-        lines.push([[0, i, 3], [1, i, 2], [2, i, 1], [3, i, 0]]);
-        lines.push([[0, 0, i], [1, 1, i], [2, 2, i], [3, 3, i]]);
-        lines.push([[0, 3, i], [1, 2, i], [2, 1, i], [3, 0, i]]);
+  function smartMinimax(depth, isMaximizing, alpha, beta, maxDepth) {
+    if (checkWinVirtual("O")) return 100000 - depth;
+    if (checkWinVirtual("X")) return -100000 + depth;
+    if (boardFull() || depth >= maxDepth) return evaluateBoard();
+
+    const moves = allEmptyMoves();
+
+    // Move Ordering: Try center positions first (basic heuristic)
+    moves.sort((a, b) => {
+      const center = 1.5;
+      const distA = Math.abs(a[0] - center) + Math.abs(a[1] - center) + Math.abs(a[2] - center);
+      const distB = Math.abs(b[0] - center) + Math.abs(b[1] - center) + Math.abs(b[2] - center);
+      return distA - distB;
+    });
+
+    if (isMaximizing) {
+      let maxEval = -Infinity;
+      for (let m of moves) {
+        makeVirtualMove(m, "O");
+        let eval = smartMinimax(depth + 1, false, alpha, beta, maxDepth);
+        undoVirtualMove(m);
+        maxEval = Math.max(maxEval, eval);
+        alpha = Math.max(alpha, eval);
+        if (beta <= alpha) break;
       }
-      lines.push([[0, 0, 0], [1, 1, 1], [2, 2, 2], [3, 3, 3]]);
-      lines.push([[0, 0, 3], [1, 1, 2], [2, 2, 1], [3, 3, 0]]);
-      lines.push([[0, 3, 0], [1, 2, 1], [2, 1, 2], [3, 0, 3]]);
-      lines.push([[0, 3, 3], [1, 2, 2], [2, 1, 1], [3, 0, 0]]);
-      return lines;
+      return maxEval;
+    } else {
+      let minEval = Infinity;
+      for (let m of moves) {
+        makeVirtualMove(m, "X");
+        let eval = smartMinimax(depth + 1, true, alpha, beta, maxDepth);
+        undoVirtualMove(m);
+        minEval = Math.min(minEval, eval);
+        beta = Math.min(beta, eval);
+        if (beta <= alpha) break;
+      }
+      return minEval;
     }
+  }
 
-    function computerMove() {
-      const empty = allEmptyMoves();
-      if (empty.length === 0) return;
+  let bestScore = -Infinity;
+  const maxDepth = 3;
+  for (const [i, j, k] of allEmptyMoves()) {
+    makeVirtualMove([i, j, k], "O");
+    const score = smartMinimax(0, false, -Infinity, Infinity, maxDepth);
+    undoVirtualMove([i, j, k]);
+    if (score > bestScore) {
+      bestScore = score;
+      move = [i, j, k];
+    }
+  }
 
-      let move = null;
-
-      if (level === 1) {
-        move = empty[Math.floor(Math.random() * empty.length)];
-      } else if (level === 2 || level === 3) {
-        for (const [i, j, k] of empty) {
-          board[i][j][k] = "O";
-          if (checkWinVirtual("O")) {
-            board[i][j][k] = 0;
-            move = [i, j, k];
-            break;
-          }
-          board[i][j][k] = 0;
-          board[i][j][k] = "X";
-          if (checkWinVirtual("X")) {
-            board[i][j][k] = 0;
-            move = [i, j, k];
-            break;
-          }
-          board[i][j][k] = 0;
-        }
-        if (!move) move = empty[Math.floor(Math.random() * empty.length)];
-      } else if (level === 4 || level === 5) {
-        let bestScore = -Infinity;
-        const maxDepth = level === 5 ? 5 : 3;
-        for (const [i, j, k] of empty) {
-          board[i][j][k] = "O";
-          let score = minimax(0, false, -Infinity, Infinity, maxDepth);
-          board[i][j][k] = 0;
-          if (score > bestScore) {
-            bestScore = score;
-            move = [i, j, k];
-          }
-        }
-      }
-
-      if (move) {
-        const [i, j, k] = move;
-        makeMove(i, j, k, "O");
-        if (checkWin("O")) return;
-        currentPlayer = "X";
+  } else if (level === 5) {
+    let bestScore = -Infinity;
+    const maxDepth = 5;
+    for (const [i, j, k] of empty) {
+      board[i][j][k] = "O";
+      let score = minimax(0, false, -Infinity, Infinity, maxDepth);
+      board[i][j][k] = 0;
+      if (score > bestScore) {
+        bestScore = score;
+        move = [i, j, k];
       }
     }
+  }
 
-    document.getElementById("resetBtn").addEventListener("click", resetGame);
-  });
+  if (move) {
+    const [i, j, k] = move;
+    makeMove(i, j, k, "O");
+    if (checkWin("O")) return;
+    currentPlayer = "X";
+  }
+}
+
+document.getElementById("resetBtn").addEventListener("click", resetGame);
+
+});
 </script>
+
 
  
 
