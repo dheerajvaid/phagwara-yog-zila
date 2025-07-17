@@ -481,7 +481,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (!move) move = empty[Math.floor(Math.random() * empty.length)];
 
-  } else if (level === 4) {
+} else if (level === 4) {
 
   function evaluateBoard() {
     let score = 0;
@@ -509,7 +509,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const moves = allEmptyMoves();
 
-    // Move Ordering: Try center positions first (basic heuristic)
     moves.sort((a, b) => {
       const center = 1.5;
       const distA = Math.abs(a[0] - center) + Math.abs(a[1] - center) + Math.abs(a[2] - center);
@@ -542,46 +541,65 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Step 1: Immediate Win
-  for (const [i, j, k] of empty) {
-    board[i][j][k] = "O";
-    if (checkWinVirtual("O")) {
-      board[i][j][k] = 0;
-      move = [i, j, k];
-      break;
-    }
-    board[i][j][k] = 0;
-  }
-
-  // Step 2: Block Opponent’s Immediate Win
-  if (!move) {
-    for (const [i, j, k] of empty) {
-      board[i][j][k] = "X";
-      if (checkWinVirtual("X")) {
-        board[i][j][k] = 0;
-        move = [i, j, k];
-        break;
+  function detectThreatOrWin(player, countNeeded) {
+    const lines = generateLines();
+    for (const line of lines) {
+      let count = 0;
+      let emptyCells = [];
+      for (const [x, y, z] of line) {
+        if (board[x][y][z] === player) count++;
+        else if (board[x][y][z] === 0) emptyCells.push([x, y, z]);
       }
-      board[i][j][k] = 0;
-    }
-  }
-
-  // Step 3: Heuristic Search Only If No Immediate Threat
-  if (!move) {
-    let bestScore = -Infinity;
-    const maxDepth = 3;
-    for (const [i, j, k] of allEmptyMoves()) {
-      makeVirtualMove([i, j, k], "O");
-      const score = smartMinimax(0, false, -Infinity, Infinity, maxDepth);
-      undoVirtualMove([i, j, k]);
-      if (score > bestScore) {
-        bestScore = score;
-        move = [i, j, k];
+      if (count === countNeeded && emptyCells.length === (4 - countNeeded)) {
+        return emptyCells[0];  // Block or create setup
       }
     }
+    return null;
   }
 
+  const totalMovesPlayed = allEmptyMoves().length;
+  const totalCells = 4 * 4 * 4;
+  const movesDone = totalCells - totalMovesPlayed;
+
+  // ⚡ Fast early moves (first 2 AI moves)
+  if (movesDone <= 2) {
+    const centerPref = allEmptyMoves().sort((a, b) => {
+      const center = 1.5;
+      const distA = Math.abs(a[0] - center) + Math.abs(a[1] - center) + Math.abs(a[2] - center);
+      const distB = Math.abs(b[0] - center) + Math.abs(b[1] - center) + Math.abs(b[2] - center);
+      return distA - distB;
+    });
+    move = centerPref[0];
+  }
+
+  if (!move) {
+    // 🛡️ Step 1: Save First (Prevent Opponent Win)
+    move = detectThreatOrWin("X", 3);  // Block immediate threat
+    if (!move) move = detectThreatOrWin("X", 2);  // Pre-empt opponent setups
+
+    // 🏆 Step 2: Seek Win (If safe)
+    if (!move) move = detectThreatOrWin("O", 3);  // Immediate win if possible
+    if (!move) move = detectThreatOrWin("O", 2);  // Setup for own win
+
+    // 🧠 Step 3: If nothing clear, go heuristic + deeper minimax
+    if (!move) {
+      let bestScore = -Infinity;
+      const maxDepth = 4;  // Increased depth for stronger strategy
+      for (const [i, j, k] of allEmptyMoves()) {
+        makeVirtualMove([i, j, k], "O");
+        const score = smartMinimax(0, false, -Infinity, Infinity, maxDepth);
+        undoVirtualMove([i, j, k]);
+        if (score > bestScore) {
+          bestScore = score;
+          move = [i, j, k];
+        }
+      }
+    }
+  }
 }
+
+
+
  else if (level === 5) {
     let bestScore = -Infinity;
     const maxDepth = 5;
