@@ -97,18 +97,45 @@
       font-size: 11px;
     }
 
+   /* Replace your current .thinking-overlay style with this: */
+
     .thinking-overlay {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.6);
+      background: rgba(0,0,0,0.7);
       z-index: 9999;
       justify-content: center;
       align-items: center;
+      flex-direction: column;
       font-family: 'Press Start 2P', sans-serif;
       font-size: 14px;
       color: white;
     }
+
+    .thinking-loader {
+      display: flex;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    .thinking-loader span {
+      width: 10px;
+      height: 10px;
+      background: white;
+      border-radius: 50%;
+      animation: pulseLoader 1.2s infinite ease-in-out;
+    }
+
+    .thinking-loader span:nth-child(1) { animation-delay: 0s; }
+    .thinking-loader span:nth-child(2) { animation-delay: 0.2s; }
+    .thinking-loader span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes pulseLoader {
+      0%, 100% { transform: scale(1); opacity: 0.6; }
+      50% { transform: scale(1.6); opacity: 1; }
+    }
+
 
     .main-container {
       display: flex;
@@ -157,6 +184,11 @@
       animation: pulse 1s infinite;
     }
 
+    .box.last-move {
+      outline: 3px solid #ff80ab;
+      outline-offset: -2px;
+    }
+
     @keyframes pulse {
       0%, 100% { transform: scale(1); }
       50% { transform: scale(1.15); }
@@ -195,7 +227,14 @@
 </head>
 <body>
   <audio id="beepSound" src="https://www.soundjay.com/button/beep-07.wav" preload="auto"></audio>
-  <div class="thinking-overlay" id="thinkingOverlay">💡 Computer Thinking...</div>
+  <div class="thinking-overlay" id="thinkingOverlay">
+    💡 Computer Thinking...
+    <div class="thinking-loader">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+  </div>
 
   <button id="exitBtn" onclick="window.location.href='/'">❌ Exit</button>
   <div id="winner" class="winner-display"></div>
@@ -308,13 +347,20 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function makeMove(i, j, k, player) {
+    // Remove previous highlights
+    document.querySelectorAll('.box.last-move').forEach(el => el.classList.remove('last-move'));
+
     board[i][j][k] = player;
     const boxId = `box-${i}${j}${k}`;
     const el = document.getElementById(boxId);
     el.innerHTML = player;
     el.classList.remove("empty");
     el.classList.add("filled");
+
+    // Highlight current move
+    el.classList.add('last-move');
   }
+
 
   function checkWin(player) {
     const lines = generateLines();
@@ -496,19 +542,47 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  let bestScore = -Infinity;
-  const maxDepth = 3;
-  for (const [i, j, k] of allEmptyMoves()) {
-    makeVirtualMove([i, j, k], "O");
-    const score = smartMinimax(0, false, -Infinity, Infinity, maxDepth);
-    undoVirtualMove([i, j, k]);
-    if (score > bestScore) {
-      bestScore = score;
+  // Step 1: Immediate Win
+  for (const [i, j, k] of empty) {
+    board[i][j][k] = "O";
+    if (checkWinVirtual("O")) {
+      board[i][j][k] = 0;
       move = [i, j, k];
+      break;
+    }
+    board[i][j][k] = 0;
+  }
+
+  // Step 2: Block Opponent’s Immediate Win
+  if (!move) {
+    for (const [i, j, k] of empty) {
+      board[i][j][k] = "X";
+      if (checkWinVirtual("X")) {
+        board[i][j][k] = 0;
+        move = [i, j, k];
+        break;
+      }
+      board[i][j][k] = 0;
     }
   }
 
-  } else if (level === 5) {
+  // Step 3: Heuristic Search Only If No Immediate Threat
+  if (!move) {
+    let bestScore = -Infinity;
+    const maxDepth = 3;
+    for (const [i, j, k] of allEmptyMoves()) {
+      makeVirtualMove([i, j, k], "O");
+      const score = smartMinimax(0, false, -Infinity, Infinity, maxDepth);
+      undoVirtualMove([i, j, k]);
+      if (score > bestScore) {
+        bestScore = score;
+        move = [i, j, k];
+      }
+    }
+  }
+
+}
+ else if (level === 5) {
     let bestScore = -Infinity;
     const maxDepth = 5;
     for (const [i, j, k] of empty) {
