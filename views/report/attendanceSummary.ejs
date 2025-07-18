@@ -17,7 +17,22 @@
 
   <!-- Exportable Area -->
   <div id="summaryExportWrapper" class="bg-white p-3 border rounded shadow-sm position-relative page-border" style="max-width: 1000px; margin: auto;">
-    
+    <div class="text-center fw-bold fs-5 mb-3 text-danger">
+      Attendance Date:
+      <span class="text-black">
+        <%= new Date(selectedDate).toLocaleDateString('en-GB', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        }) %>
+        (<%= new Date(selectedDate).toLocaleDateString('en-IN', {
+          weekday: 'long'
+        }) %>)
+      </span>
+    </div>
+    <p class="fst-italic bg-danger text-white fw-semibold text-center mt-2 py-2 px-3 rounded">
+      <%= randomMessage %>
+    </p>
     <!-- Watermark Logo -->
     <div class="watermark-logo"></div>
 
@@ -49,12 +64,12 @@
           <tbody class="text-center">
             <% for (let kender in summary[zila][ksheter]) { %>
             <tr>
-              <td class="text-start fs-6"><%= kender %></td>
+              <td class="text-start fs-6 fw-bold"><%= kender %></td>
               <td class="fs-6">
                 <% if (summary[zila][ksheter][kender] === "unmarked") { %>
                   <span class="text-danger fst-italic fw-normal">TBM*</span>
                 <% } else { %>
-                  <%= summary[zila][ksheter][kender] %>
+                  <span class="text-black fw-bold"><%= summary[zila][ksheter][kender] %></span>
                 <% } %>
               </td>
             </tr>

@@ -80,6 +80,9 @@ exports.attendanceSummary = async (req, res) => {
   const dateStr = req.query.date || new Date().toISOString().split("T")[0]; // default today
   const date = new Date(dateStr);
   const nextDate = new Date(date);
+  const slogans = require('../data/slogans.json'); // adjust path as needed
+  const randomMessage = slogans[Math.floor(Math.random() * slogans.length)];
+
   nextDate.setDate(date.getDate() + 1);
 
   // console.log(user);
@@ -206,6 +209,7 @@ exports.attendanceSummary = async (req, res) => {
     ksheterTotals,
     zilaTotals,
     selectedDate: dateStr,
+    randomMessage,
     user,
   });
 };
