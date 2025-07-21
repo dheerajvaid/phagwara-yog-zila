@@ -7,15 +7,57 @@
     max-height: 450px;
     -webkit-overflow-scrolling: touch;
   }
+
+  .attendance-heading {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #dc3545;
+  }
+
+  .report-card {
+    border: 1px solid #ddd;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    background: #ffffff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .table th, .table td {
+    vertical-align: middle !important;
+    font-size: 0.8rem;
+  }
+
+  .btn-export {
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+
+  .form-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #444;
+  }
+
+  select.form-control {
+    font-size: 0.85rem;
+  }
+
+  button.btn-primary {
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
 </style>
 
-<div class="container mt-3">
-  <div id="attendanceWrapper">
-    <h4 class="text-center mb-3 fw-bold border-bottom pb-2">📊 View Kender Attendance (Monthly)</h4>
+<div class="container mt-4">
+  <div class="report-card">
+    <h4 class="text-center mb-3 attendance-heading border-bottom pb-2">
+      📊 View Kender Attendance (Monthly)
+    </h4>
 
-    <!-- Month/Year Sort Form -->
-    <form method="GET" action="/attendance/view-kender" class="row g-2 mb-4">
-      <div class="col-6 col-md-3">
+    <!-- Filter Form -->
+    <form method="GET" action="/attendance/view-kender" class="row g-3 mb-4">
+      <div class="col-6 col-md-2">
+        <label class="form-label">Month</label>
         <select name="month" class="form-control" required>
           <option value="">Month</option>
           <% for (let m = 1; m <= 12; m++) { %>
@@ -25,7 +67,9 @@
           <% } %>
         </select>
       </div>
-      <div class="col-6 col-md-3">
+
+      <div class="col-6 col-md-2">
+        <label class="form-label">Year</label>
         <select name="year" class="form-control" required>
           <option value="">Year</option>
           <% for (let y = 2025; y <= 2030; y++) { %>
@@ -33,79 +77,137 @@
           <% } %>
         </select>
       </div>
-      <div class="col-6 col-md-3">
+
+      <%- include('../partials/scope-dropdowns') %>
+
+      <div class="col-6 col-md-2">
+        <label class="form-label">Sort By</label>
         <select name="sortBy" class="form-control" onchange="this.form.submit()">
-          <option value="name" <%= sortBy === 'name' ? 'selected' : '' %>>Sort by Name</option>
-          <option value="count" <%= sortBy === 'count' ? 'selected' : '' %>>Sort by Present Days</option>
+          <option value="name" <%= sortBy === 'name' ? 'selected' : '' %>>Name</option>
+          <option value="count" <%= sortBy === 'count' ? 'selected' : '' %>>Present Days</option>
         </select>
       </div>
-      <div class="col-12 col-md-3">
-        <button class="btn btn-primary w-100">View</button>
+
+      <div class="col-12 col-md-2 d-flex align-items-end">
+        <button class="btn btn-primary w-100">🔍 View Report</button>
       </div>
     </form>
 
     <% if (attendanceData.length) { %>
-      <div class="text-end mb-2">
-        <button id="exportPdfBtn" class="btn btn-sm btn-danger">📄 Export as PDF</button>
+      <div class="d-flex justify-content-end mb-3">
+        <button id="exportPdfBtn" class="btn btn-danger btn-export">
+          📄 Export as PDF
+        </button>
       </div>
+      <div class="mb-3 text-end">
+  <a href="?month=<%= selectedMonth %>&year=<%= selectedYear %>&sortBy=<%= sortBy %>&view=<%= viewMode === 'vertical' ? 'horizontal' : 'vertical' %>" class="btn btn-outline-secondary btn-sm">
+    🔄 Switch to <%= viewMode === 'vertical' ? 'Horizontal' : 'Vertical' %> View
+  </a>
+</div>
 
-      <!-- Attendance Table -->
+  <% if (viewMode === 'horizontal') { %>
+  <!-- Existing Table: Kender as rows, Dates as columns -->
+  <!-- ✅ Keep your entire existing table code here without any change -->
+   
       <div class="table-wrapper">
-        <table class="table table-bordered table-sm text-center align-middle" style="border: 1px solid black; width: auto; margin: 0 auto; table-layout: auto;">
-          <thead class="bg-light">
-            <tr>
-              <th class="bg-primary text-white border" style="border: 1px solid black; white-space: nowrap; width: 1%;">Kender</th>
-              <% activeDays.forEach(day => { %>
-                <th class="bg-primary text-white border text-center"
-                    style="min-width: 28px; max-width: 32px; width: 32px; padding: 4px; font-size: 0.75rem; white-space: nowrap;">
-                  <%= day %>
-                </th>
-              <% }) %>
-            </tr>
-            <tr>
-              <th class="text-primary fw-bold bg-light">Total Present</th>
-              <% 
-                const kenderDayCount = {};
-                activeDays.forEach(day => kenderDayCount[day] = 0);
+        <table class="table table-bordered table-hover shadow-sm text-center align-middle">
+         <thead class="bg-primary text-white">
+  <tr>
+    <th style="white-space: nowrap;">Kender⬇️ / Date ➡️</th>
+    <% activeDays.forEach(day => { %>
+      <th style="min-width: 28px; max-width: 32px; font-size: 0.75rem;"><%= day %></th>
+    <% }) %>
+  </tr>
 
-                attendanceData.forEach(k => {
-                  const kenderId = k._id.toString();
-                  activeDays.forEach(day => {
-                    const dateStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                    const count = (kenderDateCountMap[kenderId] && kenderDateCountMap[kenderId][dateStr]) || 0;
-                    kenderDayCount[day] += count;
-                  });
-                });
-              %>
-              <% activeDays.forEach(day => { %>
-                <th class="text-primary fw-bold bg-light border" style="border: 1px solid black;">
-                  <%= kenderDayCount[day] > 0 ? kenderDayCount[day] : '' %>
-                </th>
-              <% }) %>
-            </tr>
-          </thead>
+  <% 
+    // ✅ Only declare once — before the total row
+    var kenderDayCount = {};
+    activeDays.forEach(day => kenderDayCount[day] = 0);
+
+    attendanceData.forEach(k => {
+      var kenderId = k._id.toString();
+      activeDays.forEach(day => {
+        var dateStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        var count = (kenderDateCountMap[kenderId] && kenderDateCountMap[kenderId][dateStr]) || 0;
+        kenderDayCount[day] += count;
+      });
+    });
+  %>
+
+  
+</thead>
           <tbody>
             <% attendanceData.forEach(k => { %>
               <tr style="page-break-inside: avoid;">
-                <td class="fw-bold" style="white-space: nowrap; font-size: 0.85rem;">
-                  <%= k.name %> <span class="text-primary">(<%= k.presentCount %>)</span>
+                <td class="fw-semibold text-start" style="white-space: nowrap;">
+                  <%= k.name %>
+                  <!-- <span class="badge bg-primary"><%= k.presentCount %></span> -->
                 </td>
                 <% activeDays.forEach(day => {
                   const dateStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                   const count = (kenderDateCountMap[k._id.toString()] && kenderDateCountMap[k._id.toString()][dateStr]) || 0;
                 %>
-                  <td class="<%= count > 0 ? 'bg-success text-white fw-bold' : 'bg-light text-black' %>"
-                      style="min-width: 28px; max-width: 32px; width: 32px; height: 32px; font-size: 0.75rem; padding: 4px; text-align: center;">
-                      <%= count > 0 ? count : '' %>
-                  </td> 
+                  <td class="<%= count > 0 ? 'bg-success text-white fw-bold' : 'bg-light text-black' %>">
+                    <%= count > 0 ? count : '' %>
+                  </td>
                 <% }) %>
               </tr>
             <% }) %>
+            <!-- ✅ Total Present Row At Bottom -->
+  <tr>
+    <th class="text-primary fw-bold bg-light">Total Present</th>
+    <% activeDays.forEach(day => { %>
+      <th class="text-primary fw-bold bg-light border" style="border: 1px solid black;">
+        <%= kenderDayCount[day] > 0 ? kenderDayCount[day] : '' %>
+      </th>
+    <% }) %>
+  </tr>
           </tbody>
         </table>
       </div>
+<% } else { %>
+  <!-- New Table: Vertical View (Dates as rows, Kenders as columns) -->
+  <div class="table-wrapper">
+    <table class="table table-bordered table-hover shadow-sm text-center align-middle">
+      <thead class="bg-primary text-white">
+  <tr>
+    <th>Date ⬇️ / Kender ➡️</th>
+    <% attendanceData.forEach(k => { %>
+     <th style="
+  white-space: nowrap;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-size: 0.75rem;
+  padding: 5px 2px;
+">
+  <%= k.name %>
+</th>
+    <% }) %>
+  </tr>
+</thead>
+      <tbody>
+        <% activeDays.forEach(day => { %>
+          <tr>
+            <td><%= String(day).padStart(2, '0') %> <%= new Date(2000, selectedMonth - 1).toLocaleString('default', { month: 'short' }) %></td>
+            <% attendanceData.forEach(k => { 
+              const dateStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+              const count = (kenderDateCountMap[k._id.toString()] && kenderDateCountMap[k._id.toString()][dateStr]) || 0;
+            %>
+              <td class="<%= count > 0 ? 'bg-success text-white fw-bold' : 'bg-light text-black' %>">
+                <%= count > 0 ? count : '' %>
+              </td>
+            <% }) %>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+<% } %>
 
-      <div id="pdfCloneContainer" style="position: absolute; left: -9999px; top: -9999px;"></div>
+
+
+
+
     <% } else if (selectedMonth && selectedYear) { %>
       <p class="text-muted text-center">No attendance found for selected month.</p>
     <% } %>
@@ -113,56 +215,31 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
 <script>
   document.getElementById("exportPdfBtn")?.addEventListener("click", function () {
     const originalTable = document.querySelector(".table-wrapper table");
-    const cloneContainer = document.getElementById("pdfCloneContainer");
+    const cloneContainer = document.getElementById("pdfCloneContainer") || (() => {
+      const div = document.createElement('div');
+      div.id = 'pdfCloneContainer';
+      div.style.position = 'absolute';
+      div.style.left = '-9999px';
+      document.body.appendChild(div);
+      return div;
+    })();
 
     cloneContainer.innerHTML = '';
 
     const clone = originalTable.cloneNode(true);
-    clone.style.borderCollapse = 'collapse';
-    clone.style.width = 'auto';
-    clone.style.margin = '0 auto';
-    clone.style.tableLayout = 'fixed';
-
-    const rows = clone.rows;
-    for (let row of rows) {
-      for (let cell of row.cells) {
-        if (cell.cellIndex === 0) {
-          cell.style.width = '180px';
-          cell.style.maxWidth = '180px';
-          cell.style.whiteSpace = 'normal';
-          cell.style.overflow = 'visible';
-          cell.style.wordBreak = 'break-word';
-          cell.style.textAlign = 'left';
-          cell.style.padding = '2px';
-          cell.style.fontSize = '12px';
-          cell.style.border = '1px solid #888';
-        } else {
-          cell.style.width = '28px';
-          cell.style.minWidth = '28px';
-          cell.style.maxWidth = '28px';
-          cell.style.height = '28px';
-          cell.style.textAlign = 'center';
-          cell.style.fontSize = '12px';
-          cell.style.padding = '2px';
-          cell.style.border = '1px solid #888';
-        }
-      }
-    }
 
     const wrapper = document.createElement('div');
-    wrapper.style.padding = '15px';
+    wrapper.style.padding = '20px';
+    wrapper.style.background = '#fff';
     wrapper.style.border = '3px solid #dc3545';
-    wrapper.style.boxSizing = 'border-box';
-    wrapper.style.width = '100%';
-    wrapper.style.maxWidth = '1050px'; // safe for landscape A4
+    wrapper.style.maxWidth = '1400px';  // Wider to accommodate vertical view columns
     wrapper.style.margin = '0 auto';
     wrapper.style.fontFamily = "'Segoe UI', 'Roboto', sans-serif";
-    wrapper.style.backgroundColor = '#fff';
 
-    // Add BYS logo + title
     const headerDiv = document.createElement('div');
     headerDiv.style.textAlign = 'center';
     headerDiv.style.marginBottom = '10px';
@@ -171,34 +248,82 @@
     logo.src = '/images/logo.jpg';
     logo.alt = 'BYS Logo';
     logo.style.height = '45px';
-    logo.style.verticalAlign = 'middle';
-    logo.style.marginRight = '10px';
+    logo.style.marginBottom = '10px';
 
-    const title = document.createElement('span');
-    title.innerHTML = `Kender Attendance Report – <%= new Date(2000, selectedMonth - 1).toLocaleString('default', { month: 'long' }) %> <%= selectedYear %>`;
-    title.style.fontSize = '20px';
-    title.style.fontWeight = 'bold';
-    title.style.verticalAlign = 'middle';
+    const title = document.createElement('h4');
+    title.innerText = `Kender Attendance Report – <%= new Date(2000, selectedMonth - 1).toLocaleString('default', { month: 'long' }) %> <%= selectedYear %>`;
+    title.style.color = '#dc3545';
 
     headerDiv.appendChild(logo);
     headerDiv.appendChild(title);
 
-    // Build final layout
     wrapper.appendChild(headerDiv);
     wrapper.appendChild(clone);
     cloneContainer.appendChild(wrapper);
 
+    const viewMode = '<%= viewMode %>'; // From EJS
+
+    const dateCount = <%= activeDays.length %>;  // Inject date count via EJS
+
+// Define a dynamic scale factor based on date count
+const scaleFactor = (dateCount > 31)
+  ? 0.5
+  : (dateCount > 25)
+    ? 0.65
+    : (dateCount > 20)
+      ? 0.75
+      : 1;  // Normal size if few dates
+  
+      if (viewMode === 'vertical') {
+  wrapper.style.transform = `scale(${scaleFactor})`;
+  wrapper.style.transformOrigin = 'top left';
+  wrapper.style.width = `${100 / scaleFactor}%`;   // Compensate width after scaling
+}
+
+  if (viewMode === 'vertical') {
+  clone.querySelectorAll('th').forEach(th => {
+    const content = th.innerText.trim().replace(/ /g, '\u00A0');  // Replace spaces with non-breaking spaces
+    th.innerHTML = '';
+
+    const rotDiv = document.createElement('div');
+    rotDiv.innerText = content;
+    rotDiv.style.transform = 'rotate(-90deg)';
+    rotDiv.style.transformOrigin = 'bottom left';
+    rotDiv.style.display = 'inline-block';
+    rotDiv.style.whiteSpace = 'nowrap';      
+    rotDiv.style.overflow = 'visible';
+    rotDiv.style.fontSize = '0.75rem';
+    rotDiv.style.lineHeight = '1';
+    rotDiv.style.margin = '0 auto';
+    rotDiv.style.padding = '0';
+    rotDiv.style.width = 'max-content';
+    rotDiv.style.height = 'max-content';
+
+    th.style.verticalAlign = 'bottom';
+    th.style.textAlign = 'center';
+    th.appendChild(rotDiv);
+  });
+}
+
+
+
+
     const opt = {
-      margin:       [0.3, 0.3, 0.3, 0.3], // top, right, bottom, left (in inches)
-      filename:     'Kender_Attendance_<%= selectedMonth %>_<%= selectedYear %>.pdf',
-      image:        { type: 'jpeg', quality: 1 },
-      html2canvas:  { scale: 3, scrollY: 0, useCORS: true },
-      jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
+      margin: [0.3, 0.3, 0.3, 0.3],
+      filename: `Kender_Attendance_<%= selectedMonth %>_<%= selectedYear %>_${viewMode}.pdf`,
+      image: { type: 'jpeg', quality: 1 },
+      html2canvas: { scale: 3, scrollY: 0, useCORS: true },
+      jsPDF: {
+        unit: 'in',
+        format: 'a4',
+         orientation: viewMode === 'vertical' ? 'portrait' : 'landscape'
+      }
     };
 
     html2pdf().set(opt).from(wrapper).save();
   });
 </script>
+
 
 
 <%- include('../partials/footer') %>

@@ -124,6 +124,11 @@ router.get(
   attendanceController.exportMissingPDF
 );
 
+router.get('/kender-team-rank', requireLogin, canManage(kenderRoles),attendanceController.kenderTeamRankReport);
+
+router.get('/kender-team-rank/export-pdf', requireLogin, canManage(kenderRoles), attendanceController.exportKenderTeamRankPDF);
+
+
 module.exports = router;
 
 
