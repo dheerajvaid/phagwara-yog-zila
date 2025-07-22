@@ -84,10 +84,13 @@
                 <td class="fw-semibold text-start"><%= s.name %></td>
                 <td><%= s.ksheter %></td>
                 <td><%= s.kender %></td>
-                <td class="fw-bold text-danger"><%= s.presentCount %></td>
+                <td class="fw-bold text-danger" style="white-space: nowrap;">
+                  <%= s.presentCount %> / <%= s.totalOperationalDays %> (<%= s.attendancePercentage.toFixed(2) %>%)
+                </td>
               </tr>
             <% }) %>
           </tbody>
+
         </table>
       </div>
     <% } else { %>
@@ -134,6 +137,7 @@
       cell.style.fontSize = "13px";
       cell.style.border = "1px solid #bbb";
       cell.style.padding = "8px";
+      cell.style.whiteSpace = "nowrap"; 
     });
 
     tableClone.querySelectorAll("td").forEach((cell) => {

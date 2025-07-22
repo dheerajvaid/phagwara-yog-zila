@@ -1,21 +1,67 @@
 <%- include('./partials/header') %>
 <%- include('./partials/navbar') %>
 
+<style>
+  .dashboard-card {
+    max-width: 420px;
+    margin: 0 auto;
+    background: #ffffff;
+    padding: 2rem 1.5rem;
+    border-radius: 1.5rem;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+  }
+
+  .dashboard-card h2 {
+    font-size: 1.6rem;
+    font-weight: bold;
+    color: #1e88e5;
+    margin-bottom: 0.5rem;
+  }
+
+  .dashboard-card p {
+    font-size: 1rem;
+    color: #6c757d;
+  }
+
+  .dashboard-card .btn {
+    font-size: 1.1rem;
+    padding: 0.8rem;
+    border-radius: 0.75rem;
+  }
+
+  .dashboard-card .btn-lg {
+    font-size: 1.1rem;
+  }
+
+  @media(max-width: 480px) {
+    .dashboard-card {
+      padding: 1.5rem 1rem;
+      border-radius: 1rem;
+    }
+
+    .dashboard-card h2 {
+      font-size: 1.4rem;
+    }
+  }
+</style>
+
 <section class="container mt-5 text-center">
-  <div class="card shadow-sm p-4 border-0 rounded-4">
-    <h2 class="mb-3 fw-bold">Welcome, <%= user.name %> 👋</h2>
-    <p class="mb-4 fs-6 text-muted">Your mobile: <strong><%= user.mobile %></strong></p>
+  <div class="dashboard-card">
+
+    <h2>👋 Welcome, <%= user.name %></h2>
+    <p class="mb-4">Your mobile: <strong><%= user.mobile %></strong></p>
 
     <div class="d-grid gap-3">
-      <% /* Show button only for Kender-team roles */ %>
       <% if (user.roles && user.roles.some(r =>
             ['Kender Pramukh', 'Seh Kender Pramukh', 'Shikshak', 'Karyakarta'].includes(r))) { %>
-        <a href="/attendance/mark" class="btn btn-success btn-lg">📌 Mark Attendance</a>
+        <a href="/attendance/mark" class="btn btn-success btn-lg shadow-sm">📌 Mark Attendance</a>
       <% } %>
-      <a href="/attendance/top10" class="btn btn-primary btn-lg">🏆 Top 10</a>
-      <a href="/auth/change-password" class="btn btn-warning btn-lg">🔐 Change Password</a>
-      <a href="/auth/logout" class="btn btn-danger btn-lg">🚪 Logout</a>
+
+      <a href="/attendance/top10" class="btn btn-primary btn-lg shadow-sm">🏆 Top 10</a>
+      <a href="/auth/change-password" class="btn btn-warning btn-lg shadow-sm">🔐 Change Password</a>
+      <a href="/auth/logout" class="btn btn-danger btn-lg shadow-sm">🚪 Logout</a>
     </div>
+
   </div>
 </section>
 

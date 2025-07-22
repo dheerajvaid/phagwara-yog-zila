@@ -663,9 +663,15 @@ exports.viewKenderWiseAttendance = async (req, res) => {
     const sortBy = req.query.sortBy || "name";
 
     // Scope filters
-    const zilaQuery = Array.isArray(req.query.zila) ? req.query.zila[0] : req.query.zila;
-    const ksheterQuery = Array.isArray(req.query.ksheter) ? req.query.ksheter[0] : req.query.ksheter;
-    const kenderQuery = Array.isArray(req.query.kender) ? req.query.kender[0] : req.query.kender;
+    const zilaQuery = Array.isArray(req.query.zila)
+      ? req.query.zila[0]
+      : req.query.zila;
+    const ksheterQuery = Array.isArray(req.query.ksheter)
+      ? req.query.ksheter[0]
+      : req.query.ksheter;
+    const kenderQuery = Array.isArray(req.query.kender)
+      ? req.query.kender[0]
+      : req.query.kender;
 
     const start = new Date(selectedYear, selectedMonth - 1, 1);
     const end = new Date(selectedYear, selectedMonth, 0, 23, 59, 59);
@@ -673,8 +679,10 @@ exports.viewKenderWiseAttendance = async (req, res) => {
     // 🟩 Prepare Kender Filter
     const kenderFilter = {};
     if (zilaQuery && zilaQuery.trim() !== "") kenderFilter.zila = zilaQuery;
-    if (ksheterQuery && ksheterQuery.trim() !== "") kenderFilter.ksheter = ksheterQuery;
-    if (kenderQuery && kenderQuery.trim() !== "") kenderFilter._id = kenderQuery;
+    if (ksheterQuery && ksheterQuery.trim() !== "")
+      kenderFilter.ksheter = ksheterQuery;
+    if (kenderQuery && kenderQuery.trim() !== "")
+      kenderFilter._id = kenderQuery;
 
     // fallback to user's zila if no filter
     if (!kenderFilter.zila && user.zila) kenderFilter.zila = user.zila;
@@ -686,30 +694,34 @@ exports.viewKenderWiseAttendance = async (req, res) => {
     let kenderDateCountMap = {};
 
     if (req.query.month && req.query.year) {
-      const kenderIds = allKenders.map(k => k._id.toString());
+      const kenderIds = allKenders.map((k) => k._id.toString());
 
       const attendanceRecords = await Attendance.find({
         kender: { $in: kenderIds },
-        date: { $gte: start, $lte: end }
+        date: { $gte: start, $lte: end },
       }).populate("kender");
 
       // 🔁 Build kenderDateCountMap: kenderId -> { dateStr -> count }
-      attendanceRecords.forEach(record => {
+      attendanceRecords.forEach((record) => {
         const kId = record.kender?._id?.toString();
         const dateStr = record.date.toISOString().split("T")[0];
 
         if (!kenderDateCountMap[kId]) kenderDateCountMap[kId] = {};
-        if (!kenderDateCountMap[kId][dateStr]) kenderDateCountMap[kId][dateStr] = 0;
+        if (!kenderDateCountMap[kId][dateStr])
+          kenderDateCountMap[kId][dateStr] = 0;
 
         kenderDateCountMap[kId][dateStr]++;
       });
 
       // 📊 Build attendanceData with count per Kender
       attendanceData = allKenders
-        .map(k => {
+        .map((k) => {
           const attendanceObj = kenderDateCountMap[k._id.toString()] || {};
           const attendanceDates = Object.keys(attendanceObj);
-          const presentCount = attendanceDates.reduce((sum, date) => sum + attendanceObj[date], 0);
+          const presentCount = attendanceDates.reduce(
+            (sum, date) => sum + attendanceObj[date],
+            0
+          );
 
           return {
             _id: k._id,
@@ -718,7 +730,7 @@ exports.viewKenderWiseAttendance = async (req, res) => {
             presentCount,
           };
         })
-        .filter(k => k.presentCount > 0);
+        .filter((k) => k.presentCount > 0);
 
       // 🔢 Sorting
       if (sortBy === "count") {
@@ -734,8 +746,8 @@ exports.viewKenderWiseAttendance = async (req, res) => {
 
       // 🗓️ Extract active day numbers (1–31)
       const activeDays = new Set();
-      Object.values(kenderDateCountMap).forEach(dateMap => {
-        Object.keys(dateMap).forEach(dateStr => {
+      Object.values(kenderDateCountMap).forEach((dateMap) => {
+        Object.keys(dateMap).forEach((dateStr) => {
           const day = parseInt(dateStr.split("-")[2]);
           activeDays.add(day);
         });
@@ -744,7 +756,7 @@ exports.viewKenderWiseAttendance = async (req, res) => {
       activeDaysArray = Array.from(activeDays).sort((a, b) => a - b);
     }
 
-    const viewMode = req.query.view || 'horizontal';
+    const viewMode = req.query.view || "horizontal";
     // 🧠 Render
     res.render("attendance/view-kender", {
       allKenders,
@@ -767,7 +779,6 @@ exports.viewKenderWiseAttendance = async (req, res) => {
     res.status(500).send("Server Error");
   }
 };
-
 
 exports.viewTop10Attendance = async (req, res) => {
   try {
@@ -811,7 +822,7 @@ exports.viewTop10Attendance = async (req, res) => {
     const kenderQuery = Array.isArray(req.query.kender)
       ? req.query.kender[0]
       : req.query.kender;
-    // ✅ Prevent query unless at least one scope filter is selected
+
     const scopeSelected =
       (zilaQuery && zilaQuery.trim() !== "") ||
       (ksheterQuery && ksheterQuery.trim() !== "") ||
@@ -820,17 +831,9 @@ exports.viewTop10Attendance = async (req, res) => {
     if (scopeSelected) {
       let filter = { role: { $nin: excludedRoles } };
 
-      if (zilaQuery && zilaQuery.trim() !== "") {
-        filter.zila = zilaQuery;
-      }
-
-      if (ksheterQuery && ksheterQuery.trim() !== "") {
-        filter.ksheter = ksheterQuery;
-      }
-
-      if (kenderQuery && kenderQuery.trim() !== "") {
-        filter.kender = kenderQuery;
-      }
+      if (zilaQuery && zilaQuery.trim() !== "") filter.zila = zilaQuery;
+      if (ksheterQuery && ksheterQuery.trim() !== "") filter.ksheter = ksheterQuery;
+      if (kenderQuery && kenderQuery.trim() !== "") filter.kender = kenderQuery;
 
       const saadhaks = await Saadhak.find(filter)
         .populate("ksheter", "name")
@@ -842,44 +845,86 @@ exports.viewTop10Attendance = async (req, res) => {
       const attendanceRecords = await Attendance.find({
         saadhak: { $in: saadhakIds },
         date: { $gte: start, $lte: end },
-        status: "Present",
       })
-        .select("saadhak date")
+        .select("saadhak kender date status")
         .lean();
 
       const attendanceMap = {};
-      for (let rec of attendanceRecords) {
-        const id = rec.saadhak.toString();
-        if (!attendanceMap[id]) attendanceMap[id] = [];
-        attendanceMap[id].push(rec.date.toISOString().split("T")[0]);
+      const kenderOperationalDaysMap = {};
+
+      for (const rec of attendanceRecords) {
+        const saadhakId = rec.saadhak.toString();
+        const kenderId = rec.kender.toString();
+        const dateStr = rec.date.toISOString().split("T")[0];
+
+        if (rec.status === "Present") {
+          if (!attendanceMap[saadhakId]) attendanceMap[saadhakId] = new Set();
+          attendanceMap[saadhakId].add(dateStr);
+        }
+
+        if (!kenderOperationalDaysMap[kenderId]) kenderOperationalDaysMap[kenderId] = new Set();
+        kenderOperationalDaysMap[kenderId].add(dateStr);
       }
 
-      const sortedData = saadhaks
-        .map((s) => {
-          const attendance = attendanceMap[s._id.toString()] || [];
-          return {
-            _id: s._id,
-            name: s.name,
-            kender: s.kender?.name || "N/A",
-            ksheter: s.ksheter?.name || "N/A",
-            attendance,
-            presentCount: attendance.length,
-          };
-        })
-        .filter((s) => s.presentCount > 0)
+      const kenderEligible = {};
+      const daysInMonth =
+        selectedYear === today.getFullYear() && selectedMonth === today.getMonth() + 1
+          ? today.getDate()
+          : end.getDate();
+      const threshold = Math.ceil(daysInMonth * 0.7);
+
+      Object.entries(kenderOperationalDaysMap).forEach(([kenderId, datesSet]) => {
+        kenderEligible[kenderId] = datesSet.size >= threshold;
+      });
+
+      const sortedData = saadhaks.map((s) => {
+        const saadhakId = s._id.toString();
+        const kenderId = s.kender?._id?.toString();
+
+        if (!kenderId || !kenderEligible[kenderId]) return null; // Exclude ineligible kenders
+
+        const presentDatesSet = attendanceMap[saadhakId] || new Set();
+        const operationalDatesSet = kenderOperationalDaysMap[kenderId] || new Set();
+
+        const presentCount = presentDatesSet.size;
+        const totalOperationalDays = operationalDatesSet.size;
+
+        const attendancePercentage =
+          totalOperationalDays > 0
+            ? ((presentCount / totalOperationalDays) * 100).toFixed(2)
+            : "0.00";
+
+        return {
+          _id: s._id,
+          name: s.name,
+          kender: s.kender?.name || "N/A",
+          ksheter: s.ksheter?.name || "N/A",
+          attendance: [...presentDatesSet],
+          presentCount,
+          totalOperationalDays,
+          attendancePercentage: parseFloat(attendancePercentage),
+        };
+      })
+        .filter(s => s && s.presentCount > 0)
         .sort((a, b) => {
-          if (b.presentCount !== a.presentCount)
-            return b.presentCount - a.presentCount;
+          if (b.attendancePercentage !== a.attendancePercentage)
+            return b.attendancePercentage - a.attendancePercentage;
           if (a.ksheter !== b.ksheter)
             return a.ksheter.localeCompare(b.ksheter);
-          if (a.kender !== b.kender) return a.kender.localeCompare(b.kender);
+          if (a.kender !== b.kender)
+            return a.kender.localeCompare(b.kender);
           return a.name.localeCompare(b.name);
         });
 
       const topN = parseInt(req.query.top) || 10;
-      const cutoffCount =
-        sortedData.length >= topN ? sortedData[topN - 1].presentCount : 0;
-      attendanceData = sortedData.filter((s) => s.presentCount >= cutoffCount);
+      const cutoffPercentage =
+        sortedData.length >= topN
+          ? sortedData[topN - 1].attendancePercentage
+          : 0;
+
+      attendanceData = sortedData.filter(
+        (s) => s.attendancePercentage >= cutoffPercentage
+      );
 
       noData = attendanceData.length === 0;
     }
@@ -900,11 +945,13 @@ exports.viewTop10Attendance = async (req, res) => {
       selectedKsheter: res.locals.selectedKsheter,
       selectedKender: res.locals.selectedKender,
     });
+
   } catch (err) {
     console.error("Error loading top 10 saadhaks:", err);
     res.status(500).send("Server Error");
   }
 };
+  
 
 exports.getMissingForm = async (req, res) => {
   const kendras = await Kender.find().sort({ name: 1 });
@@ -1276,16 +1323,20 @@ exports.exportKenderTeamRankPDF = async (req, res) => {
 
     const { month, year } = req.query;
 
-    const selectedMonth = parseInt(month) || (new Date()).getMonth() + 1;
-    const selectedYear = parseInt(year) || (new Date()).getFullYear();
+    const selectedMonth = parseInt(month) || new Date().getMonth() + 1;
+    const selectedYear = parseInt(year) || new Date().getFullYear();
 
-    const startDate = new Date(`${selectedYear}-${String(selectedMonth).padStart(2, "0")}-01`);
+    const startDate = new Date(
+      `${selectedYear}-${String(selectedMonth).padStart(2, "0")}-01`
+    );
     const endDate = new Date(selectedYear, selectedMonth, 0, 23, 59, 59);
 
     const saadhaks = await Saadhak.find({ kender: kenderId }).lean();
 
     async function buildRankMap(scopeField, scopeValue) {
-      const scopeSaadhaks = await Saadhak.find({ [scopeField]: scopeValue }).select("_id");
+      const scopeSaadhaks = await Saadhak.find({
+        [scopeField]: scopeValue,
+      }).select("_id");
 
       const attendanceRecords = await Attendance.aggregate([
         {
@@ -1316,7 +1367,10 @@ exports.exportKenderTeamRankPDF = async (req, res) => {
           rankMap[record._id.toString()] = { rank: currentRank, presentCount };
           currentRank++;
         } else {
-          rankMap[record._id.toString()] = { rank: currentRank - 1, presentCount };
+          rankMap[record._id.toString()] = {
+            rank: currentRank - 1,
+            presentCount,
+          };
         }
       });
 
@@ -1331,9 +1385,18 @@ exports.exportKenderTeamRankPDF = async (req, res) => {
       .map((s) => {
         const idStr = s._id.toString();
 
-        const zilaRankData = zilaRankMap[idStr] || { rank: "No Rank", presentCount: 0 };
-        const ksheterRankData = ksheterRankMap[idStr] || { rank: "No Rank", presentCount: 0 };
-        const kenderRankData = kenderRankMap[idStr] || { rank: "No Rank", presentCount: 0 };
+        const zilaRankData = zilaRankMap[idStr] || {
+          rank: "No Rank",
+          presentCount: 0,
+        };
+        const ksheterRankData = ksheterRankMap[idStr] || {
+          rank: "No Rank",
+          presentCount: 0,
+        };
+        const kenderRankData = kenderRankMap[idStr] || {
+          rank: "No Rank",
+          presentCount: 0,
+        };
 
         return {
           name: s.name,
@@ -1369,7 +1432,7 @@ exports.exportKenderTeamRankPDF = async (req, res) => {
 
     pdfExport.renderPDF(
       res,
-      "attendance/pdfRankReport",  // Ensure this EJS exists and uses kenderName, etc.
+      "attendance/pdfRankReport", // Ensure this EJS exists and uses kenderName, etc.
       {
         reportData,
         selectedMonth,
@@ -1380,12 +1443,8 @@ exports.exportKenderTeamRankPDF = async (req, res) => {
       },
       filename
     );
-
   } catch (error) {
     console.error("Error exporting Kender Team Rank PDF:", error);
     res.status(500).send("PDF Export Failed");
   }
 };
-
-
-

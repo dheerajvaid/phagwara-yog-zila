@@ -8,8 +8,7 @@
     <div class="alert alert-danger"><%= error %></div>
   <% } %>
 
-  <form action="/saadhak/edit/<%= saadhak._id %>" method="POST" class="row g-3">
-
+  <form action="/saadhak/edit/<%= saadhak._id %>" method="POST" class="row g-3" onsubmit="cleanMobileNumberById('mobile')">
     <!-- Role -->
     <div class="col-md-4">
       <label class="form-label">Select Role *</label>
@@ -30,7 +29,7 @@
     <!-- Mobile -->
     <div class="col-md-4">
       <label class="form-label">Mobile *</label>
-      <input type="text" name="mobile" class="form-control" required value="<%= saadhak.mobile %>">
+      <input type="text" name="mobile" id="mobile" class="form-control" required value="<%= saadhak.mobile %>">
     </div>
 
     <!-- Zila -->

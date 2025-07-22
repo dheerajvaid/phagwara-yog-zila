@@ -1,33 +1,62 @@
 <%- include('../partials/header') %>
 <%- include('../partials/navbar') %>
 
-<div class="container mt-5">
-  <h3>Login with Mobile</h3>
-  <% if (error) { %>
-    <div class="alert alert-danger"><%= error %></div>
-  <% } %>
-  <form action="/auth/login" method="POST" onsubmit="cleanMobileNumber()">
-    <div class="mb-3">
-      <label for="mobile" class="form-label">Mobile Number</label>
-      <input type="text" name="mobile" id="mobile" class="form-control" autofocus required>
-    </div>
-    <button type="submit" class="btn btn-primary">Next</button>
-  </form>
-</div>
+<style>
+  .login-container {
+    max-width: 420px;
+    margin: 0 auto;
+    background: #ffffff;
+    padding: 2rem 1.5rem;
+    border-radius: 1rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+  }
 
-<script>
-  function cleanMobileNumber() {
-    const input = document.getElementById('mobile');
-    let value = input.value.trim().replace(/\s+/g, '');
+  .login-container h3 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #1e88e5;
+    text-align: center;
+    margin-bottom: 1rem;
+  }
 
-    if (value.startsWith('+91')) {
-      value = value.slice(3);
-    } else if (value.startsWith('91') && value.length === 12) {
-      value = value.slice(2);
+  .login-btn {
+    width: 100%;
+    font-size: 1.1rem;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+  }
+
+  @media(max-width: 480px) {
+    .login-container {
+      padding: 1.5rem 1rem;
+      border-radius: 0.75rem;
     }
 
-    input.value = value;
+    .login-container h3 {
+      font-size: 1.25rem;
+    }
   }
-</script>
+</style>
+
+<div class="container mt-5">
+  <div class="login-container">
+    <h3>📱 Login with Mobile</h3>
+
+    <% if (error) { %>
+      <div class="alert alert-danger text-center py-2 px-3 mb-3">
+        <%= error %>
+      </div>
+    <% } %>
+
+    <form action="/auth/login" method="POST" onsubmit="cleanMobileNumberById('mobile')">
+      <div class="mb-3">
+        <label for="mobile" class="form-label fw-semibold">Enter Mobile Number</label>
+        <input type="text" name="mobile" id="mobile" class="form-control form-control-lg text-center" placeholder="10-digit mobile number" autofocus required>
+      </div>
+
+      <button type="submit" class="btn btn-primary login-btn">🚀 Next</button>
+    </form>
+  </div>
+</div>
 
 <%- include('../partials/footer') %>
