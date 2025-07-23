@@ -44,6 +44,9 @@
     <button id="resetBtn" class="btn btn-sm btn-outline-secondary">🔄 Reset</button>
   </div>
 
+  <div class="mb-2 text-end">
+    <button id="exportCsvBtn" class="btn btn-sm btn-outline-success">📥 Export to CSV</button>
+  </div>
 
   
   <!-- ✅ Table -->
@@ -69,6 +72,7 @@
   const allKsheters = <%- JSON.stringify(ksheters) %>;
   const allKenders = <%- JSON.stringify(kenders) %>;
   const user = <%- JSON.stringify(user) %>;
+  let currentFilteredSaadhaks = [];
 
   document.addEventListener("DOMContentLoaded", function () {
     const zilaFilter = document.getElementById("zilaFilter");
@@ -193,9 +197,49 @@
         `;
       });
 
-         
+      currentFilteredSaadhaks = filtered;   
      
     }
+
+    document.getElementById("exportCsvBtn").addEventListener("click", () => {
+  const headers = ["S.No", "Name", "Mobile", "Zila", "Ksheter", "Kender", "Roles"];
+  const rows = [];
+
+  if (currentFilteredSaadhaks.length === 0) {
+    alert("No filtered data to export. Please perform a search first.");
+    return;
+  }
+
+  currentFilteredSaadhaks.forEach((s, index) => {
+    rows.push([
+      index + 1,
+      s.name || '',
+      s.mobile || '',
+      s.zila?.name || '',
+      s.ksheter?.name || '',
+      s.kender?.name || '',
+      Array.isArray(s.role) ? s.role.join(', ') : ''
+    ]);
+  });
+
+  let csvContent = "data:text/csv;charset=utf-8," 
+    + [headers, ...rows].map(e => e.map(v => `"${v}"`).join(",")).join("\n");
+
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", "saadhaks_filtered.csv");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+   // ✅ Hide spinner safely after short delay
+  setTimeout(() => {
+    document.getElementById("loadingSpinner")?.classList.add("d-none");
+  }, 1500);
+});
+
+
 
     // Live update dropdown changes
     zilaFilter.addEventListener("change", function () {
