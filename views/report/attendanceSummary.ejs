@@ -80,17 +80,33 @@
 
             <!-- Ksheter Total -->
             <tr class="bg-danger text-white fw-bold text-center">
-              <td class="text-center text-white">Total</td>
+              <td class="text-center text-white">
+                <% if (userRole === 'Admin' || userRole === 'Zila Pradhan' || userRole === 'Sangathan Mantri' || userRole === 'Cashier') { %>
+                  Ksheter Total
+                <% } else if (userRole === 'Ksheter Pradhan' || userRole === 'Ksheter Mantri') { %>
+                  Ksheter Total
+                <% } else { %>
+                  Kender Total
+                <% } %>
+                </td>
               <td class="text-white"><%= ksheterTotals[zila][ksheter] %></td>
             </tr>
 
             <% if (isLast) { %>
-            <!-- Zila Total -->
+            
             <tr style="height: 15px; border: none;">
               <td colspan="2" style="border: none;"></td>
             </tr>
             <tr class="bg-danger text-white fw-bold text-center">
-              <td class="text-center text-white">Zila Total</td>
+              <td class="text-center text-white">
+                <% if (userRole === 'Admin' || userRole === 'Zila Pradhan' || userRole === 'Sangathan Mantri' || userRole === 'Cashier') { %>
+                  Zila Total
+                <% } else if (userRole === 'Ksheter Pradhan' || userRole === 'Ksheter Mantri') { %>
+                  Ksheter Total
+                <% } else { %>
+                  Kender Total
+                <% } %>
+                </td>
               <td class="text-white"><%= zilaTotals[zila] %></td>
             </tr>
           <% } %>

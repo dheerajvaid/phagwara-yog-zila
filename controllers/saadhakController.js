@@ -61,6 +61,7 @@ exports.showAddForm = async (req, res) => {
     allowedRoles,
     formData: {}, // For error recovery
     error: null,
+    success: null,
     user: req.session.user,
   });
 };
@@ -132,6 +133,7 @@ exports.createSaadhak = async (req, res) => {
 
     if (!validateName(name)) {
       return res.render("saadhak/add", {
+        success: null,
         error: "❌ Name should contain only alphabets and spaces",
         zilas: await Zila.find(),
         ksheters: await Ksheter.find(),
@@ -143,6 +145,7 @@ exports.createSaadhak = async (req, res) => {
 
     if (!validateMobile(mobile)) {
       return res.render("saadhak/add", {
+        success: null,
         error: "❌ Invalid Mobile Number",
         zilas: await Zila.find(),
         ksheters: await Ksheter.find(),
@@ -155,6 +158,7 @@ exports.createSaadhak = async (req, res) => {
     const existing = await Saadhak.findOne({ mobile });
     if (existing) {
       return res.render("saadhak/add", {
+        success: null,
         error: "❌ Mobile number already registered.",
         formData: req.body,
         zilas: await Zila.find(),
@@ -166,6 +170,7 @@ exports.createSaadhak = async (req, res) => {
 
     if (!name || !mobile || !role) {
       return res.render("saadhak/add", {
+        success: null,
         error: "❌ Name, Mobile, and Role are required.",
         formData: req.body,
         zilas: await Zila.find(),
@@ -178,6 +183,7 @@ exports.createSaadhak = async (req, res) => {
     // Optional field validations only if present
     if (dob && !validateDOB(dob)) {
       return res.render("saadhak/add", {
+        success: null,
         error: "❌ Invalid Date of Birth",
         formData: req.body,
         zilas: await Zila.find(),
@@ -193,6 +199,7 @@ exports.createSaadhak = async (req, res) => {
       !validateDOB(marriageDate)
     ) {
       return res.render("saadhak/add", {
+        success: null,
         error: "❌ Invalid Marriage Date",
         formData: req.body,
         zilas: await Zila.find(),
@@ -210,6 +217,7 @@ exports.createSaadhak = async (req, res) => {
       !zila
     ) {
       return res.render("saadhak/add", {
+        success: null,
         error: "❌ Zila selection is required for Zila-level roles.",
         formData: req.body,
         zilas: await Zila.find(),
@@ -227,6 +235,7 @@ exports.createSaadhak = async (req, res) => {
       (!zila || !ksheter)
     ) {
       return res.render("saadhak/add", {
+        success: null,
         error: "❌ Zila and Ksheter must be selected for Ksheter-level roles.",
         formData: req.body,
         zilas: await Zila.find(),
@@ -247,6 +256,7 @@ exports.createSaadhak = async (req, res) => {
       (!zila || !ksheter || !kender)
     ) {
       return res.render("saadhak/add", {
+        success: null,
         error:
           "❌ Zila, Ksheter, and Kender must be selected for Kender-level roles.",
         formData: req.body,
@@ -274,7 +284,17 @@ exports.createSaadhak = async (req, res) => {
     });
 
     await saadhak.save();
-    res.redirect("/saadhak/manage");
+   
+    res.render("saadhak/add", {
+      success: "✅ Saadhak added successfully!",
+      zilas: await Zila.find(),
+      ksheters: await Ksheter.find(),
+      kenders: await Kender.find(),
+      allowedRoles,
+      formData: {}, // reset blank form
+      error: null,
+      user: req.session.user,
+    });
   } catch (err) {
     console.error("❌ Error creating Saadhak:", err);
     res.status(500).send("Server Error");
@@ -361,7 +381,7 @@ exports.showEditForm = async (req, res) => {
     const kenders = await Kender.find({ ksheter: saadhak.ksheter }).sort({
       name: 1,
     });
-    
+
     // console.log(kenders);
 
     // ✅ Determine allowedRoles based on the logged-in user

@@ -75,7 +75,7 @@
               <th>Saadhak</th>
               <th>Ksheter</th>
               <th>Kender</th>
-              <th style="width: 60px;">Days</th>
+              <th style="width: 60px;">Attd%</th>
             </tr>
           </thead>
           <tbody>
@@ -85,7 +85,7 @@
                 <td><%= s.ksheter %></td>
                 <td><%= getShortName(s.kender) %></td>
                 <td class="fw-bold text-danger" style="white-space: nowrap;">
-                  <%= s.presentCount %> / <%= s.totalOperationalDays %>
+                  <%= ((s.presentCount / s.totalOperationalDays) * 100).toFixed(2) %>%
                 </td>
               </tr>
             <% }) %>

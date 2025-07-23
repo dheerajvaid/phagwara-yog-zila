@@ -7,7 +7,11 @@
   <% if (error) { %>
     <div class="alert alert-danger"><%= error %></div>
   <% } %>
-
+  
+  <% if (success) { %>
+    <div class="alert alert-success"><%= success %></div>
+  <% } %>
+  
   <form action="/saadhak/add" method="POST" class="row g-3" onsubmit="cleanMobileNumberById('mobile')">
     <!-- Role -->
     <div class="col-md-4">

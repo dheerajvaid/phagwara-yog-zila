@@ -203,6 +203,8 @@ exports.attendanceSummary = async (req, res) => {
         });
       });
     });
+  
+  
 
   res.render("report/attendanceSummary", {
     summary: sortedSummary, // 👈 Use sorted summary
@@ -210,6 +212,7 @@ exports.attendanceSummary = async (req, res) => {
     zilaTotals,
     selectedDate: dateStr,
     randomMessage,
+    userRole: user.roles[0],
     user,
   });
 };
