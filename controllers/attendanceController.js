@@ -832,7 +832,8 @@ exports.viewTop10Attendance = async (req, res) => {
       let filter = { role: { $nin: excludedRoles } };
 
       if (zilaQuery && zilaQuery.trim() !== "") filter.zila = zilaQuery;
-      if (ksheterQuery && ksheterQuery.trim() !== "") filter.ksheter = ksheterQuery;
+      if (ksheterQuery && ksheterQuery.trim() !== "")
+        filter.ksheter = ksheterQuery;
       if (kenderQuery && kenderQuery.trim() !== "") filter.kender = kenderQuery;
 
       const saadhaks = await Saadhak.find(filter)
@@ -862,69 +863,101 @@ exports.viewTop10Attendance = async (req, res) => {
           attendanceMap[saadhakId].add(dateStr);
         }
 
-        if (!kenderOperationalDaysMap[kenderId]) kenderOperationalDaysMap[kenderId] = new Set();
+        if (!kenderOperationalDaysMap[kenderId])
+          kenderOperationalDaysMap[kenderId] = new Set();
         kenderOperationalDaysMap[kenderId].add(dateStr);
       }
 
       const kenderEligible = {};
       const daysInMonth =
-        selectedYear === today.getFullYear() && selectedMonth === today.getMonth() + 1
+        selectedYear === today.getFullYear() &&
+        selectedMonth === today.getMonth() + 1
           ? today.getDate()
           : end.getDate();
-      const threshold = Math.ceil(daysInMonth * 0.7);
+      const threshold = Math.ceil(daysInMonth * 0.8);
 
-      Object.entries(kenderOperationalDaysMap).forEach(([kenderId, datesSet]) => {
-        kenderEligible[kenderId] = datesSet.size >= threshold;
-      });
+      Object.entries(kenderOperationalDaysMap).forEach(
+        ([kenderId, datesSet]) => {
+          kenderEligible[kenderId] = datesSet.size >= threshold;
+        }
+      );
 
-      const sortedData = saadhaks.map((s) => {
-        const saadhakId = s._id.toString();
-        const kenderId = s.kender?._id?.toString();
+      const sortedData = saadhaks
+        .map((s) => {
+          const saadhakId = s._id.toString();
+          const kenderId = s.kender?._id?.toString();
 
-        if (!kenderId || !kenderEligible[kenderId]) return null; // Exclude ineligible kenders
+          if (!kenderId || !kenderEligible[kenderId]) return null;
 
-        const presentDatesSet = attendanceMap[saadhakId] || new Set();
-        const operationalDatesSet = kenderOperationalDaysMap[kenderId] || new Set();
+          const presentDatesSet = attendanceMap[saadhakId] || new Set();
+          const operationalDatesSet =
+            kenderOperationalDaysMap[kenderId] || new Set();
 
-        const presentCount = presentDatesSet.size;
-        const totalOperationalDays = operationalDatesSet.size;
+          const presentCount = presentDatesSet.size;
+          const totalOperationalDays = operationalDatesSet.size;
 
-        const attendancePercentage =
-          totalOperationalDays > 0
-            ? ((presentCount / totalOperationalDays) * 100).toFixed(2)
-            : "0.00";
+          const attendancePercentage =
+            totalOperationalDays > 0
+              ? ((presentCount / totalOperationalDays) * 100).toFixed(2)
+              : "0.00";
 
-        return {
-          _id: s._id,
-          name: s.name,
-          kender: s.kender?.name || "N/A",
-          ksheter: s.ksheter?.name || "N/A",
-          attendance: [...presentDatesSet],
-          presentCount,
-          totalOperationalDays,
-          attendancePercentage: parseFloat(attendancePercentage),
-        };
-      })
-        .filter(s => s && s.presentCount > 0)
+          const missedDays = totalOperationalDays - presentCount; // ✅ Added to use in sorting
+
+          return {
+            _id: s._id,
+            name: s.name,
+            kender: s.kender?.name || "N/A",
+            ksheter: s.ksheter?.name || "N/A",
+            attendance: [...presentDatesSet],
+            presentCount,
+            totalOperationalDays,
+            missedDays, // ✅ Include for sorting
+            attendancePercentage: parseFloat(attendancePercentage),
+          };
+        })
+        .filter((s) => s && s.presentCount > 0)
         .sort((a, b) => {
           if (b.attendancePercentage !== a.attendancePercentage)
             return b.attendancePercentage - a.attendancePercentage;
+          if (a.missedDays !== b.missedDays) return a.missedDays - b.missedDays; // ✅ Sort by fewer missed days
           if (a.ksheter !== b.ksheter)
             return a.ksheter.localeCompare(b.ksheter);
-          if (a.kender !== b.kender)
-            return a.kender.localeCompare(b.kender);
+          if (a.kender !== b.kender) return a.kender.localeCompare(b.kender);
           return a.name.localeCompare(b.name);
         });
 
       const topN = parseInt(req.query.top) || 10;
-      const cutoffPercentage =
-        sortedData.length >= topN
-          ? sortedData[topN - 1].attendancePercentage
-          : 0;
+      
+      attendanceData = [];
+      if (sortedData.length > 0) {
+        let currentMissed = 0;
 
-      attendanceData = sortedData.filter(
-        (s) => s.attendancePercentage >= cutoffPercentage
-      );
+        while (attendanceData.length < topN) {
+          const toAdd = sortedData.filter(
+            (s) => s.missedDays === currentMissed
+          );
+
+          if (toAdd.length === 0) {
+            currentMissed++;
+            continue;
+          }
+
+          attendanceData.push(...toAdd);
+
+          // If we reached or exceeded topN after this batch, stop.
+          if (attendanceData.length >= topN) break;
+
+          currentMissed++;
+        }
+
+        // Ensure only unique entries are kept (if duplicates exist somehow)
+        const seenIds = new Set();
+        attendanceData = attendanceData.filter((s) => {
+          if (seenIds.has(s._id.toString())) return false;
+          seenIds.add(s._id.toString());
+          return true;
+        });
+      }
 
       noData = attendanceData.length === 0;
     }
@@ -945,13 +978,11 @@ exports.viewTop10Attendance = async (req, res) => {
       selectedKsheter: res.locals.selectedKsheter,
       selectedKender: res.locals.selectedKender,
     });
-
   } catch (err) {
     console.error("Error loading top 10 saadhaks:", err);
     res.status(500).send("Server Error");
   }
 };
-  
 
 exports.getMissingForm = async (req, res) => {
   const kendras = await Kender.find().sort({ name: 1 });
