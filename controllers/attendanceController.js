@@ -813,9 +813,15 @@ exports.viewTop10Attendance = async (req, res) => {
     let attendanceData = [];
     let noData = true;
 
-    const zilaQuery = Array.isArray(req.query.zila) ? req.query.zila[0] : req.query.zila;
-    const ksheterQuery = Array.isArray(req.query.ksheter) ? req.query.ksheter[0] : req.query.ksheter;
-    const kenderQuery = Array.isArray(req.query.kender) ? req.query.kender[0] : req.query.kender;
+    const zilaQuery = Array.isArray(req.query.zila)
+      ? req.query.zila[0]
+      : req.query.zila;
+    const ksheterQuery = Array.isArray(req.query.ksheter)
+      ? req.query.ksheter[0]
+      : req.query.ksheter;
+    const kenderQuery = Array.isArray(req.query.kender)
+      ? req.query.kender[0]
+      : req.query.kender;
 
     const scopeSelected =
       (zilaQuery && zilaQuery.trim() !== "") ||
@@ -826,7 +832,8 @@ exports.viewTop10Attendance = async (req, res) => {
       let filter = { role: { $nin: excludedRoles } };
 
       if (zilaQuery && zilaQuery.trim() !== "") filter.zila = zilaQuery;
-      if (ksheterQuery && ksheterQuery.trim() !== "") filter.ksheter = ksheterQuery;
+      if (ksheterQuery && ksheterQuery.trim() !== "")
+        filter.ksheter = ksheterQuery;
       if (kenderQuery && kenderQuery.trim() !== "") filter.kender = kenderQuery;
 
       const saadhaks = await Saadhak.find(filter)
@@ -913,7 +920,8 @@ exports.viewTop10Attendance = async (req, res) => {
           if (b.presentCount !== a.presentCount)
             return b.presentCount - a.presentCount;
           if (a.missedDays !== b.missedDays) return a.missedDays - b.missedDays;
-          if (a.ksheter !== b.ksheter) return a.ksheter.localeCompare(b.ksheter);
+          if (a.ksheter !== b.ksheter)
+            return a.ksheter.localeCompare(b.ksheter);
           if (a.kender !== b.kender) return a.kender.localeCompare(b.kender);
           return a.name.localeCompare(b.name);
         });
@@ -925,7 +933,9 @@ exports.viewTop10Attendance = async (req, res) => {
         let currentMissed = 0;
 
         while (attendanceData.length < topN) {
-          const toAdd = sortedData.filter((s) => s.missedDays === currentMissed);
+          const toAdd = sortedData.filter(
+            (s) => s.missedDays === currentMissed
+          );
           if (toAdd.length === 0) {
             currentMissed++;
             continue;
@@ -944,7 +954,9 @@ exports.viewTop10Attendance = async (req, res) => {
         });
 
         // ✅ Add new logic: Include everyone with presentCount >= min of this list
-        const minPresent = Math.min(...attendanceData.map((s) => s.presentCount));
+        const minPresent = Math.min(
+          ...attendanceData.map((s) => s.presentCount)
+        );
 
         const extendedList = sortedData.filter(
           (s) => s.presentCount >= minPresent
@@ -962,7 +974,8 @@ exports.viewTop10Attendance = async (req, res) => {
           if (b.presentCount !== a.presentCount)
             return b.presentCount - a.presentCount;
           if (a.missedDays !== b.missedDays) return a.missedDays - b.missedDays;
-          if (a.ksheter !== b.ksheter) return a.ksheter.localeCompare(b.ksheter);
+          if (a.ksheter !== b.ksheter)
+            return a.ksheter.localeCompare(b.ksheter);
           if (a.kender !== b.kender) return a.kender.localeCompare(b.kender);
           return a.name.localeCompare(b.name);
         });
@@ -992,7 +1005,6 @@ exports.viewTop10Attendance = async (req, res) => {
     res.status(500).send("Server Error");
   }
 };
-
 
 exports.getMissingForm = async (req, res) => {
   const kendras = await Kender.find().sort({ name: 1 });
@@ -1082,11 +1094,20 @@ exports.generateMissingReport = async (req, res) => {
     lastAttendanceMap[entry._id.toString()] = entry.lastDate;
   });
 
+  // ✅ Efficiently map kenderName for each Saadhak
+  const kenderIds = [...new Set(missing.map((s) => s.kender).filter(Boolean))];
+  const kenders = await Kender.find({ _id: { $in: kenderIds } }).select("name");
+  const kenderMap = {};
+  kenders.forEach((k) => {
+    kenderMap[k._id.toString()] = k.name;
+  });
+
   const result = missing.map((s) => ({
     _id: s._id,
     name: s.name,
     mobile: s.mobile,
     lastAttended: lastAttendanceMap[s._id.toString()] || null,
+    kenderName: s.kender ? kenderMap[s.kender.toString()] || "—" : "—",
   }));
 
   // Fetch readable names:
@@ -1116,6 +1137,8 @@ exports.generateMissingReport = async (req, res) => {
 
 exports.exportMissingPDF = async (req, res) => {
   const { from, to } = req.query;
+  const sortBy = req.query.sortBy;
+  const sortDir = req.query.sortDir;
 
   const zilaValue = normalizeScopeValue(req.query.zila);
   const ksheterValue = normalizeScopeValue(req.query.ksheter);
@@ -1202,11 +1225,30 @@ exports.exportMissingPDF = async (req, res) => {
     lastAttendanceMap[entry._id.toString()] = entry.lastDate;
   });
 
-  const result = missing.map((s) => ({
-    name: s.name,
-    mobile: s.mobile,
-    lastAttended: lastAttendanceMap[s._id.toString()] || null,
-  }));
+  // ✅ Efficiently map kenderName for each Saadhak
+  const kenderIds = [...new Set(missing.map((s) => s.kender).filter(Boolean))];
+  const kenders = await Kender.find({ _id: { $in: kenderIds } }).select("name");
+  const kenderMap = {};
+  kenders.forEach((k) => {
+    kenderMap[k._id.toString()] = k.name;
+  });
+
+  const result = missing.map((s) => {
+    const last = lastAttendanceMap[s._id.toString()] || null;
+    const daysSince = last
+      ? Math.floor(
+          (Date.now() - new Date(last).getTime()) / (1000 * 60 * 60 * 24)
+        )
+      : -1;
+
+    return {
+      name: s.name,
+      mobile: s.mobile,
+      lastAttended: last,
+      kenderName: s.kender ? kenderMap[s.kender.toString()] || "—" : "—",
+      daysSince, // ✅ added field
+    };
+  });
 
   let filteredResult = result;
 
@@ -1214,6 +1256,25 @@ exports.exportMissingPDF = async (req, res) => {
     filteredResult = result.filter((s) => !s.lastAttended);
   } else if (filter === "attended") {
     filteredResult = result.filter((s) => !!s.lastAttended);
+  }
+
+  if (sortBy === "name") {
+    filteredResult.sort((a, b) =>
+      sortDir === "asc"
+        ? a.name.localeCompare(b.name)
+        : b.name.localeCompare(a.name)
+    );
+  } else if (sortBy === "days") {
+    const getDays = (d) =>
+      d
+        ? Math.floor(
+            (Date.now() - new Date(d).getTime()) / (1000 * 60 * 60 * 24)
+          )
+        : -1;
+
+    filteredResult.sort((a, b) =>
+      sortDir === "asc" ? a.daysSince - b.daysSince : b.daysSince - a.daysSince
+    );
   }
 
   const baseUrl = "https://www.joinyog.in";
