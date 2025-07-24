@@ -85,7 +85,7 @@
                 <td><%= s.ksheter %></td>
                 <td><%= getShortName(s.kender) %></td>
                 <td class="fw-bold text-danger" style="white-space: nowrap;">
-                  <%= ((s.presentCount / s.totalOperationalDays) * 100).toFixed(2) %>%
+                   <%= s.presentCount %> / <%= s.totalOperationalDays %> (<%= ((s.presentCount / s.totalOperationalDays) * 100).toFixed(2) %>%)
                 </td>
               </tr>
             <% }) %>

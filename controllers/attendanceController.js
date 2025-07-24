@@ -813,15 +813,9 @@ exports.viewTop10Attendance = async (req, res) => {
     let attendanceData = [];
     let noData = true;
 
-    const zilaQuery = Array.isArray(req.query.zila)
-      ? req.query.zila[0]
-      : req.query.zila;
-    const ksheterQuery = Array.isArray(req.query.ksheter)
-      ? req.query.ksheter[0]
-      : req.query.ksheter;
-    const kenderQuery = Array.isArray(req.query.kender)
-      ? req.query.kender[0]
-      : req.query.kender;
+    const zilaQuery = Array.isArray(req.query.zila) ? req.query.zila[0] : req.query.zila;
+    const ksheterQuery = Array.isArray(req.query.ksheter) ? req.query.ksheter[0] : req.query.ksheter;
+    const kenderQuery = Array.isArray(req.query.kender) ? req.query.kender[0] : req.query.kender;
 
     const scopeSelected =
       (zilaQuery && zilaQuery.trim() !== "") ||
@@ -832,8 +826,7 @@ exports.viewTop10Attendance = async (req, res) => {
       let filter = { role: { $nin: excludedRoles } };
 
       if (zilaQuery && zilaQuery.trim() !== "") filter.zila = zilaQuery;
-      if (ksheterQuery && ksheterQuery.trim() !== "")
-        filter.ksheter = ksheterQuery;
+      if (ksheterQuery && ksheterQuery.trim() !== "") filter.ksheter = ksheterQuery;
       if (kenderQuery && kenderQuery.trim() !== "") filter.kender = kenderQuery;
 
       const saadhaks = await Saadhak.find(filter)
@@ -901,7 +894,7 @@ exports.viewTop10Attendance = async (req, res) => {
               ? ((presentCount / totalOperationalDays) * 100).toFixed(2)
               : "0.00";
 
-          const missedDays = totalOperationalDays - presentCount; // ✅ Added to use in sorting
+          const missedDays = totalOperationalDays - presentCount;
 
           return {
             _id: s._id,
@@ -911,51 +904,67 @@ exports.viewTop10Attendance = async (req, res) => {
             attendance: [...presentDatesSet],
             presentCount,
             totalOperationalDays,
-            missedDays, // ✅ Include for sorting
+            missedDays,
             attendancePercentage: parseFloat(attendancePercentage),
           };
         })
         .filter((s) => s && s.presentCount > 0)
         .sort((a, b) => {
-          if (b.attendancePercentage !== a.attendancePercentage)
-            return b.attendancePercentage - a.attendancePercentage;
-          if (a.missedDays !== b.missedDays) return a.missedDays - b.missedDays; // ✅ Sort by fewer missed days
-          if (a.ksheter !== b.ksheter)
-            return a.ksheter.localeCompare(b.ksheter);
+          if (b.presentCount !== a.presentCount)
+            return b.presentCount - a.presentCount;
+          if (a.missedDays !== b.missedDays) return a.missedDays - b.missedDays;
+          if (a.ksheter !== b.ksheter) return a.ksheter.localeCompare(b.ksheter);
           if (a.kender !== b.kender) return a.kender.localeCompare(b.kender);
           return a.name.localeCompare(b.name);
         });
 
       const topN = parseInt(req.query.top) || 10;
-      
       attendanceData = [];
+
       if (sortedData.length > 0) {
         let currentMissed = 0;
 
         while (attendanceData.length < topN) {
-          const toAdd = sortedData.filter(
-            (s) => s.missedDays === currentMissed
-          );
-
+          const toAdd = sortedData.filter((s) => s.missedDays === currentMissed);
           if (toAdd.length === 0) {
             currentMissed++;
             continue;
           }
-
           attendanceData.push(...toAdd);
-
-          // If we reached or exceeded topN after this batch, stop.
           if (attendanceData.length >= topN) break;
-
           currentMissed++;
         }
 
-        // Ensure only unique entries are kept (if duplicates exist somehow)
+        // Unique cleanup
         const seenIds = new Set();
         attendanceData = attendanceData.filter((s) => {
           if (seenIds.has(s._id.toString())) return false;
           seenIds.add(s._id.toString());
           return true;
+        });
+
+        // ✅ Add new logic: Include everyone with presentCount >= min of this list
+        const minPresent = Math.min(...attendanceData.map((s) => s.presentCount));
+
+        const extendedList = sortedData.filter(
+          (s) => s.presentCount >= minPresent
+        );
+
+        // ✅ Combine both lists and keep only unique saadhaks
+        const finalMap = new Map();
+        [...attendanceData, ...extendedList].forEach((s) => {
+          finalMap.set(s._id.toString(), s);
+        });
+
+        attendanceData = Array.from(finalMap.values());
+
+        attendanceData.sort((a, b) => {
+          if (b.presentCount !== a.presentCount)
+            return b.presentCount - a.presentCount;
+          if (a.missedDays !== b.missedDays) return a.missedDays - b.missedDays;
+          if (a.ksheter !== b.ksheter) return a.ksheter.localeCompare(b.ksheter);
+          if (a.kender !== b.kender) return a.kender.localeCompare(b.kender);
+          return a.name.localeCompare(b.name);
         });
       }
 
@@ -983,6 +992,7 @@ exports.viewTop10Attendance = async (req, res) => {
     res.status(500).send("Server Error");
   }
 };
+
 
 exports.getMissingForm = async (req, res) => {
   const kendras = await Kender.find().sort({ name: 1 });
