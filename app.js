@@ -31,9 +31,11 @@ const questionRoutes = require('./routes/questionRoutes');
 const subscriptionRoutes = require('./routes/subscriptionRoutes');
 const quizRoutes = require('./routes/quiz');
 const qubikRoute = require("./routes/qubik");
+const calendarRoutes = require("./routes/calendarRoutes");
 
 const { assignRoleLevel } = require('./middleware/roleMiddleware');
 const injectScopeData = require('./middleware/scopeData');
+const { setEventCount } = require("./middleware/eventNotifier");
 
 // Load environment variables from .env file
 dotenv.config();
@@ -74,6 +76,8 @@ app.use((req, res, next) => {
     next();
 });
 
+app.use(setEventCount);
+
 // ✅ Apply roleLevel and scopeData middleware early:
 app.use(assignRoleLevel);
 app.use(injectScopeData);
@@ -102,11 +106,13 @@ app.use("/yog-samagri", yogSamagriRoutes);
 app.use("/stories", storyRoutes);
 app.use("/shivirreg", shivirRegRoutes);
 app.use("/events", eventRoutes);
+app.use("/calendar", calendarRoutes);
 app.use('/api/events', require('./routes/api/events'));
 app.use('/question', questionRoutes);
 app.use('/subscription', subscriptionRoutes);
 app.use('/quiz', quizRoutes);
 app.use("/qubik", qubikRoute);
+
 
 // Server Start
 const port = process.env.PORT || 3000;

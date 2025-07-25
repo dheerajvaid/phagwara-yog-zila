@@ -62,12 +62,43 @@
       background: rgba(13, 110, 253, 0.15);
       color: #fff;
     }
+
+    .calendar-icon-mobile {
+      position: absolute;
+      top: 10px;
+      right: 85px;
+      z-index: 1050;
+    }
+
+    .calendar-icon-mobile i {
+      font-size: 1.5rem;
+    }
+
+    .calendar-icon-mobile .badge {
+      font-size: 0.65rem;
+      padding: 4px 6px;
+    }
   }
 </style>
 
 <nav class="navbar navbar-expand-lg navbar-dark navbar-gradient sticky-top shadow-sm">
   <div class="container-fluid">
     <a class="navbar-brand fw-bold" href="/">🧘‍♂️ HOME</a>
+
+    <% if (user) { %>
+      <!-- 📅 Mobile Top-Right Badge -->
+      <a href="/calendar/today" class="calendar-icon-mobile d-lg-none text-decoration-none text-warning">
+        <div class="position-relative">
+          <i class="bi bi-calendar-event-fill"></i>
+          <% if (typeof eventCount !== 'undefined' && eventCount > 0) { %>
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+              <%= eventCount %>
+              <span class="visually-hidden">Today's Events</span>
+            </span>
+          <% } %>
+        </div>
+      </a>
+    <% } %>
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
       aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -77,21 +108,33 @@
     <div class="collapse navbar-collapse" id="mainNavbar">
       <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
 
+        <!-- 📅 Desktop Calendar Icon with Badge -->
+        <% if (user) { %>
+          <li class="nav-item d-none d-lg-block">
+            <a href="/calendar/today" class="nav-link position-relative px-3 d-flex align-items-center">
+              <i class="bi bi-calendar-event-fill fs-5 text-warning"></i>
+              <% if (typeof eventCount !== 'undefined' && eventCount > 0) { %>
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                  <%= eventCount %>
+                  <span class="visually-hidden">unread events</span>
+                </span>
+              <% } %>
+            </a>
+          </li>
+        <% } %>
+
         <!-- Public Links -->
         <li class="nav-item"><a class="nav-link" href="/explore">📂 Explore BYS</a></li>
         <li class="nav-item"><a class="nav-link" href="/events">🎆 Events</a></li>
         <%- include('sharpMind') %>
+
         <% if (user) { %>
           <% if (user.roles.includes('Saadhak') || user.roles.includes('Shikshak') || user.roles.includes('Karyakarta') || user.roles.includes('Kender Pramukh') || user.roles.includes('Seh Kender Pramukh')) { %>
             <li class="nav-item"><a class="nav-link" href="/yog-samagri/report">🛍️ Yog Samagri</a></li>
-           
           <% } %>
         <% } else { %>
           <li class="nav-item"><a class="nav-link" href="/yog-samagri/report">🛍️ Yog Samagri</a></li>
-          
         <% } %>
-
-        
 
         <% if (user) { %>
           <% if (user.roles.includes('Admin')) { %>

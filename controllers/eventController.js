@@ -1,5 +1,6 @@
 const Event = require('../models/Event');
 const { cloudinary } = require('../utils/cloudinary');
+const Saadhak = require("../models/Saadhak");
 
 exports.getAllEvents = async (req, res) => {
   const events = await Event.find().sort({ date: -1, _id: -1 });
@@ -83,3 +84,4 @@ exports.renderEditForm = async (req, res) => {
     res.status(500).send('Error loading event edit form');
   }
 };
+

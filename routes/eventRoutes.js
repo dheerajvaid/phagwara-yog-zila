@@ -3,6 +3,7 @@
 const express = require("express");
 const router = express.Router();
 const eventController = require("../controllers/eventController");
+const { showEventList } = eventController;
 const { cloudinary, storage } = require("../utils/cloudinary");
 const multer = require("multer");
 const upload = multer({ storage });
@@ -11,6 +12,7 @@ const Event = require("../models/Event");
 const { requireLogin } = require("../middleware/authMiddleware");
 const { canManage } = require("../middleware/roleMiddleware");
 const { adminOnly } = require("../config/roles");
+
 
 // GET all events
 router.get("/", async (req, res) => {

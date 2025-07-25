@@ -1,0 +1,133 @@
+<%- include("../partials/header") %>
+<%- include("../partials/navbar") %>
+
+<style>
+  .event-card {
+    transition: all 0.3s ease-in-out;
+    cursor: pointer;
+    border-left: 6px solid transparent;
+  }
+
+  .event-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .event-card.today {
+    border-left-color: #28a745;
+    background-color: #f9fff9;
+  }
+
+  .event-card.upcoming {
+    border-left-color: #007bff;
+    background-color: #f8faff;
+  }
+
+  .event-type {
+    font-weight: 500;
+    font-size: 14px;
+  }
+
+  .event-date {
+    font-size: 14px;
+    color: #6c757d;
+  }
+
+  .event-header-icon {
+    font-size: 1.5rem;
+  }
+
+  .section-heading {
+    border-bottom: 2px solid #dee2e6;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+  }
+
+  @media print {
+    .event-card {
+      page-break-inside: avoid;
+    }
+  }
+</style>
+
+<div class="container mt-4">
+  <!-- Today's Events -->
+  <div class="section-heading text-center">
+    <h2 class="text-success fw-bold">🎉 Today’s Events</h2>
+  </div>
+
+  <% if (todayEvents.length === 0) { %>
+    <p class="text-center text-muted">No events today.</p>
+  <% } %>
+
+  <div class="row">
+    <% todayEvents.forEach(e => { %>
+      <div class="col-md-4 mb-4">
+        <div class="card event-card today h-100" onclick="window.location.href='/saadhak/view/<%= e.saadhak._id %>'">
+          <div class="card-body">
+            <h5 class="card-title text-dark fw-semibold">
+              <i class="bi bi-person-circle me-2 text-success event-header-icon"></i>
+              <%= e.saadhak.name %>
+            </h5>
+            <p class="mb-1"><strong>📱</strong> <%= e.saadhak.mobile %></p>
+            <% if (e.saadhak.kender) { %>
+              <p class="mb-1"><strong>Kender:</strong> <%= e.saadhak.kender.name %></p>
+            <% } %>
+            <% if (e.saadhak.ksheter) { %>
+              <p class="mb-1"><strong>Ksheter:</strong> <%= e.saadhak.ksheter.name %></p>
+            <% } %>
+            <% if (e.saadhak.zila) { %>
+              <p class="mb-1"><strong>Zila:</strong> <%= e.saadhak.zila.name %></p>
+            <% } %>
+            <p class="mb-1"><strong>Role:</strong> <%= e.saadhak.role.join(", ") %></p>
+            <div class="d-flex justify-content-between align-items-center mt-3">
+              <span class="event-type text-success"><%= e.type %></span>
+              <span class="event-date"><%= e.date.toDateString() %></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+
+  <!-- Upcoming Events -->
+  <div class="section-heading text-center mt-5">
+    <h3 class="text-primary fw-bold">📅 Upcoming (Next 6 Days)</h3>
+  </div>
+
+  <% if (upcomingEvents.length === 0) { %>
+    <p class="text-center text-muted">No upcoming events.</p>
+  <% } %>
+
+  <div class="row">
+    <% upcomingEvents.forEach(e => { %>
+      <div class="col-md-4 mb-4">
+        <div class="card event-card upcoming h-100" onclick="window.location.href='/saadhak/view/<%= e.saadhak._id %>'">
+          <div class="card-body">
+            <h5 class="card-title text-dark fw-semibold">
+              <i class="bi bi-person-fill me-2 text-primary event-header-icon"></i>
+              <%= e.saadhak.name %>
+            </h5>
+            <p class="mb-1"><strong>📱</strong> <%= e.saadhak.mobile %></p>
+            <% if (e.saadhak.kender) { %>
+              <p class="mb-1"><strong>Kender:</strong> <%= e.saadhak.kender.name %></p>
+            <% } %>
+            <% if (e.saadhak.ksheter) { %>
+              <p class="mb-1"><strong>Ksheter:</strong> <%= e.saadhak.ksheter.name %></p>
+            <% } %>
+            <% if (e.saadhak.zila) { %>
+              <p class="mb-1"><strong>Zila:</strong> <%= e.saadhak.zila.name %></p>
+            <% } %>
+            <p class="mb-1"><strong>Role:</strong> <%= e.saadhak.role.join(", ") %></p>
+            <div class="d-flex justify-content-between align-items-center mt-3">
+              <span class="event-type text-primary"><%= e.type %></span>
+              <span class="event-date"><%= e.date.toDateString() %></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+</div>
+
+<%- include("../partials/footer") %>
