@@ -7,35 +7,45 @@ exports.setEventCount = async (req, res, next) => {
       return next();
     }
 
-    const today = new Date();
-    const day = today.getDate();
-    const month = today.getMonth() + 1;
+    // Convert to IST
+    const now = new Date();
+    const istOffsetMs = 5.5 * 60 * 60 * 1000;
+    const istDate = new Date(now.getTime() + istOffsetMs);
+    const day = istDate.getDate();
+    const month = istDate.getMonth() + 1;
 
-    const query = {
+    // Fetch only those Saadhaks with dob or marriageDate
+    const saadhaks = await Saadhak.find({
       $or: [
-        {
-          dob: { $ne: null },
-          $expr: {
-            $and: [
-              { $eq: [{ $dayOfMonth: "$dob" }, day] },
-              { $eq: [{ $month: "$dob" }, month] }
-            ]
-          }
-        },
-        {
-          marriageDate: { $ne: null },
-          $expr: {
-            $and: [
-              { $eq: [{ $dayOfMonth: "$marriageDate" }, day] },
-              { $eq: [{ $month: "$marriageDate" }, month] }
-            ]
-          }
-        }
+        { dob: { $ne: null } },
+        { marriageDate: { $ne: null } }
       ]
-    };
+    }).select("dob marriageDate maritalStatus");
 
-    const count = await Saadhak.countDocuments(query);
-    res.locals.eventCount = count;
+    let eventCount = 0;
+
+    for (const saadhak of saadhaks) {
+      // Check birthday
+      if (
+        saadhak.dob &&
+        saadhak.dob.getDate() === day &&
+        saadhak.dob.getMonth() + 1 === month
+      ) {
+        eventCount++;
+      }
+
+      // Check marriage anniversary only if married
+      if (
+        saadhak.maritalStatus === "Married" &&
+        saadhak.marriageDate &&
+        saadhak.marriageDate.getDate() === day &&
+        saadhak.marriageDate.getMonth() + 1 === month
+      ) {
+        eventCount++;
+      }
+    }
+
+    res.locals.eventCount = eventCount;
     next();
   } catch (err) {
     console.error("Event Count Middleware Error:", err);

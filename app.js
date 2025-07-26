@@ -32,7 +32,7 @@ const subscriptionRoutes = require('./routes/subscriptionRoutes');
 const quizRoutes = require('./routes/quiz');
 const qubikRoute = require("./routes/qubik");
 const calendarRoutes = require("./routes/calendarRoutes");
-
+const greetingRoutes = require('./routes/greetingRoutes');
 const { assignRoleLevel } = require('./middleware/roleMiddleware');
 const injectScopeData = require('./middleware/scopeData');
 const { setEventCount } = require("./middleware/eventNotifier");
@@ -107,6 +107,7 @@ app.use("/stories", storyRoutes);
 app.use("/shivirreg", shivirRegRoutes);
 app.use("/events", eventRoutes);
 app.use("/calendar", calendarRoutes);
+app.use('/greeting', greetingRoutes);
 app.use('/api/events', require('./routes/api/events'));
 app.use('/question', questionRoutes);
 app.use('/subscription', subscriptionRoutes);

@@ -1,12 +1,29 @@
 const Saadhak = require("../models/Saadhak");
+const cleanupOldGreetings = require('../utils/cleanupOldGreetings');
 
 exports.viewUpcomingEvents = async (req, res) => {
+  try {
+    // Clean up old greetings
+    cleanupOldGreetings(); // no await since it's async with callbacks
+  } catch (cleanupErr) {
+    console.error("Cleanup failed:", cleanupErr);
+  }
+
   try {
     const allSaadhaks = await Saadhak.find()
       .populate("kender ksheter zila")
       .lean();
 
-    const today = new Date();
+    // Adjust to IST
+    const now = new Date();
+    const istOffset = 5.5 * 60 * 60 * 1000; // +5:30 in ms
+    const todayIST = new Date(now.getTime() + istOffset);
+
+    const today = new Date(
+      todayIST.getFullYear(),
+      todayIST.getMonth(),
+      todayIST.getDate()
+    );
     const todayDay = today.getDate();
     const todayMonth = today.getMonth(); // 0-indexed
 
@@ -21,7 +38,6 @@ exports.viewUpcomingEvents = async (req, res) => {
         const bMonth = dob.getMonth();
 
         const birthdayThisYear = new Date(today.getFullYear(), bMonth, bDay);
-
         const dayDiff = Math.floor((birthdayThisYear - today) / (1000 * 60 * 60 * 24));
 
         if (bDay === todayDay && bMonth === todayMonth) {
@@ -38,7 +54,6 @@ exports.viewUpcomingEvents = async (req, res) => {
         const mMonth = mDate.getMonth();
 
         const anniversaryThisYear = new Date(today.getFullYear(), mMonth, mDay);
-
         const dayDiff = Math.floor((anniversaryThisYear - today) / (1000 * 60 * 60 * 24));
 
         if (mDay === todayDay && mMonth === todayMonth) {
@@ -59,3 +74,4 @@ exports.viewUpcomingEvents = async (req, res) => {
     res.status(500).send("Something went wrong");
   }
 };
+
