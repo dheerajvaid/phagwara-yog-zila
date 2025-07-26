@@ -72,12 +72,12 @@ exports.generateGreeting = async (req, res) => {
     // 🟣 Title
     ctx.fillStyle = "#ff4081";
     ctx.font = "bold 56px Georgia";
-    drawShadowedText(ctx, `🎉 Happy ${capitalize(type)}!`, 50, 90);
+    drawShadowedText(ctx, `  Happy ${capitalize(type)}!`, 50, 90);
 
     // 🔵 Name
     ctx.fillStyle = "#1976d2";
     ctx.font = "bold 70px Verdana";
-    drawShadowedText(ctx, name, 50, 180);
+    drawShadowedText(ctx, (" " + name), 50, 180);
 
     // 🔴 Event Date
     let yStartMessage = 270;
@@ -85,7 +85,7 @@ exports.generateGreeting = async (req, res) => {
       const formattedDate = formatDateReadable(date);
       ctx.fillStyle = "#d32f2f";
       ctx.font = "bold 28px Arial";
-      drawShadowedText(ctx, formattedDate, 55, 225);
+      drawShadowedText(ctx, ("     " + formattedDate), 55, 225);
       yStartMessage = 270;
     }
 
@@ -121,7 +121,7 @@ exports.generateGreeting = async (req, res) => {
     );
 
     // 🟠 From Info
-    const fromText = `From: ${user.name} (${user.roles.join(", ")})`;
+    const fromText = `  From: ${user.name} (${user.roles.join(", ")})`;
     const hierarchyText = [user.kenderName, user.ksheterName, user.zilaName]
       .filter(Boolean)
       .join(", ");
