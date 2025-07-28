@@ -1,58 +1,52 @@
 <%- include('./partials/header') %>
 <%- include('./partials/navbar') %>
 
-<!-- 🌟 Hero Section -->
+<!-- 🌟 Hero Section with Founder Photo -->
 <section
   class="bg-light text-dark py-4"
   style="background: url('/images/hero-yoga.jpg') no-repeat center/cover; min-height: 70vh;"
 >
   <div
     class="container text-center py-5 px-4"
-    style="background: rgba(255, 255, 255, 0.9); border-radius: 1.5rem; max-width: 700px;"
+    style="background: rgba(255, 255, 255, 0.9); border-radius: 1.5rem; max-width: 750px;"
   >
-    <h1 class="display-5 fw-bold mb-3 text-success">
-      🧘‍♂️ Welcome to Bhartiya Yog Sansthan
-    </h1>
-    <p class="lead mb-4 text-dark">
-      Transform your <strong>body, mind & soul</strong> with the power of Yog. <br />
-      Join our community-led movement across <strong>Zilas, Ksheter</strong> and <strong>4500+ Kendras</strong>.
-    </p>
+    <!-- 🧘‍♂️ Logo & Founder Row -->
+    <div class="d-flex align-items-center justify-content-center gap-3 flex-wrap mb-3">
+      <img
+        src="/images/logo-nbg.png"
+        alt="BYS Logo"
+        style="height: 48px; width: auto;"
+        class="img-fluid"
+      />
+      
+      <h1 class="h4 h-sm-3 fw-bold text-success mb-0">
+        Bhartiya Yog Sansthan
+      </h1>
 
-    <!-- ✨ CTA Buttons (fully responsive) -->
+      <img
+        src="/images/founder.jpg"
+        alt="Founder"
+        style="height: 48px; width: auto; border-radius: 50%; border: 2px solid #198754;"
+        class="img-fluid"
+      />
+    </div>
+
+    <!-- 🕊️ Hindi Slogans -->
+    <p class="lead text-dark mb-1 fw-semibold">"जियो और जीवन दो"</p>
+    <p class="text-muted fst-italic mb-3">योग एक साधना है, इसे अपनाएं और फैलाएं।</p>
+
+    <!-- CTA Buttons -->
     <div class="d-grid gap-3 d-sm-flex justify-content-sm-center flex-wrap">
-
-     
-  <!-- <form method="POST" action="/subscription/push" onsubmit="return confirm('Push all Saadhaks to Yog Manzri for this year?')">
-    <button class="btn btn-sm btn-outline-success ms-2">Push YogManzri</button>
-  </form> -->
-
-      <!-- Add this Stories button -->
-        <a href="/events" class="btn btn-outline-success btn-lg px-4 shadow">
-        📚 Events & News
-      </a>
-      <a href="/stories" class="btn btn-outline-success btn-lg px-4 shadow">
-        📚 कहानियाँ
-      </a>
-      <a href="/yog-samagri/report" class="btn btn-success btn-lg px-4 shadow">
-        🛍️ Yog Samagri
-      </a>
-      <a href="/shivir/register" class="btn btn-warning btn-lg px-4 shadow">
-        📅 Shivir Registration
-      </a>
-      <a href="/shivir/attendance/report" class="btn btn-info btn-lg px-4 shadow text-white">
-        📋 Shivir Attendance
-      </a>
-      <a href="/explore" class="btn btn-outline-primary btn-lg px-4 shadow">
-        🌐 Explore BYS
-      </a>
+      <a href="/events" class="btn btn-outline-success btn-lg px-4 shadow">📚 Events & News</a>
+      <a href="/stories" class="btn btn-outline-success btn-lg px-4 shadow">📚 कहानियाँ</a>
+      <a href="/yog-samagri/report" class="btn btn-success btn-lg px-4 shadow">🛍️ Yog Samagri</a>
+      <a href="/shivir/register" class="btn btn-warning btn-lg px-4 shadow">📅 Shivir Registration</a>
+      <a href="/shivir/attendance/report" class="btn btn-info btn-lg px-4 shadow text-white">📋 Shivir Attendance</a>
+      <a href="/explore" class="btn btn-outline-primary btn-lg px-4 shadow">🌐 Explore BYS</a>
       <% if (user) { %>
-        <a href="/auth/logout" class="btn btn-outline-danger btn-lg px-4 shadow">
-          🔒 Logout
-        </a>
+        <a href="/auth/logout" class="btn btn-outline-danger btn-lg px-4 shadow">🔒 Logout</a>
       <% } else { %>
-        <a href="/auth/login" class="btn btn-outline-dark btn-lg px-4 shadow">
-          🔑 Login
-        </a>
+        <a href="/auth/login" class="btn btn-outline-dark btn-lg px-4 shadow">🔑 Login</a>
       <% } %>
     </div>
   </div>

@@ -1,5 +1,5 @@
 const Saadhak = require("../models/Saadhak");
-const cleanupOldGreetings = require('../utils/cleanupOldGreetings');
+const cleanupOldGreetings = require("../utils/cleanupOldGreetings");
 
 exports.viewUpcomingEvents = async (req, res) => {
   try {
@@ -10,7 +10,19 @@ exports.viewUpcomingEvents = async (req, res) => {
   }
 
   try {
-    const allSaadhaks = await Saadhak.find()
+    const user = req.session.user;
+    let saadhakQuery = {};
+
+    if (!user.roles.includes("Admin")) {
+      if (user.zila) {
+        saadhakQuery.zila = user.zila;
+      } else {
+        // if user has no zila (edge case), show nothing
+        saadhakQuery = { _id: null };
+      }
+    }
+
+    const allSaadhaks = await Saadhak.find(saadhakQuery)
       .populate("kender ksheter zila")
       .lean();
 
@@ -38,12 +50,22 @@ exports.viewUpcomingEvents = async (req, res) => {
         const bMonth = dob.getMonth();
 
         const birthdayThisYear = new Date(today.getFullYear(), bMonth, bDay);
-        const dayDiff = Math.floor((birthdayThisYear - today) / (1000 * 60 * 60 * 24));
+        const dayDiff = Math.floor(
+          (birthdayThisYear - today) / (1000 * 60 * 60 * 24)
+        );
 
         if (bDay === todayDay && bMonth === todayMonth) {
-          todayEvents.push({ saadhak: s, type: "🎂 Birthday", date: birthdayThisYear });
+          todayEvents.push({
+            saadhak: s,
+            type: "🎂 Birthday",
+            date: birthdayThisYear,
+          });
         } else if (dayDiff > 0 && dayDiff <= 6) {
-          upcomingEvents.push({ saadhak: s, type: "🎂 Birthday", date: birthdayThisYear });
+          upcomingEvents.push({
+            saadhak: s,
+            type: "🎂 Birthday",
+            date: birthdayThisYear,
+          });
         }
       }
 
@@ -54,12 +76,22 @@ exports.viewUpcomingEvents = async (req, res) => {
         const mMonth = mDate.getMonth();
 
         const anniversaryThisYear = new Date(today.getFullYear(), mMonth, mDay);
-        const dayDiff = Math.floor((anniversaryThisYear - today) / (1000 * 60 * 60 * 24));
+        const dayDiff = Math.floor(
+          (anniversaryThisYear - today) / (1000 * 60 * 60 * 24)
+        );
 
         if (mDay === todayDay && mMonth === todayMonth) {
-          todayEvents.push({ saadhak: s, type: "💍 Anniversary", date: anniversaryThisYear });
+          todayEvents.push({
+            saadhak: s,
+            type: "💍 Anniversary",
+            date: anniversaryThisYear,
+          });
         } else if (dayDiff > 0 && dayDiff <= 6) {
-          upcomingEvents.push({ saadhak: s, type: "💍 Anniversary", date: anniversaryThisYear });
+          upcomingEvents.push({
+            saadhak: s,
+            type: "💍 Anniversary",
+            date: anniversaryThisYear,
+          });
         }
       }
     }
@@ -74,4 +106,3 @@ exports.viewUpcomingEvents = async (req, res) => {
     res.status(500).send("Something went wrong");
   }
 };
-

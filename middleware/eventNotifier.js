@@ -7,6 +7,9 @@ exports.setEventCount = async (req, res, next) => {
       return next();
     }
 
+    const user = req.session.user;
+    const isAdmin = user.roles.includes("Admin");
+
     // Convert to IST
     const now = new Date();
     const istOffsetMs = 5.5 * 60 * 60 * 1000;
@@ -14,18 +17,25 @@ exports.setEventCount = async (req, res, next) => {
     const day = istDate.getDate();
     const month = istDate.getMonth() + 1;
 
-    // Fetch only those Saadhaks with dob or marriageDate
-    const saadhaks = await Saadhak.find({
+    // 🔍 Query conditions
+    const query = {
       $or: [
         { dob: { $ne: null } },
         { marriageDate: { $ne: null } }
       ]
-    }).select("dob marriageDate maritalStatus");
+    };
+
+    // 🧠 If not admin, filter by user's zila
+    if (!isAdmin) {
+      query.zila = user.zila;
+    }
+
+    const saadhaks = await Saadhak.find(query).select("dob marriageDate maritalStatus");
 
     let eventCount = 0;
 
     for (const saadhak of saadhaks) {
-      // Check birthday
+      // Birthday check
       if (
         saadhak.dob &&
         saadhak.dob.getDate() === day &&
@@ -34,7 +44,7 @@ exports.setEventCount = async (req, res, next) => {
         eventCount++;
       }
 
-      // Check marriage anniversary only if married
+      // Anniversary check if married
       if (
         saadhak.maritalStatus === "Married" &&
         saadhak.marriageDate &&

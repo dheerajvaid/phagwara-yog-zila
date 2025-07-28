@@ -83,8 +83,10 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark navbar-gradient sticky-top shadow-sm">
   <div class="container-fluid">
-    <a class="navbar-brand fw-bold" href="/">🧘‍♂️ HOME</a>
-
+   <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="/">
+    <img src="/images/logo-nbg.png" alt="BYS Logo" style="height: 28px; width: auto;" />
+    HOME
+  </a>
     <% if (user) { %>
       <!-- 📅 Mobile Top-Right Badge -->
       <a href="/calendar/today" class="calendar-icon-mobile d-lg-none text-decoration-none text-warning">
