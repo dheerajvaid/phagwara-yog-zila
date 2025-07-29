@@ -378,6 +378,7 @@ exports.viewTodayAttendance = async (req, res) => {
           ? "No attendance marked for selected date"
           : "",
       kenderName: kender.name,
+      kenderAddress: kender.address,
       kenderPramukh: kenderPramukh || {},
       sehKenderPramukh: sehKenderPramukh || {},
       ksheterPradhan: ksheterPradhan || {},

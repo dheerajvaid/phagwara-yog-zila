@@ -21,18 +21,26 @@
   </div>
 
   <!-- Export Area -->
-  <div id="attendanceExportWrapper" class="p-3 bg-white border rounded shadow-sm page-border" style="max-width: 1000px; margin: auto; line-height: 1.3;">
+  <div id="attendanceExportWrapper" class="pt-1 px-3 pb-3 bg-white border rounded shadow-sm page-border" style="max-width: 1000px; margin: auto; line-height: 1.1;">
+
+     <!-- Motivational Message -->
+    
+      <p class="fst-italic text-center mt-0 mb-1 fw-semibold text-danger small"><%= randomMessage %></p>
     
     <!-- Main Header Info Table -->
     <table class="table table-bordered table-sm text-center mb-3" style="font-size: 0.85rem; margin: auto; width: 100%;">
       <thead>
-        <tr class="bg-danger text-white">
-          <th colspan="3" class="fs-6 text-white">BHARTIYA YOG SANSTHAN (R)</th>
-        </tr>
-        <tr class="bg-danger text-white">
-          <th colspan="3" class="fs-6 text-white"><%= (kenderName + " - Yog Sadhna Kender") || 'Your Kender Name' %></th>
-        </tr>
-      </thead>
+  <tr class="bg-danger text-white"> 
+    <th colspan="3" class="fs-6 text-white">BHARTIYA YOG SANSTHAN (R)</th>
+  </tr>
+  <tr class="bg-danger text-white">
+    <th colspan="3" class="fs-6 text-white">
+      <%= (kenderName + " - Yog Sadhna Kender") || 'Your Kender Name' %><br>
+      <%= kenderAddress || '' %>
+    </th>
+  </tr>
+</thead>
+
       <tbody>
         <% if (startTime) { %>
           <tr class="bg-warning-subtle">
@@ -152,11 +160,7 @@
       </tbody>
     </table>
 
-    <!-- Motivational Message -->
-    <div class="text-center mt-2">
-      <hr />
-      <p class="fst-italic mt-1 mb-1 fw-semibold text-danger"><%= randomMessage %></p>
-    </div>
+   
   </div>
 </section>
 

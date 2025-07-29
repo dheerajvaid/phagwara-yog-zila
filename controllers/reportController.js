@@ -75,42 +75,56 @@ exports.teamSummary = async (req, res) => {
   });
 };
 
+const normalizeScopeValue = (value) => {
+  if (!value) return "";
+  if (Array.isArray(value)) return value[0] || "";
+  return String(value);
+};
+
 exports.attendanceSummary = async (req, res) => {
   const user = req.session.user;
-  const dateStr = req.query.date || new Date().toISOString().split("T")[0]; // default today
+  const dateStr = req.query.date || new Date().toISOString().split("T")[0];
   const date = new Date(dateStr);
   const nextDate = new Date(date);
-  const slogans = require('../data/slogans.json'); // adjust path as needed
-  const randomMessage = slogans[Math.floor(Math.random() * slogans.length)];
-
   nextDate.setDate(date.getDate() + 1);
 
-  // console.log(user);
+  const slogans = require("../data/slogans.json");
+  const randomMessage = slogans[Math.floor(Math.random() * slogans.length)];
+
+  const Attendance = require("../models/Attendance");
+  const Kender = require("../models/Kender");
+
+  const zilaParam = normalizeScopeValue(req.query.zila).trim();
+  const ksheterParam = normalizeScopeValue(req.query.ksheter).trim();
+  const kenderParam = normalizeScopeValue(req.query.kender).trim();
 
   let attendanceQuery = {
     date: { $gte: date, $lt: nextDate },
     status: "Present",
   };
 
-  // Role-based correction: prioritize higher role over stored data
-  if (user.roles && user.roles.some((r) => r.includes("Ksheter"))) {
-    user.kender = null; // Treat Ksheter-level users as Ksheter, not Kender.
-  }
-  if (user.roles && user.roles.some((r) => r.includes("Zila"))) {
-    user.kender = null;
-    user.ksheter = null; // Treat Zila-level users as Zila, ignore lower-level assignments.
-  }
-
-  if (user.kender) {
-    attendanceQuery.kender = user.kender;
-  } else if (user.zila || user.ksheter) {
+  // User-specified filter logic (has higher priority)
+  if (kenderParam) {
+    attendanceQuery.kender = kenderParam;
+  } else if (ksheterParam || zilaParam) {
     const kenderFilter = {};
-    if (user.zila) kenderFilter.zila = user.zila;
-    if (user.ksheter) kenderFilter.ksheter = user.ksheter;
+    if (zilaParam) kenderFilter.zila = zilaParam;
+    if (ksheterParam) kenderFilter.ksheter = ksheterParam;
 
     const relevantKenders = await Kender.find(kenderFilter).select("_id");
-    const kenderIds = relevantKenders.map((k) => k._id);
-    attendanceQuery.kender = { $in: kenderIds };
+    attendanceQuery.kender = { $in: relevantKenders.map((k) => k._id) };
+  } else {
+    // Role-based fallback (if no dropdown filter was selected)
+    if (user.kender) {
+      attendanceQuery.kender = user.kender;
+    } else if (user.zila || user.ksheter) {
+      const kenderFilter = {};
+      if (user.zila) kenderFilter.zila = user.zila;
+      if (user.ksheter) kenderFilter.ksheter = user.ksheter;
+
+      const relevantKenders = await Kender.find(kenderFilter).select("_id");
+      attendanceQuery.kender = { $in: relevantKenders.map((k) => k._id) };
+    }
   }
 
   const attendance = await Attendance.find(attendanceQuery)
@@ -134,7 +148,6 @@ exports.attendanceSummary = async (req, res) => {
   attendance.forEach((a) => {
     const saadhak = a.saadhak;
     const kender = a.kender;
-
     if (!saadhak || !kender || !kender.zila || !kender.ksheter) return;
 
     const zilaName = kender.zila.name;
@@ -156,13 +169,20 @@ exports.attendanceSummary = async (req, res) => {
     zilaTotals[zilaName]++;
   });
 
+  // Include all kendras to show "unmarked"
   const allKenders = await Kender.find(
-    user.kender
-      ? { _id: user.kender }
-      : {
-          ...(user.zila ? { zila: user.zila } : {}),
-          ...(user.ksheter ? { ksheter: user.ksheter } : {}),
-        }
+    kenderParam
+      ? { _id: kenderParam }
+      : ksheterParam
+        ? { ksheter: ksheterParam }
+        : zilaParam
+          ? { zila: zilaParam }
+          : user.kender
+            ? { _id: user.kender }
+            : {
+                ...(user.zila ? { zila: user.zila } : {}),
+                ...(user.ksheter ? { ksheter: user.ksheter } : {}),
+              }
   )
     .populate("zila", "name")
     .populate("ksheter", "name");
@@ -182,32 +202,27 @@ exports.attendanceSummary = async (req, res) => {
     }
   });
 
-  // 🆕 SORTING before rendering
+  // Sort final summary
   const sortedSummary = {};
-
   Object.keys(summary)
     .sort()
     .forEach((zilaName) => {
       sortedSummary[zilaName] = {};
       const ksheterNames = Object.keys(summary[zilaName]).sort();
-
       ksheterNames.forEach((ksheterName) => {
         const kenderEntries = Object.entries(summary[zilaName][ksheterName]);
         const sortedKenderEntries = kenderEntries.sort((a, b) =>
           a[0].localeCompare(b[0])
         );
-
         sortedSummary[zilaName][ksheterName] = {};
         sortedKenderEntries.forEach(([kenderName, value]) => {
           sortedSummary[zilaName][ksheterName][kenderName] = value;
         });
       });
     });
-  
-  
 
   res.render("report/attendanceSummary", {
-    summary: sortedSummary, // 👈 Use sorted summary
+    summary: sortedSummary,
     ksheterTotals,
     zilaTotals,
     selectedDate: dateStr,
@@ -216,3 +231,30 @@ exports.attendanceSummary = async (req, res) => {
     user,
   });
 };
+
+
+exports.attendanceFilterPage = async (req, res) => {
+  try {
+    const user = req.session.user;
+
+    let zilas = [];
+
+    if (user.roles.includes("Admin")) {
+      // Admin can view all Zilas
+      zilas = await Zila.find().sort({ name: 1 });
+    } else {
+      // Others can only see their associated Zila
+      zilas = await Zila.find({ _id: user.zila });
+    }
+
+    res.render("report/attendanceFilter", {
+      user,
+      zilas, // Will be 1 zila or all based on role
+    });
+
+  } catch (err) {
+    console.error("Error loading attendance filter form:", err);
+    res.status(500).send("Server Error");
+  }
+};
+

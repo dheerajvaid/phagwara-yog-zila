@@ -89,7 +89,11 @@
                   Kender Total
                 <% } %>
                 </td>
-              <td class="text-white"><%= ksheterTotals[zila][ksheter] %></td>
+              <td class="text-white">
+                <%= ksheterTotals[zila] && ksheterTotals[zila][ksheter] !== undefined 
+                    ? ksheterTotals[zila][ksheter] 
+                    : 0 %>
+              </td>
             </tr>
 
             <% if (isLast) { %>
@@ -107,7 +111,12 @@
                   Kender Total
                 <% } %>
                 </td>
-              <td class="text-white"><%= zilaTotals[zila] %></td>
+              <td class="text-white">
+                <%= zilaTotals[zila] !== undefined 
+                    ? zilaTotals[zila] 
+                    : 0 %>
+              </td>
+
             </tr>
           <% } %>
           </tbody>

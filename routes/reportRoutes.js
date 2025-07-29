@@ -5,6 +5,10 @@ const { requireLogin } = require('../middleware/authMiddleware');
 
 router.get('/summary', requireLogin, reportController.teamSummary);
 
-router.get('/attendance-summary', reportController.attendanceSummary);
+// 🔹 Filter form page
+router.get('/attendance-filter', requireLogin, reportController.attendanceFilterPage);
+
+// 🔹 Summary result page (after filter)
+router.get('/attendance-summary', requireLogin, reportController.attendanceSummary);
 
 module.exports = router;
