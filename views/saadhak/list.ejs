@@ -1,17 +1,17 @@
 <%- include('../partials/header') %>
 <%- include('../partials/navbar') %>
-  
 
 <section class="container mt-4">
+  <!-- Header Row -->
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="fw-bold text-primary">👥 All Saadhaks</h4>
     <a href="/saadhak/add" class="btn btn-sm btn-success">➕ Add Saadhak</a>
   </div>
 
-  <!-- 🔍 Filter + Search -->
-  <div class="row mb-3 gy-3">
+  <!-- Filters and Search -->
+  <div class="row gy-3 mb-3">
     <div class="col-md-3">
-     
+      <label class="form-label">Zila</label>
       <select id="zilaFilter" class="form-select">
         <option value="">Select Zila</option>
         <% zilas.forEach(z => { %>
@@ -20,59 +20,56 @@
       </select>
     </div>
     <div class="col-md-3">
-      
+      <label class="form-label">Ksheter</label>
       <select id="ksheterFilter" class="form-select">
         <option value="">Select Ksheter</option>
       </select>
     </div>
     <div class="col-md-3">
-    
+      <label class="form-label">Kender</label>
       <select id="kenderFilter" class="form-select">
         <option value="">Select Kender</option>
       </select>
     </div>
     <div class="col-md-3">
-  <label>Search (Anyhing)</label>
-  <div class="input-group">
-    <input type="text" id="searchInput" class="form-control" placeholder="Type Name, Mobile, Role, Kender etc.">
-    <button id="searchBtn" class="btn btn-outline-primary">🔍 Search</button>
+      <label class="form-label">Search (Any field)</label>
+      <div class="input-group">
+        <input type="text" id="searchInput" class="form-control" placeholder="Name, Mobile, Role, etc.">
+        <button id="searchBtn" class="btn btn-outline-primary">🔍 Search</button>
+      </div>
+    </div>
   </div>
-</div>
 
-  <!-- ✅ Column Selection -->
-  <div class="mb-3">
+  <!-- Actions -->
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
     <button id="resetBtn" class="btn btn-sm btn-outline-secondary">🔄 Reset</button>
-  </div>
-
-  <div class="mb-2 text-end">
     <button id="exportCsvBtn" class="btn btn-sm btn-outline-success">📥 Export to CSV</button>
   </div>
 
-  
-  <!-- ✅ Table -->
-  
+  <!-- Data Table -->
   <div class="table-responsive">
     <table class="table table-bordered align-middle">
       <thead class="table-dark">
         <tr>
-          <th>#</th>
-          <th>Name</th>
-          <th class="mobile-col">Mobile</th>
-          <th class="role-col">Role</th>          
+          <th style="white-space: nowrap; width: 1%;">#</th>
+          <th>Details</th>
+         
         </tr>
       </thead>
       <tbody id="saadhakTableBody"></tbody>
     </table>
   </div>
-
 </section>
 
+<!-- Script -->
 <script>
   const allSaadhaks = <%- JSON.stringify(saadhaks) %>;
   const allKsheters = <%- JSON.stringify(ksheters) %>;
   const allKenders = <%- JSON.stringify(kenders) %>;
   const user = <%- JSON.stringify(user) %>;
   let currentFilteredSaadhaks = [];
+  let currentPage = 1;
+  const pageSize = 50;
 
   document.addEventListener("DOMContentLoaded", function () {
     const zilaFilter = document.getElementById("zilaFilter");
@@ -81,9 +78,7 @@
     const resetBtn = document.getElementById("resetBtn");
     const tableBody = document.getElementById("saadhakTableBody");
     const searchBtn = document.getElementById("searchBtn");
-    
-    
-     // Populate dependent dropdowns
+
     function populateKsheter(zilaId) {
       ksheterFilter.innerHTML = '<option value="">All Ksheter</option>';
       const filtered = allKsheters.filter(k => k.zila === zilaId);
@@ -100,7 +95,7 @@
       });
     }
 
-    // Apply role-based restrictions on filters
+    // Role-based filters
     if (user.zila) {
       zilaFilter.value = user.zila;
       zilaFilter.disabled = true;
@@ -119,7 +114,6 @@
     }
 
     function renderTable() {
-      
       const selectedZila = zilaFilter.value;
       const selectedKsheter = ksheterFilter.value;
       const selectedKender = kenderFilter.value;
@@ -129,7 +123,6 @@
         const matchZila = !selectedZila || (s.zila && s.zila._id === selectedZila);
         const matchKsheter = !selectedKsheter || (s.ksheter && s.ksheter._id === selectedKsheter);
         const matchKender = !selectedKender || (s.kender && s.kender._id === selectedKender);
-
         const inSearch =
           s.name?.toLowerCase().includes(searchTerm) ||
           s.mobile?.includes(searchTerm) ||
@@ -137,159 +130,233 @@
           s.zila?.name?.toLowerCase().includes(searchTerm) ||
           s.ksheter?.name?.toLowerCase().includes(searchTerm) ||
           s.kender?.name?.toLowerCase().includes(searchTerm);
-
         return matchZila && matchKsheter && matchKender && inSearch;
       });
 
+      currentFilteredSaadhaks = filtered;
+      const totalPages = Math.ceil(filtered.length / pageSize);
+      if (currentPage > totalPages) currentPage = 1;
+
+      const start = (currentPage - 1) * pageSize;
+      const paginated = filtered.slice(start, start + pageSize);
       tableBody.innerHTML = "";
 
-      if (filtered.length === 0) {
+      if (paginated.length === 0) {
         tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No matching records found.</td></tr>';
+        document.getElementById("pagination")?.remove();
         return;
       }
 
-      filtered.forEach((s, index) => {
-        const badgeColor = s.role?.includes('Admin') ? 'dark' :
-                          s.role?.some(r => r.includes('Zila')) ? 'danger' :
-                          s.role?.some(r => r.includes('Ksheter')) ? 'primary' :
-                          s.role?.some(r => r.includes('Kender')) ? 'success' :
-                          s.role?.includes('Shikshak') ? 'info' :
-                          s.role?.includes('Karyakarta') ? 'warning' : 'secondary';
+      paginated.forEach((s, index) => {
+        // Determine badge color logic based on first role (if any)
+        const primaryRole = Array.isArray(s.role) ? s.role[0] : null;
 
-        const rolesHtml = Array.isArray(s.role)
-          ? s.role.map(r => `<span class="badge bg-${badgeColor} me-1">${r}</span>`).join(' ')
-          : '';
+        const badgeColor = primaryRole?.includes('Admin') ? 'dark' :
+          primaryRole?.includes('Zila') ? 'danger' :
+          primaryRole?.includes('Ksheter') ? 'primary' :
+          primaryRole?.includes('Kender') ? 'success' :
+          primaryRole?.includes('Shikshak') ? 'info' :
+          primaryRole?.includes('Karyakarta') ? 'warning' : 'secondary';
 
-        tableBody.innerHTML += `
-          <tr>
-            <td>${index + 1}</td>
-            <td><a href="/saadhak/edit/${s._id}" class="text-decoration-none fw-bold">${s.name}</a><br>
-            <small class="text-muted d-block">${s.zila?.name || '—'}</small>
-            <small class="text-muted d-block">${s.ksheter?.name || '—'}</small>
-            <small class="text-muted d-block">${s.kender?.name || '—'}</small></td>
-            <td class="mobile-col">${s.mobile || ''}</td>
-            <td class="role-col text-center">
-  ${rolesHtml}
-  <div class="mt-1 d-flex justify-content-center gap-1">
-    <a href="/saadhak/edit/${s._id}" class="btn btn-sm btn-outline-primary">🖊️</a>
-    <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal${s._id}">🗑️</button>
-  </div>
+        // Render roles
+        const rolesHtml = Array.isArray(s.role) && s.role.length > 0
+          ? s.role.map(r => `<span class="badge bg-${badgeColor} me-1 mb-1">${r}</span>`).join('')
+          : '<span class="text-muted">—</span>';
 
-  <!-- Delete Modal -->
-  <div class="modal fade" id="deleteModal${s._id}" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header bg-danger text-white">
-          <h5 class="modal-title">Confirm Delete</h5>
-          <button class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">Delete <strong>${s.name}</strong>?</div>
-        <div class="modal-footer">
-          <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-          <a href="/saadhak/delete/${s._id}" class="btn btn-danger btn-sm">Yes, Delete</a>
-        </div>
-      </div>
-    </div>
-  </div>
-</td>
+       tableBody.innerHTML += `
+        <tr>
+          <td>${start + index + 1}</td>
+          <td class="position-relative">
+            <div class="position-absolute top-0 end-0 mt-1 me-1 d-flex gap-1">
+              <a href="/saadhak/edit/${s._id}" class="btn btn-sm btn-outline-primary btn-sm py-0 px-1" title="Edit">🖊️</a>
+              <button class="btn btn-sm btn-outline-danger btn-sm py-0 px-1" data-bs-toggle="modal" data-bs-target="#deleteModal${s._id}" title="Delete">🗑️</button>
+            </div>
 
-          </tr>
-        `;
+           <div class="fw-bold text-primary d-flex align-items-center flex-wrap">
+            <a href="/saadhak/edit/${s._id}" class="text-decoration-none text-primary me-2">${s.name}</a>
+            <span class="d-flex flex-wrap gap-1 me-2">${rolesHtml}</span>
+            <span class="text-dark small">${s.mobile || '—'}</span>
+          </div>
+
+
+            <div class="text-dark small mt-1">
+              ${s.zila?.name || '—'} – ${s.ksheter?.name || '—'} – ${s.kender?.name || '—'}
+            </div>
+
+            <div class="modal fade" id="deleteModal${s._id}" tabindex="-1">
+              <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                  <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">Confirm Delete</h5>
+                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                  </div>
+                  <div class="modal-body">Delete <strong>${s.name}</strong>?</div>
+                  <div class="modal-footer">
+                    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <a href="/saadhak/delete/${s._id}" class="btn btn-danger btn-sm">Yes, Delete</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+      `;
+
+
+      
       });
 
-      currentFilteredSaadhaks = filtered;   
-     
+      renderPagination(filtered.length);
     }
 
-    document.getElementById("exportCsvBtn").addEventListener("click", () => {
-  const headers = ["S.No", "Name", "Mobile", "Zila", "Ksheter", "Kender", "Roles"];
-  const rows = [];
 
-  if (currentFilteredSaadhaks.length === 0) {
-    alert("No filtered data to export. Please perform a search first.");
-    return;
+    function renderPagination(totalItems) {
+  const totalPages = Math.ceil(totalItems / pageSize);
+  document.getElementById("pagination")?.remove();
+  if (totalPages <= 1) return;
+
+  const wrapper = document.createElement("div");
+  wrapper.id = "pagination";
+  wrapper.className = "d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2";
+
+  // Left side: scrollable pagination buttons
+  const buttonGroup = document.createElement("div");
+  buttonGroup.className = "d-flex overflow-auto gap-1 flex-nowrap";
+
+  const createBtn = (label, page, disabled = false, active = false) => {
+    const btn = document.createElement("button");
+    btn.textContent = label;
+    btn.className = `btn btn-sm ${active ? 'btn-primary' : 'btn-outline-primary'}`;
+    if (disabled) btn.disabled = true;
+    btn.addEventListener("click", () => {
+      currentPage = page;
+      renderTable();
+    });
+    return btn;
+  };
+
+  buttonGroup.appendChild(createBtn("⏮️ Prev", currentPage - 1, currentPage === 1));
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === 1 || i === totalPages || Math.abs(i - currentPage) <= 2) {
+      buttonGroup.appendChild(createBtn(i, i, false, i === currentPage));
+    } else if (
+      (i === currentPage - 3 && currentPage > 4) ||
+      (i === currentPage + 3 && currentPage < totalPages - 3)
+    ) {
+      const ellipsis = document.createElement("span");
+      ellipsis.textContent = "...";
+      ellipsis.className = "px-2 text-muted";
+      buttonGroup.appendChild(ellipsis);
+    }
   }
+  buttonGroup.appendChild(createBtn("Next ⏭️", currentPage + 1, currentPage === totalPages));
 
-  currentFilteredSaadhaks.forEach((s, index) => {
-    rows.push([
-      index + 1,
-      s.name || '',
-      s.mobile || '',
-      s.zila?.name || '',
-      s.ksheter?.name || '',
-      s.kender?.name || '',
-      Array.isArray(s.role) ? s.role.join(', ') : ''
-    ]);
+  wrapper.appendChild(buttonGroup);
+
+  // Right side: Go To Page input
+  const gotoWrapper = document.createElement("div");
+  gotoWrapper.className = "d-flex align-items-center gap-1";
+
+  const label = document.createElement("label");
+  label.textContent = "Go to page:";
+  label.className = "small mb-0";
+
+  const input = document.createElement("input");
+  input.type = "number";
+  input.min = 1;
+  input.max = totalPages;
+  input.className = "form-control form-control-sm";
+  input.style.width = "70px";
+
+  const goBtn = document.createElement("button");
+  goBtn.textContent = "Go";
+  goBtn.className = "btn btn-sm btn-outline-secondary";
+
+  goBtn.addEventListener("click", () => {
+    const page = parseInt(input.value);
+    if (!isNaN(page) && page >= 1 && page <= totalPages) {
+      currentPage = page;
+      renderTable();
+    }
   });
 
-  let csvContent = "data:text/csv;charset=utf-8," 
-    + [headers, ...rows].map(e => e.map(v => `"${v}"`).join(",")).join("\n");
+  gotoWrapper.appendChild(label);
+  gotoWrapper.appendChild(input);
+  gotoWrapper.appendChild(goBtn);
 
-  const encodedUri = encodeURI(csvContent);
-  const link = document.createElement("a");
-  link.setAttribute("href", encodedUri);
-  link.setAttribute("download", "saadhaks_filtered.csv");
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  wrapper.appendChild(gotoWrapper);
 
-   // ✅ Hide spinner safely after short delay
-  setTimeout(() => {
-    document.getElementById("loadingSpinner")?.classList.add("d-none");
-  }, 1500);
-});
+  tableBody.parentElement.parentElement.appendChild(wrapper);
+
+}
 
 
 
-    // Live update dropdown changes
+    document.getElementById("exportCsvBtn").addEventListener("click", () => {
+      const filtered = currentFilteredSaadhaks;
+      if (filtered.length === 0) {
+        alert("No matching records to export.");
+        return;
+      }
+
+      const headers = ["S.No", "Name", "Mobile", "Zila", "Ksheter", "Kender", "Roles"];
+      const rows = filtered.map((s, index) => [
+        index + 1,
+        s.name || '',
+        s.mobile || '',
+        s.zila?.name || '',
+        s.ksheter?.name || '',
+        s.kender?.name || '',
+        Array.isArray(s.role) ? s.role.join(', ') : ''
+      ]);
+
+      const csvContent = "data:text/csv;charset=utf-8," +
+        [headers, ...rows].map(e => e.map(v => `"${v}"`).join(",")).join("\n");
+
+      const link = document.createElement("a");
+      link.setAttribute("href", encodeURI(csvContent));
+      link.setAttribute("download", "saadhaks_filtered.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+
     zilaFilter.addEventListener("change", function () {
       populateKsheter(this.value);
       kenderFilter.innerHTML = '<option value="">All Kender</option>';
-     
     });
 
     ksheterFilter.addEventListener("change", function () {
       populateKender(this.value);
-      
     });
 
-    // kenderFilter.addEventListener("change", renderTable);
-    searchBtn?.addEventListener("click", renderTable);
-    // Reset
+    searchBtn?.addEventListener("click", () => {
+      currentPage = 1;
+      renderTable();
+    });
+
     resetBtn?.addEventListener("click", () => {
+      currentPage = 1;
       searchInput.value = "";
 
       if (user.roles.includes("Admin")) {
         zilaFilter.value = "";
         ksheterFilter.innerHTML = '<option value="">Select Ksheter</option>';
         kenderFilter.innerHTML = '<option value="">Select Kender</option>';
-      } else if (user.zila && user.ksheter && user.kender) {
-        zilaFilter.value = user.zila;
+      } else {
+        zilaFilter.value = user.zila || "";
         populateKsheter(user.zila);
-        ksheterFilter.value = user.ksheter;
+        ksheterFilter.value = user.ksheter || "";
         populateKender(user.ksheter);
-        kenderFilter.value = user.kender;
-      } else if (user.zila && user.ksheter) {
-        zilaFilter.value = user.zila;
-        populateKsheter(user.zila);
-        ksheterFilter.value = user.ksheter;
-        kenderFilter.innerHTML = '<option value="">Select Kender</option>';
-      } else if (user.zila) {
-        zilaFilter.value = user.zila;
-        populateKsheter(user.zila);
-        ksheterFilter.value = '';
-        kenderFilter.innerHTML = '<option value="">Select Kender</option>';
+        kenderFilter.value = user.kender || "";
       }
 
-      tableBody.innerHTML ='';
-    });  
-    
-    
-  });
+      tableBody.innerHTML = '';
+      renderTable();
+    });
 
- 
+    renderTable(); // initial render
+  });
 </script>
 
-
-
-<%- include('../partials/footer') %>
+<%- include('../partials/footer') %> 
