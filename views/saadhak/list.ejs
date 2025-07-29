@@ -353,6 +353,12 @@
 
       tableBody.innerHTML = '';
       renderTable();
+
+       // ✅ Hide spinner safely after short delay
+      setTimeout(() => {
+        document.getElementById("loadingSpinner")?.classList.add("d-none");
+      }, 1500);
+
     });
 
     renderTable(); // initial render
