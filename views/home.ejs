@@ -1,37 +1,82 @@
 <%- include('./partials/header') %>
 <%- include('./partials/navbar') %>
 
-<!-- 🔓 Top-left Login/Logout Button -->
-<% if (!user) { %>
-  <div class="position-absolute top-0 start-0 m-3">
-    <a href="/auth/login" class="btn btn-danger text-white fw-semibold shadow-sm px-3 py-2" style="background-color: #d9534f;">
-      🔑 Login
-    </a>
-  </div>
-<% } else { %>
-  <div class="position-absolute top-0 start-0 m-3">
-    <a href="/auth/logout" class="btn btn-outline-danger fw-semibold shadow-sm px-3 py-2">
-      🔒 Logout
-    </a>
-  </div>
-<% } %>
+<style>
+  /* Founder image styles */
+  .founder-img {
+    
+    height: 96px;
+    width: auto;
+    object-fit: contain;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.25);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
 
-<!-- 🌟 Hero Section with Founder Photo -->
-<!-- 🌟 Hero Section with Founder Photo -->
+  .founder-img:hover {
+    transform: scale(1.01) ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.35);
+  }
+
+  /* Stat cards */
+  .stat-card {
+    background: linear-gradient(135deg, #ffffff, #f7f7f7);
+    transition: transform 0.2s ease;
+    border-radius: 0.75rem;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.06);
+    border: 1px solid #dee2e6;
+  }
+
+  .stat-card:hover {
+    transform: scale(1.03);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+  }
+
+  .stat-card h6 {
+    font-size: 0.95rem;
+  }
+
+  .stat-card p {
+    font-size: 1.15rem;
+  }
+
+  /* CTA buttons */
+  .cta-btn {
+    min-width: 200px;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+  }
+
+  .cta-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Section titles */
+  .section-title {
+    font-weight: 700;
+    color: #2c3e50;
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+  }
+</style>
+
+<!-- 🌟 Hero Section with Logo & Founder -->
 <section
   class="bg-light text-dark py-4"
-  style="background: url('/images/hero-yoga.jpg') no-repeat center/cover; min-height: 70vh;"
+  style="background: url('/images/hero-yoga.jpg') no-repeat center/cover; min-height: 80vh;"
 >
   <div
     class="container position-relative text-center py-5 px-4"
-    style="background: rgba(255, 255, 255, 0.9); border-radius: 1.5rem; max-width: 750px;"
+    style="background: rgba(255, 255, 255, 0.92); border-radius: 1.5rem; max-width: 780px;"
   >
-    <!-- 🔓 Login/Logout Button inside container at top-right -->
+    <!-- 🔒 Login Top-Right in Hero -->
     <% if (!user) { %>
       <a
         href="/auth/login"
         class="btn btn-danger text-white fw-semibold shadow-sm position-absolute top-0 end-0 mt-0 me-2"
-        style="background-color: #dc3545; border-radius: 0.5rem;"
+        style="border-radius: 0.5rem;"
       >
         🔑 Login
       </a>
@@ -45,87 +90,131 @@
       </a>
     <% } %>
 
-    <!-- 🧘‍♂️ Logo & Founder Row -->
-    <div class="d-flex align-items-center justify-content-center gap-3 flex-wrap mb-3">
-      <img
-        src="/images/logo-nbg.png"
-        alt="BYS Logo"
-        style="height: 48px; width: auto;"
-        class="img-fluid"
-      />
-
-      <h1 class="h4 h-sm-3 fw-bold text-success mb-0">
-        Bhartiya Yog Sansthan
-      </h1>
-
-      <img
-        src="/images/founder.jpg"
-        alt="Founder"
-        style="height: 48px; width: auto; border-radius: 50%; border: 2px solid #198754;"
-        class="img-fluid"
-      />
+    <!-- 🧘 Logo + Founder Image -->
+    <div class="d-flex align-items-center justify-content-between gap-4 flex-wrap mb-4">
+      <img src="/images/logo-nbg.png" alt="BYS Logo" style="height: 70px;" class="img-fluid" />
+      <img src="/images/founder.jpg" alt="Founder" class="founder-img" />
     </div>
 
-<style>
-  .info-card {
-    background: linear-gradient(145deg, #ffffff, #f0f0f0);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.5);
-    transition: transform 0.2s ease-in-out;
-    border-radius: 0.5rem;
-  }
+    <h1 class="h1 h-sm-3 fw-bold text-success mb-2">भारतीय योग संस्थान</h1>
 
-  .info-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.6);
-  }
+    <!-- 🧾 Mission Quote -->
+    <p class="text-dark fw-semibold mb-1">"जियो और जीवन दो"</p>
+    <p class="text-muted fst-italic mb-4">योग एक साधना है, इसे अपनाएं और फैलाएं।</p>
 
-  .info-card .card-body {
-    padding: 0.5rem 0.4rem;
-  }
-
-  .info-card .card-title {
-    font-size: 0.9rem;
-    margin-bottom: 0.3rem;
-    text-shadow: 0 1px 1px rgba(255,255,255,0.6);
-  }
-
-  .info-card .card-text {
-    font-size: 1rem;
-    font-weight: 600;
-  }
-</style>
-
-<div class="container my-3">
-  <div class="row text-center g-2">
-    <div class="col-3">
-      <div class="card info-card border-success">
-        <div class="card-body">
-          <h6 class="card-title text-success fw-bold">Zilas</h6>
-          <p class="card-text text-dark"><%= totalZilas %></p>
+    <!-- 📊 Stats Section -->
+    <div class="container mb-4">
+      <div class="row g-3 justify-content-center">
+        <div class="col-6 col-sm-3">
+          <div class="card stat-card border-success text-center">
+            <div class="card-body p-2">
+              <h6 class="text-success fw-bold mb-1">Zilas</h6>
+              <p class="m-0"><%= totalZilas %></p>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-sm-3">
+          <div class="card stat-card border-primary text-center">
+            <div class="card-body p-2">
+              <h6 class="text-primary fw-bold mb-1">Ksheter</h6>
+              <p class="m-0"><%= totalKsheter %></p>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-sm-3">
+          <div class="card stat-card border-danger text-center">
+            <div class="card-body p-2">
+              <h6 class="text-danger fw-bold mb-1">Kenders</h6>
+              <p class="m-0"><%= totalKenders %></p>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-sm-3">
+          <div class="card stat-card border-warning text-center">
+            <div class="card-body p-2">
+              <h6 class="text-warning fw-bold mb-1">Saadhaks</h6>
+              <p class="m-0"><%= totalSaadhaks %></p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-    <div class="col-3">
-      <div class="card info-card border-primary">
-        <div class="card-body">
-          <h6 class="card-title text-primary fw-bold">Ksheter</h6>
-          <p class="card-text text-dark"><%= totalKsheter %></p>
-        </div>
-      </div>
-    </div>
-    <div class="col-3">
-      <div class="card info-card border-danger">
-        <div class="card-body">
-          <h6 class="card-title text-danger fw-bold">Kenders</h6>
-          <p class="card-text text-dark"><%= totalKenders %></p>
-        </div>
-      </div>
-    </div>
-    <div class="col-3">
-      <div class="card info-card border-warning">
-        <div class="card-body">
-          <h6 class="card-title text-warning fw-bold">Saadhaks</h6>
-          <p class="card-text text-dark"><%= totalSaadhaks %></p>
+
+     
+    
+    <!-- views/home.ejs -->
+<div class="container py-3 px-2">
+  <div class="accordion" id="prantAccordion">
+    <div class="accordion-item shadow-sm border-0 mb-3 rounded-3">
+      <h2 class="accordion-header" id="headingPrant">
+        <button class="accordion-button fw-bold bg-success bg-gradient text-white rounded-top" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePrant">
+          🌐 Prant Directory – Zilas: <%= zilaList.length %>,
+          Ksheter: <%= Object.values(ksheterByZila).flat().length %>,
+          Kendras: <%= Object.values(kendersByKsheter).flat().length %>,
+          Saadhaks: <%= Object.values(saadhaksByKender).flat().length %>
+        </button>
+      </h2>
+      <div id="collapsePrant" class="accordion-collapse collapse" data-bs-parent="#prantAccordion">
+        <div class="accordion-body bg-light rounded-bottom">
+
+          <!-- ZILA ACCORDION -->
+          <div class="accordion" id="zilaAccordion">
+            <% zilaList.forEach((zila, zIndex) => { %>
+              <div class="accordion-item border-0 shadow-sm mb-3 rounded-3">
+                <h2 class="accordion-header" id="headingZila<%= zIndex %>">
+                  <button class="accordion-button bg-primary bg-opacity-10 text-dark fw-semibold rounded-top" type="button" data-bs-toggle="collapse" data-bs-target="#collapseZila<%= zIndex %>">
+                    🏙️ <%= zila.name %> Zila – Ksheter: <%= (ksheterByZila[zila._id]?.length || 0) %>,
+                    Kendras: <%= (ksheterByZila[zila._id] || []).reduce((count, ksheter) => count + (kendersByKsheter[ksheter._id]?.length || 0), 0) %>,
+                    Saadhaks: <%= (ksheterByZila[zila._id] || []).reduce((count, ksheter) => {
+                      return count + (kendersByKsheter[ksheter._id] || []).reduce((kCount, kender) => kCount + (saadhaksByKender[kender._id]?.length || 0), 0);
+                    }, 0) %>
+                  </button>
+                </h2>
+                <div id="collapseZila<%= zIndex %>" class="accordion-collapse collapse" data-bs-parent="#zilaAccordion">
+                  <div class="accordion-body bg-white rounded-bottom">
+
+                    <!-- KSHETER ACCORDION -->
+                    <div class="accordion" id="ksheterAccordion<%= zIndex %>">
+                      <% (ksheterByZila[zila._id] || []).forEach((ksheter, kIndex) => { %>
+                        <div class="accordion-item border-0 shadow-sm mb-2 rounded-3">
+                          <h2 class="accordion-header" id="headingKsheter<%= zIndex %>_<%= kIndex %>">
+                            <button class="accordion-button collapsed bg-info bg-opacity-10 text-dark fw-medium rounded-top" type="button" data-bs-toggle="collapse" data-bs-target="#collapseKsheter<%= zIndex %>_<%= kIndex %>">
+                              🏞️ <%= ksheter.name %> Ksheter – Kendras: <%= (kendersByKsheter[ksheter._id]?.length || 0) %>,
+                              Saadhaks: <%= (kendersByKsheter[ksheter._id] || []).reduce((kCount, kender) => kCount + (saadhaksByKender[kender._id]?.length || 0), 0) %>
+                            </button>
+                          </h2>
+                          <div id="collapseKsheter<%= zIndex %>_<%= kIndex %>" class="accordion-collapse collapse" data-bs-parent="#ksheterAccordion<%= zIndex %>">
+                            <div class="accordion-body bg-light rounded-bottom">
+
+                              <!-- KENDER LIST -->
+                              <ul class="list-group">
+                                <% (kendersByKsheter[ksheter._id] || []).forEach(kender => { %>
+                                  <li class="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-start rounded-2 shadow-sm mb-2 border-0">
+                                    <div>
+                                      <strong class="text-dark">🏫 <%= kender.name %></strong>
+                                      <div class="text-muted small"><%= kender.address %></div>
+                                    </div>
+                                    <div class="mt-2 mt-md-0 text-end">
+                                      <span class="badge bg-primary bg-gradient rounded-pill px-3 py-2">
+                                        Saadhaks: <%= saadhaksByKender[kender._id]?.length || 0 %>
+                                      </span>
+                                    </div>
+                                  </li>
+                                <% }) %>
+                              </ul>
+
+                            </div>
+                          </div>
+                        </div>
+                      <% }) %>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+
         </div>
       </div>
     </div>
@@ -135,26 +224,24 @@
 
 
 
-    <!-- 🕊️ Hindi Slogans -->
-    <p class="lead text-dark mb-1 fw-semibold">"जियो और जीवन दो"</p>
-    <p class="text-muted fst-italic mb-3">योग एक साधना है, इसे अपनाएं और फैलाएं।</p>
 
-    <!-- CTA Buttons (excluding Login/Logout now) -->
+
+    <!-- 🚀 CTA Buttons -->
     <div class="d-grid gap-3 d-sm-flex justify-content-sm-center flex-wrap">
-      <a href="/events" class="btn btn-outline-success btn-lg px-4 shadow">📚 Events & News</a>
-      <a href="/stories" class="btn btn-outline-success btn-lg px-4 shadow">📚 कहानियाँ</a>
-      <a href="/yog-samagri/report" class="btn btn-success btn-lg px-4 shadow">🛍️ Yog Samagri</a>
-      <a href="/shivir/register" class="btn btn-warning btn-lg px-4 shadow">📅 Shivir Registration</a>
-      <a href="/shivir/attendance/report" class="btn btn-info btn-lg px-4 shadow text-white">📋 Shivir Attendance</a>
-      <a href="/explore" class="btn btn-outline-primary btn-lg px-4 shadow">🌐 Explore BYS</a>
+      <a href="/events" class="btn btn-outline-success btn-lg cta-btn shadow">📚 Events & News</a>
+      <a href="/stories" class="btn btn-outline-success btn-lg cta-btn shadow">📚 कहानियाँ</a>
+      <a href="/yog-samagri/report" class="btn btn-success btn-lg cta-btn shadow">🛍️ Yog Samagri</a>
+      <a href="/shivir/register" class="btn btn-warning btn-lg cta-btn shadow">📅 Shivir Registration</a>
+      <a href="/shivir/attendance/report" class="btn btn-info btn-lg cta-btn shadow text-white">📋 Shivir Attendance</a>
+      <a href="/explore" class="btn btn-outline-primary btn-lg cta-btn shadow">🌐 Explore BYS</a>
     </div>
   </div>
 </section>
 
-<!-- 💡 Mission Statement -->
-<section class="bg-light py-4">
+<!-- 🌱 Mission Statement Section -->
+<section class="bg-white py-5 border-top">
   <div class="container text-center">
-    <h4 class="mb-3 fw-bold text-primary">📖 हमारा उद्देश्य</h4>
+    <h4 class="mb-3 fw-bold section-title">📖 हमारा उद्देश्य</h4>
     <p class="lead text-dark" style="max-width: 720px; margin: auto;">
       योग को जन-जन तक पहुँचाना, आत्मा को परमात्मा से जोड़ना, और सेवा भाव से समाज को सशक्त बनाना।
     </p>

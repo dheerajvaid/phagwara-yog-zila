@@ -1,14 +1,22 @@
+// controllers/dashboardController.js
 const Zila = require('../models/Zila');
 const Ksheter = require('../models/Ksheter');
 const Kender = require('../models/Kender');
-const Saadhak = require('../models/Saadhak'); // ✅ Add this line
+const Saadhak = require('../models/Saadhak'); // ✅ Saadhak model added
 
 exports.getFrontPageData = async (req, res) => {
   try {
+    // Fetch all Zilas under this Prant
     const zilaList = await Zila.find({});
+
+    // Fetch all Ksheter
     const ksheterList = await Ksheter.find({});
+
+    // Fetch all Kenders
     const kenders = await Kender.find({});
-    const saadhaks = await Saadhak.find({}); // ✅ Get all saadhaks
+
+    // ✅ Fetch all Saadhaks
+    const saadhaks = await Saadhak.find({});
 
     // Group Ksheter by Zila
     const ksheterByZila = {};
@@ -26,6 +34,14 @@ exports.getFrontPageData = async (req, res) => {
       kendersByKsheter[ksheterId].push(kender);
     });
 
+    // ✅ Group Saadhaks by Kender
+    const saadhaksByKender = {};
+    saadhaks.forEach(saadhak => {
+      const kenderId = saadhak.kender?.toString();
+      if (!saadhaksByKender[kenderId]) saadhaksByKender[kenderId] = [];
+      saadhaksByKender[kenderId].push(saadhak);
+    });
+
     // ✅ Summary counts
     const totalZilas = zilaList.length;
     const totalKsheter = ksheterList.length;
@@ -40,8 +56,10 @@ exports.getFrontPageData = async (req, res) => {
       totalZilas,
       totalKsheter,
       totalKenders,
-      totalSaadhaks // ✅ Pass to view
+      totalSaadhaks,
+      saadhaksByKender // ✅ Passed for Saadhak count per Kender
     });
+
   } catch (err) {
     console.error("Error loading Prant dashboard:", err);
     res.status(500).send('Error loading dashboard data');
