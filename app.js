@@ -36,6 +36,7 @@ const greetingRoutes = require('./routes/greetingRoutes');
 const { assignRoleLevel } = require('./middleware/roleMiddleware');
 const injectScopeData = require('./middleware/scopeData');
 const { setEventCount } = require("./middleware/eventNotifier");
+const dashboardController = require('./controllers/dashboardController');
 
 // Load environment variables from .env file
 dotenv.config();
@@ -83,9 +84,7 @@ app.use(assignRoleLevel);
 app.use(injectScopeData);
 
 // Home route (optional testing)
-app.get("/", (req, res) => {
-    res.render("home");
-});
+app.get("/", dashboardController.getFrontPageData);
 
 // Routes
 app.use("/", adminRoutes);

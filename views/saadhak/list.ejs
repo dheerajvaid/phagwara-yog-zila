@@ -48,7 +48,7 @@
 
   <!-- Data Table -->
   <div class="table-responsive">
-    <table class="table table-bordered align-middle">
+    <table class="table table-bordered table-striped align-middle">
       <thead class="table-dark">
         <tr>
           <th style="white-space: nowrap; width: 1%;">#</th>
@@ -164,8 +164,8 @@
           : '<span class="text-muted">—</span>';
 
        tableBody.innerHTML += `
-        <tr>
-          <td>${start + index + 1}</td>
+        <tr style="border: 2px solid black">
+          <td style="border: 2px solid black" class="fw-bold">${start + index + 1}</td>
           <td class="position-relative">
             <div class="position-absolute top-0 end-0 mt-1 me-1 d-flex gap-1">
               <a href="/saadhak/edit/${s._id}" class="btn btn-sm btn-outline-primary btn-sm py-0 px-1" title="Edit">🖊️</a>
@@ -173,15 +173,25 @@
             </div>
 
            <div class="fw-bold text-primary d-flex align-items-center flex-wrap">
-            <a href="/saadhak/edit/${s._id}" class="text-decoration-none text-primary me-2">${s.name}</a>
+            <a href="/saadhak/edit/${s._id}" class="text-decoration-none text-success me-2">${s.name}</a>
             <span class="d-flex flex-wrap gap-1 me-2">${rolesHtml}</span>
-            <span class="text-dark small">${s.mobile || '—'}</span>
-          </div>
-
-
-            <div class="text-dark small mt-1">
-              ${s.zila?.name || '—'} – ${s.ksheter?.name || '—'} – ${s.kender?.name || '—'}
+           
             </div>
+               <span class="text-danger fw-bold">${s.mobile || '—'}</span>
+            <div>
+            
+              </div>
+
+            <div class="text-dark small">
+              <span class="text-primary fw-bold">${s.kender?.name || '—'}</span>
+            </div>
+            <div class="text-dark small">
+              <span class="fw-bold" style="color: orange;">${s.ksheter?.name || '—'}</span>
+            </div>
+            <div class="text-dark small">       
+              <span class="text-dark fw-bold">${s.zila?.name || '—'}</span>
+            </div>
+
 
             <div class="modal fade" id="deleteModal${s._id}" tabindex="-1">
               <div class="modal-dialog modal-dialog-centered">
@@ -319,6 +329,12 @@
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+
+      const spinner = document.getElementById('loadingSpinner');
+      
+      setTimeout(() => {
+        if (spinner) spinner.style.display = 'none';
+      }, 2000);
     });
 
     zilaFilter.addEventListener("change", function () {
@@ -353,12 +369,6 @@
 
       tableBody.innerHTML = '';
       renderTable();
-
-       // ✅ Hide spinner safely after short delay
-      setTimeout(() => {
-        document.getElementById("loadingSpinner")?.classList.add("d-none");
-      }, 1500);
-
     });
 
     renderTable(); // initial render

@@ -66,6 +66,75 @@
       />
     </div>
 
+<style>
+  .info-card {
+    background: linear-gradient(145deg, #ffffff, #f0f0f0);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.5);
+    transition: transform 0.2s ease-in-out;
+    border-radius: 0.5rem;
+  }
+
+  .info-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.6);
+  }
+
+  .info-card .card-body {
+    padding: 0.5rem 0.4rem;
+  }
+
+  .info-card .card-title {
+    font-size: 0.9rem;
+    margin-bottom: 0.3rem;
+    text-shadow: 0 1px 1px rgba(255,255,255,0.6);
+  }
+
+  .info-card .card-text {
+    font-size: 1rem;
+    font-weight: 600;
+  }
+</style>
+
+<div class="container my-3">
+  <div class="row text-center g-2">
+    <div class="col-3">
+      <div class="card info-card border-success">
+        <div class="card-body">
+          <h6 class="card-title text-success fw-bold">Zilas</h6>
+          <p class="card-text text-dark"><%= totalZilas %></p>
+        </div>
+      </div>
+    </div>
+    <div class="col-3">
+      <div class="card info-card border-primary">
+        <div class="card-body">
+          <h6 class="card-title text-primary fw-bold">Ksheter</h6>
+          <p class="card-text text-dark"><%= totalKsheter %></p>
+        </div>
+      </div>
+    </div>
+    <div class="col-3">
+      <div class="card info-card border-danger">
+        <div class="card-body">
+          <h6 class="card-title text-danger fw-bold">Kenders</h6>
+          <p class="card-text text-dark"><%= totalKenders %></p>
+        </div>
+      </div>
+    </div>
+    <div class="col-3">
+      <div class="card info-card border-warning">
+        <div class="card-body">
+          <h6 class="card-title text-warning fw-bold">Saadhaks</h6>
+          <p class="card-text text-dark"><%= totalSaadhaks %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
     <!-- 🕊️ Hindi Slogans -->
     <p class="lead text-dark mb-1 fw-semibold">"जियो और जीवन दो"</p>
     <p class="text-muted fst-italic mb-3">योग एक साधना है, इसे अपनाएं और फैलाएं।</p>
