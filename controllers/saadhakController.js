@@ -284,7 +284,7 @@ exports.createSaadhak = async (req, res) => {
     });
 
     await saadhak.save();
-   
+
     res.render("saadhak/add", {
       success: "✅ Saadhak added successfully!",
       zilas: await Zila.find(),
@@ -633,7 +633,31 @@ exports.updateSaadhak = async (req, res) => {
       });
     }
 
-    // Update
+    // 🧼 Clean up hierarchy fields based on role level
+    let updatedKsheter = ksheter;
+    let updatedKender = kender;
+
+    const rolesArray = Array.isArray(role) ? role : [role];
+    const lowerRoles = rolesArray.map((r) => r.toLowerCase());
+
+    const isZilaLevel = lowerRoles.some((r) =>
+      ["zila pradhan", "zila mantri", "sangathan mantri", "cashier"].includes(r)
+    );
+    const isKsheterLevel = lowerRoles.some((r) =>
+      ["ksheter pradhan", "ksheter mantri"].includes(r)
+    );
+
+    if (isZilaLevel) {
+      updatedKsheter = null;
+      updatedKender = null;
+    } else if (isKsheterLevel) {
+      updatedKender = null;
+    }
+
+    console.log(updatedKsheter);
+    console.log(updatedKender);
+
+    // ✅ Final update
     await Saadhak.findByIdAndUpdate(saadhakId, {
       name: formatName(name.trim()),
       mobile,
@@ -643,10 +667,10 @@ exports.updateSaadhak = async (req, res) => {
       marriageDate: maritalStatus === "Married" ? marriageDate : undefined,
       address,
       livingArea,
-      role,
+      role: rolesArray,
       zila: zila || undefined,
-      ksheter: ksheter || undefined,
-      kender: kender || undefined,
+      ksheter: updatedKsheter === null ? null : updatedKsheter,
+      kender: updatedKender === null ? null : updatedKender,
     });
 
     res.redirect("/saadhak/manage");
@@ -655,6 +679,7 @@ exports.updateSaadhak = async (req, res) => {
     res.status(500).send("Server Error");
   }
 };
+
 
 // ✅ Handle Delete
 exports.deleteSaadhak = async (req, res) => {

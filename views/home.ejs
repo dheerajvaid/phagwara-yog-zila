@@ -2,9 +2,7 @@
 <%- include('./partials/navbar') %>
 
 <style>
-  /* Founder image styles */
   .founder-img {
-    
     height: 96px;
     width: auto;
     object-fit: contain;
@@ -15,11 +13,10 @@
   }
 
   .founder-img:hover {
-    transform: scale(1.01) ease;
+    transform: scale(1.01);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.35);
   }
 
-  /* Stat cards */
   .stat-card {
     background: linear-gradient(135deg, #ffffff, #f7f7f7);
     transition: transform 0.2s ease;
@@ -41,7 +38,6 @@
     font-size: 1.15rem;
   }
 
-  /* CTA buttons */
   .cta-btn {
     min-width: 200px;
     font-weight: 500;
@@ -54,55 +50,74 @@
     box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
   }
 
-  /* Section titles */
   .section-title {
     font-weight: 700;
     color: #2c3e50;
     text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
   }
+
+  .accordion .accordion-item {
+    margin-bottom: 1rem;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+  }
+
+  .accordion-button:hover {
+    background-color: rgba(0, 123, 255, 0.1);
+  }
+
+  .accordion-button:not(.collapsed) {
+    background-color: #0069d9;
+    color: #fff;
+    box-shadow: none;
+  }
+
+  .accordion-button::after {
+    font-size: 0.9rem;
+    color: currentColor;
+  }
+
+  .accordion-button .badge-custom {
+    margin-left: auto;
+    font-size: 0.85rem;
+  }
+
+  .accordion-body {
+    padding: 1rem;
+    background-color: #f8f9fa;
+  }
+
+  .accordion-button.flex-column {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    text-align: left !important;
+  }
+
+  .accordion-button.flex-column div {
+    margin-bottom: 2px;
+  }
 </style>
 
-<!-- 🌟 Hero Section with Logo & Founder -->
-<section
-  class="bg-light text-dark py-4"
-  style="background: url('/images/hero-yoga.jpg') no-repeat center/cover; min-height: 80vh;"
->
-  <div
-    class="container position-relative text-center py-5 px-4"
-    style="background: rgba(255, 255, 255, 0.92); border-radius: 1.5rem; max-width: 780px;"
-  >
-    <!-- 🔒 Login Top-Right in Hero -->
+<section class="bg-light text-dark py-4" style="background: url('/images/hero-yoga.jpg') no-repeat center/cover; min-height: 80vh;">
+  <div class="container position-relative text-center py-5 px-4" style="background: rgba(255, 255, 255, 0.92); border-radius: 1.5rem; max-width: 780px;">
     <% if (!user) { %>
-      <a
-        href="/auth/login"
-        class="btn btn-danger text-white fw-semibold shadow-sm position-absolute top-0 end-0 mt-0 me-2"
-        style="border-radius: 0.5rem;"
-      >
-        🔑 Login
-      </a>
+      <a href="/auth/login" class="btn btn-danger text-white fw-semibold shadow-sm position-absolute top-0 end-0 mt-0 me-2" style="border-radius: 0.5rem;">🔑 Login</a>
     <% } else { %>
-      <a
-        href="/auth/logout"
-        class="btn btn-outline-danger fw-semibold shadow-sm position-absolute top-0 end-0 mt-0 me-2"
-        style="border-radius: 0.5rem;"
-      >
-        🔒 Logout
-      </a>
+      <a href="/auth/logout" class="btn btn-outline-danger fw-semibold shadow-sm position-absolute top-0 end-0 mt-0 me-2" style="border-radius: 0.5rem;">🔒 Logout</a>
     <% } %>
 
-    <!-- 🧘 Logo + Founder Image -->
     <div class="d-flex align-items-center justify-content-between gap-4 flex-wrap mb-4">
       <img src="/images/logo-nbg.png" alt="BYS Logo" style="height: 70px;" class="img-fluid" />
       <img src="/images/founder.jpg" alt="Founder" class="founder-img" />
     </div>
 
     <h1 class="h1 h-sm-3 fw-bold text-success mb-2">भारतीय योग संस्थान</h1>
-
-    <!-- 🧾 Mission Quote -->
     <p class="text-dark fw-semibold mb-1">"जियो और जीवन दो"</p>
     <p class="text-muted fst-italic mb-4">योग एक साधना है, इसे अपनाएं और फैलाएं।</p>
 
-    <!-- 📊 Stats Section -->
     <div class="container mb-4">
       <div class="row g-3 justify-content-center">
         <div class="col-6 col-sm-3">
@@ -140,93 +155,70 @@
       </div>
     </div>
 
-     
-    
-    <!-- views/home.ejs -->
-<div class="container py-3 px-2">
-  <div class="accordion" id="prantAccordion">
-    <div class="accordion-item shadow-sm border-0 mb-3 rounded-3">
-      <h2 class="accordion-header" id="headingPrant">
-        <button class="accordion-button fw-bold bg-success bg-gradient text-white rounded-top" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePrant">
-          🌐 Prant Directory – Zilas: <%= zilaList.length %>,
-          Ksheter: <%= Object.values(ksheterByZila).flat().length %>,
-          Kendras: <%= Object.values(kendersByKsheter).flat().length %>,
-          Saadhaks: <%= Object.values(saadhaksByKender).flat().length %>
-        </button>
-      </h2>
-      <div id="collapsePrant" class="accordion-collapse collapse" data-bs-parent="#prantAccordion">
-        <div class="accordion-body bg-light rounded-bottom">
-
-          <!-- ZILA ACCORDION -->
-          <div class="accordion" id="zilaAccordion">
-            <% zilaList.forEach((zila, zIndex) => { %>
-              <div class="accordion-item border-0 shadow-sm mb-3 rounded-3">
-                <h2 class="accordion-header" id="headingZila<%= zIndex %>">
-                  <button class="accordion-button bg-primary bg-opacity-10 text-dark fw-semibold rounded-top" type="button" data-bs-toggle="collapse" data-bs-target="#collapseZila<%= zIndex %>">
-                    🏙️ <%= zila.name %> Zila – Ksheter: <%= (ksheterByZila[zila._id]?.length || 0) %>,
-                    Kendras: <%= (ksheterByZila[zila._id] || []).reduce((count, ksheter) => count + (kendersByKsheter[ksheter._id]?.length || 0), 0) %>,
-                    Saadhaks: <%= (ksheterByZila[zila._id] || []).reduce((count, ksheter) => {
-                      return count + (kendersByKsheter[ksheter._id] || []).reduce((kCount, kender) => kCount + (saadhaksByKender[kender._id]?.length || 0), 0);
-                    }, 0) %>
-                  </button>
-                </h2>
-                <div id="collapseZila<%= zIndex %>" class="accordion-collapse collapse" data-bs-parent="#zilaAccordion">
-                  <div class="accordion-body bg-white rounded-bottom">
-
-                    <!-- KSHETER ACCORDION -->
-                    <div class="accordion" id="ksheterAccordion<%= zIndex %>">
-                      <% (ksheterByZila[zila._id] || []).forEach((ksheter, kIndex) => { %>
-                        <div class="accordion-item border-0 shadow-sm mb-2 rounded-3">
-                          <h2 class="accordion-header" id="headingKsheter<%= zIndex %>_<%= kIndex %>">
-                            <button class="accordion-button collapsed bg-info bg-opacity-10 text-dark fw-medium rounded-top" type="button" data-bs-toggle="collapse" data-bs-target="#collapseKsheter<%= zIndex %>_<%= kIndex %>">
-                              🏞️ <%= ksheter.name %> Ksheter – Kendras: <%= (kendersByKsheter[ksheter._id]?.length || 0) %>,
-                              Saadhaks: <%= (kendersByKsheter[ksheter._id] || []).reduce((kCount, kender) => kCount + (saadhaksByKender[kender._id]?.length || 0), 0) %>
-                            </button>
-                          </h2>
-                          <div id="collapseKsheter<%= zIndex %>_<%= kIndex %>" class="accordion-collapse collapse" data-bs-parent="#ksheterAccordion<%= zIndex %>">
-                            <div class="accordion-body bg-light rounded-bottom">
-
-                              <!-- KENDER LIST -->
-                              <ul class="list-group">
-                                <% (kendersByKsheter[ksheter._id] || []).forEach(kender => { %>
-                                  <li class="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-start rounded-2 shadow-sm mb-2 border-0">
-                                    <div>
-                                      <strong class="text-dark">🏫 <%= kender.name %></strong>
-                                      <div class="text-muted small"><%= kender.address %></div>
-                                    </div>
-                                    <div class="mt-2 mt-md-0 text-end">
-                                      <span class="badge bg-primary bg-gradient rounded-pill px-3 py-2">
-                                        Saadhaks: <%= saadhaksByKender[kender._id]?.length || 0 %>
-                                      </span>
-                                    </div>
-                                  </li>
-                                <% }) %>
-                              </ul>
-
+    <div class="container py-3 px-2">
+      <div class="accordion" id="prantAccordion">
+        <div class="accordion-item shadow-sm border-0 mb-3 rounded-3">
+          <h2 class="accordion-header" id="headingPrant">
+            <button class="accordion-button collapsed bg-success bg-gradient text-white rounded-top flex-column align-items-start text-start" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePrant" aria-expanded="false">
+              <div class="fw-bold">🌐 Prant Directory</div>
+              <div class="small">Zila: <%= zilaList.length %>, Ksheter: <%= Object.values(ksheterByZila).flat().length %>, Kendra: <%= Object.values(kendersByKsheter).flat().length %>, Saadhak: <%= Object.values(saadhaksByKender).flat().length %></div>
+            </button>
+          </h2>
+          <div id="collapsePrant" class="accordion-collapse collapse" data-bs-parent="#prantAccordion">
+            <div class="accordion-body bg-light rounded-bottom">
+              <div class="accordion" id="zilaAccordion">
+                <% zilaList.forEach((zila, zIndex) => { %>
+                  <div class="accordion-item border-0 shadow-sm mb-3 rounded-3">
+                    <h2 class="accordion-header" id="headingZila<%= zIndex %>">
+                      <button class="accordion-button bg-primary bg-opacity-10 text-dark rounded-top flex-column align-items-start text-start" type="button" data-bs-toggle="collapse" data-bs-target="#collapseZila<%= zIndex %>">
+                        <div class="fw-bold">🏙️ <%= zila.name %></div>
+                        <div class="small">Ksheter: <%= (ksheterByZila[zila._id]?.length || 0) %>, Kendras: <%= (ksheterByZila[zila._id] || []).reduce((count, ksheter) => count + (kendersByKsheter[ksheter._id]?.length || 0), 0) %>, Saadhaks: <%= (ksheterByZila[zila._id] || []).reduce((count, ksheter) => { return count + (kendersByKsheter[ksheter._id] || []).reduce((kCount, kender) => kCount + (saadhaksByKender[kender._id]?.length || 0), 0); }, 0) %></div>
+                      </button>
+                    </h2>
+                    <div id="collapseZila<%= zIndex %>" class="accordion-collapse collapse" data-bs-parent="#zilaAccordion">
+                      <div class="accordion-body bg-white rounded-bottom">
+                        <div class="accordion" id="ksheterAccordion<%= zIndex %>">
+                          <% (ksheterByZila[zila._id] || []).forEach((ksheter, kIndex) => { %>
+                            <div class="accordion-item border-0 shadow-sm mb-2 rounded-3">
+                              <h2 class="accordion-header" id="headingKsheter<%= zIndex %>_<%= kIndex %>">
+                                <button class="accordion-button collapsed bg-info bg-opacity-10 text-dark fw-medium rounded-top flex-column align-items-start text-start" type="button" data-bs-toggle="collapse" data-bs-target="#collapseKsheter<%= zIndex %>_<%= kIndex %>">
+                                  <div class="fw-bold">🏞️ <%= ksheter.name %> Ksheter</div>
+                                  <div class="small">Kendras: <%= (kendersByKsheter[ksheter._id]?.length || 0) %>, Saadhaks: <%= (kendersByKsheter[ksheter._id] || []).reduce((kCount, kender) => kCount + (saadhaksByKender[kender._id]?.length || 0), 0) %></div>
+                                </button>
+                              </h2>
+                              <div id="collapseKsheter<%= zIndex %>_<%= kIndex %>" class="accordion-collapse collapse" data-bs-parent="#ksheterAccordion<%= zIndex %>">
+                                <div class="accordion-body bg-light rounded-bottom">
+                                  <ul class="list-group">
+                                    <% (kendersByKsheter[ksheter._id] || []).forEach(kender => { %>
+                                      <li class="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-center rounded-2 shadow-sm mb-2 border-0">
+                                        <div>
+                                          <strong class="text-dark">🏫 <%= kender.name %></strong>
+                                          <div class="text-muted small"><%= kender.address %></div>
+                                        </div>
+                                        <div class="mt-2 mt-md-0 text-end">
+                                          <span class="badge bg-primary bg-gradient rounded-pill px-3 py-2">
+                                            Saadhaks: <%= saadhaksByKender[kender._id]?.length || 0 %>
+                                          </span>
+                                        </div>
+                                      </li>
+                                    <% }) %>
+                                  </ul>
+                                </div>
+                              </div>
                             </div>
-                          </div>
+                          <% }) %>
                         </div>
-                      <% }) %>
+                      </div>
                     </div>
-
                   </div>
-                </div>
+                <% }) %>
               </div>
-            <% }) %>
+            </div>
           </div>
-
         </div>
       </div>
     </div>
-  </div>
-</div>
 
-
-
-
-
-
-    <!-- 🚀 CTA Buttons -->
     <div class="d-grid gap-3 d-sm-flex justify-content-sm-center flex-wrap">
       <a href="/events" class="btn btn-outline-success btn-lg cta-btn shadow">📚 Events & News</a>
       <a href="/stories" class="btn btn-outline-success btn-lg cta-btn shadow">📚 कहानियाँ</a>
@@ -238,7 +230,6 @@
   </div>
 </section>
 
-<!-- 🌱 Mission Statement Section -->
 <section class="bg-white py-5 border-top">
   <div class="container text-center">
     <h4 class="mb-3 fw-bold section-title">📖 हमारा उद्देश्य</h4>
