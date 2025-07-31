@@ -32,9 +32,10 @@ exports.generateGreeting = async (req, res) => {
 
   try {
     const width = 1000;
-    const height = 600;
+    const height = 1000;
     const canvas = createCanvas(width, height);
     const ctx = canvas.getContext("2d");
+
     const normalizedType = type?.toLowerCase();
 
     const backgroundImage = await loadImage(
@@ -44,32 +45,29 @@ exports.generateGreeting = async (req, res) => {
       path.join(__dirname, "../public/images/logo.jpg")
     );
 
-    // 🎨 Draw background and logo first
     ctx.drawImage(backgroundImage, 0, 0, width, height);
-    ctx.drawImage(logoImage, width - 130, 35, 106, 90);
+    ctx.drawImage(logoImage, width / 2 - 75, 40, 150, 120); // Centered logo
 
-    // ✅ Draw themed border AFTER background
-    const borderWidth = 10;
+    // 🎨 Border
+    const borderWidth = 12;
     ctx.save();
-    let borderColor = "#999"; // fallback neutral
-
+    let borderColor = "#999";
     switch (normalizedType) {
       case "birthday":
-        borderColor = "#ff80ab"; // light pink
+        borderColor = "#ff80ab";
         break;
       case "anniversary":
-        borderColor = "#ffb300"; // golden yellow
+        borderColor = "#ffb300";
         break;
       case "wedding":
-        borderColor = "#ab47bc"; // purple
+        borderColor = "#ab47bc";
         break;
       case "farewell":
-        borderColor = "#29b6f6"; // blue
+        borderColor = "#29b6f6";
         break;
       default:
-        borderColor = "#90a4ae"; // soft gray-blue
+        borderColor = "#90a4ae";
     }
-
     ctx.lineWidth = borderWidth;
     ctx.strokeStyle = borderColor;
     ctx.strokeRect(
@@ -80,124 +78,92 @@ exports.generateGreeting = async (req, res) => {
     );
     ctx.restore();
 
-    // 🎉 Continue as-is from here
     const messageArray = messages[normalizedType];
-    if (
-      !messageArray ||
-      !Array.isArray(messageArray) ||
-      messageArray.length === 0
-    ) {
-      console.warn(`No messages found for type: ${normalizedType}`);
-    }
+    let randomMessage =
+      messageArray && messageArray.length
+        ? messageArray[Math.floor(Math.random() * messageArray.length)]
+        : "Wishing you happiness, health, and harmony on this special day!";
 
-    const randomMessage = messageArray
-      ? messageArray[Math.floor(Math.random() * messageArray.length)]
-      : "Wishing you happiness, health, and harmony on this special day!";
+    // Remove line breaks from message
+    randomMessage = randomMessage.replace(/\n/g, " ");
 
-    // 🟣 Title
-    ctx.fillStyle = "#d81b60"; // more vibrant deep pink
-    ctx.shadowColor = "#880e4f";
-    ctx.shadowBlur = 6;
-    ctx.shadowOffsetX = 2;
-    ctx.shadowOffsetY = 2;
+    // 🎉 Title
+    ctx.fillStyle = "#d81b60";
+    ctx.shadowColor = "#880e4f33";
+    ctx.shadowBlur = 2;
+    ctx.font = "bold 64px Georgia";
+    drawCenteredText(ctx, `🎉 Happy ${capitalize(type)}!`, width / 2, 210);
 
-    ctx.font = "bold 56px Georgia";
-    drawShadowedText(ctx, `  Happy ${capitalize(type)}!`, 50, 90);
-
-    // 🔵 Name
-    ctx.fillStyle = "#0d47a1"; // deep vibrant blue
-    ctx.shadowColor = "#002171";
-    ctx.shadowBlur = 6;
-    ctx.shadowOffsetX = 2;
-    ctx.shadowOffsetY = 2;
-
-    // 🧠 Dynamically calculate font size
-    const nameMaxWidth = 900; // total safe width before wrapping
-    const nameFontSize = fitTextToWidth(ctx, name, nameMaxWidth, 70, "Verdana");
+    // 👤 Name
+    ctx.fillStyle = "#0d47a1";
+    ctx.shadowColor = "#00217133";
+    ctx.shadowBlur = 2;
+    const nameFontSize = fitTextToWidth(ctx, name, 880, 74, "Verdana");
     ctx.font = `bold ${nameFontSize}px Verdana`;
-    drawShadowedText(ctx, " " + name, 50, 180);
+    drawCenteredText(ctx, name, width / 2, 300);
 
-    // 🔴 Event Date
-    let yStartMessage = 270;
+    // 📅 Date
+    let yStartMessage = 390;
     if (date) {
       const formattedDate = formatDateReadable(date);
       ctx.fillStyle = "#d32f2f";
-      ctx.font = "bold 28px Arial";
-      drawShadowedText(ctx, "     " + formattedDate, 55, 225);
-      yStartMessage = 270;
+      ctx.font = "bold 32px Arial";
+      drawCenteredText(ctx, formattedDate, width / 2, 350);
     }
 
-    // 🟢 Message Box
-    const boxX = 45;
+    // 📦 Message Box (smaller height)
+    const boxX = 60;
     const boxY = yStartMessage;
-    const boxWidth = 910;
-    const boxHeight = 160;
-    const padding = 20;
+    const boxWidth = 880;
+    const boxHeight = 360; // reduced height
+    const padding = 24;
 
     ctx.save();
-    ctx.shadowColor = "#00000033";
-    ctx.shadowBlur = 8;
-    ctx.shadowOffsetX = 4;
-    ctx.shadowOffsetY = 4;
-    ctx.fillStyle = "#ffffffdd";
+    ctx.shadowColor = "#00000022";
+    ctx.shadowBlur = 5;
+    ctx.fillStyle = "#ffffffee";
     ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
     ctx.lineWidth = 2;
     ctx.strokeStyle = "#cccccc";
     ctx.strokeRect(boxX, boxY, boxWidth, boxHeight);
     ctx.restore();
 
-    // ✉️ Greeting message
-    ctx.fillStyle = "#444";
-    ctx.font = "32px Arial";
-    wrapText(
-      ctx,
-      randomMessage,
-      boxX + padding,
-      boxY + padding + 40,
-      boxWidth - 2 * padding,
-      42
-    );
+    // 📝 Message (larger font, top-aligned)
+    ctx.fillStyle = "#000000";
+    ctx.font = "58px Arial"; // larger font for sharpness
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
 
-    // 🟠 From Info (Beautified)
-    const fromLabel = "From:";
+    const lines = getWrappedLines(ctx, randomMessage, boxWidth - 2 * padding);
+    const lineHeight = 64; // slightly more spacing
+    let startY = boxY + padding;
+
+    lines.forEach((line, i) => {
+      ctx.fillText(line, width / 2, startY + i * lineHeight);
+    });
+
+    // 🟡 From Info
+    const fromLabel = "-From-";  //From Label
     const fromText = `${user.name} (${user.roles.join(", ")})`;
     const hierarchyText = [kenderName, ksheterName, zilaName]
       .filter(Boolean)
       .join(", ");
 
-    ctx.shadowColor = "#00000033";
-    ctx.shadowBlur = 4;
-    ctx.shadowOffsetX = 2;
-    ctx.shadowOffsetY = 2;
+    ctx.shadowColor = "#00000022";
+    ctx.shadowBlur = 2;
 
-    // From label in black
-    ctx.font = "bold 22px Arial";
-    ctx.fillStyle = "#000000";
-    ctx.shadowColor = "#333333";
-    ctx.shadowBlur = 5;
-    ctx.shadowOffsetX = 1;
-    ctx.shadowOffsetY = 1;
+    ctx.font = "bold 30px Arial";
+    ctx.fillStyle = "#000";
+    drawCenteredText(ctx, fromLabel, width / 2, 770);
 
-    ctx.fillText(fromLabel, 50, height - 120);
+    ctx.font = "bold 36px Arial";
+    ctx.fillStyle = "#b71c1c";
+    ctx.textAlign = "center";
+    ctx.fillText(fromText, width / 2, 810);
+    ctx.font = "bold 24px Arial";
+    ctx.fillText(hierarchyText, width / 2, 845);
 
-    // User info and hierarchy info in the same color as event date
-    ctx.font = "20px Arial";
-    ctx.fillStyle = "#b71c1c"; // deeper rich red
-    ctx.shadowColor = "#880e0e";
-    ctx.shadowBlur = 5;
-    ctx.shadowOffsetX = 1;
-    ctx.shadowOffsetY = 1;
-    // same as event date
-    ctx.fillText(fromText, 50, height - 90);
-    ctx.fillText(hierarchyText, 50, height - 60);
-
-    // Reset shadow
-    ctx.shadowColor = "transparent";
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
-
-    // Save file
+    // Save File
     const safeName = name.replace(/\s+/g, "_");
     const safeMobile = (mobile || "").replace(/\s+/g, "_");
     const safeType = type.replace(/\s+/g, "_");
@@ -219,64 +185,63 @@ exports.generateGreeting = async (req, res) => {
   }
 };
 
-// ✨ Shadow Text
-function drawShadowedText(ctx, text, x, y) {
-  ctx.save();
-  ctx.shadowColor = "#00000055";
-  ctx.shadowBlur = 6;
-  ctx.shadowOffsetX = 3;
-  ctx.shadowOffsetY = 3;
-  ctx.fillText(text, x, y);
-  ctx.restore();
+// --- UTILITY FUNCTIONS ---
+
+function getWrappedLines(ctx, text, maxWidth) {
+  const words = text.split(" ");
+  const lines = [];
+  let line = "";
+
+  for (let word of words) {
+    let testLine = line + word + " ";
+    const testWidth = ctx.measureText(testLine).width;
+
+    if (testWidth > maxWidth && line) {
+      lines.push(line.trim());
+      line = word + " ";
+    } else if (ctx.measureText(word).width > maxWidth) {
+      // Break long word
+      const chars = word.split("");
+      let piece = "";
+      for (let ch of chars) {
+        if (ctx.measureText(piece + ch).width > maxWidth) {
+          lines.push(piece);
+          piece = ch;
+        } else {
+          piece += ch;
+        }
+      }
+      line = piece + " ";
+    } else {
+      line = testLine;
+    }
+  }
+
+  if (line.trim()) lines.push(line.trim());
+  return lines;
 }
 
-// 🔤 Capitalize First Letter
+function drawCenteredText(ctx, text, centerX, y) {
+  const textWidth = ctx.measureText(text).width;
+  ctx.fillText(text, centerX - textWidth / 2, y);
+}
+
 function capitalize(str) {
   if (!str) return "";
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-// 📅 Format Date as "26-Jul-2025 (Saturday)"
 function formatDateReadable(dateString) {
   const date = new Date(dateString);
   const day = date.getDate().toString().padStart(2, "0");
   const monthNames = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
   ];
   const month = monthNames[date.getMonth()];
   const year = date.getFullYear();
   const weekday = date.toLocaleString("en-IN", { weekday: "long" });
   return `${day}-${month}-${year} (${weekday})`;
-}
-
-// 🧾 Wrap long text
-function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
-  const words = text.split(" ");
-  let line = "";
-
-  for (let i = 0; i < words.length; i++) {
-    const testLine = line + words[i] + " ";
-    const metrics = ctx.measureText(testLine);
-    if (metrics.width > maxWidth && i > 0) {
-      ctx.fillText(line, x, y);
-      line = words[i] + " ";
-      y += lineHeight;
-    } else {
-      line = testLine;
-    }
-  }
-  ctx.fillText(line, x, y);
 }
 
 function fitTextToWidth(ctx, text, maxWidth, baseFontSize, fontFamily) {
@@ -285,7 +250,7 @@ function fitTextToWidth(ctx, text, maxWidth, baseFontSize, fontFamily) {
     ctx.font = `bold ${fontSize}px ${fontFamily}`;
     const textWidth = ctx.measureText(text).width;
     if (textWidth <= maxWidth) break;
-    fontSize -= 2; // Decrease gradually
-  } while (fontSize > 20); // Reasonable lower limit
+    fontSize -= 2;
+  } while (fontSize > 20);
   return fontSize;
 }
