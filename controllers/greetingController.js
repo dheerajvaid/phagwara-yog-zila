@@ -92,7 +92,7 @@ exports.generateGreeting = async (req, res) => {
     ctx.shadowColor = "#880e4f33";
     ctx.shadowBlur = 2;
     ctx.font = "bold 64px Georgia";
-    drawCenteredText(ctx, `  Happy ${capitalize(type)}!`, width / 2, 210);
+    drawCenteredText(ctx, `Happy ${capitalize(type)}!`, width / 2, 210);
 
     // 👤 Name
     ctx.fillStyle = "#0d47a1";
