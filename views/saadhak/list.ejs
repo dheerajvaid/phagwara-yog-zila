@@ -119,6 +119,18 @@
       const selectedKender = kenderFilter.value;
       const searchTerm = searchInput.value.trim().toLowerCase();
 
+            const ksheterRoles = [
+        "Admin",
+        "Zila Pradhan",
+        "Zila Mantri",
+        "Sangathan Mantri",
+        "Cashier",
+        "Ksheter Pradhan",
+        "Ksheter Mantri"
+      ];
+      
+      const kenderMainTeam = ["Kender Pramukh", "Seh Kender Pramukh"];
+
       const filtered = allSaadhaks.filter(s => {
         const matchZila = !selectedZila || (s.zila && s.zila._id === selectedZila);
         const matchKsheter = !selectedKsheter || (s.ksheter && s.ksheter._id === selectedKsheter);
@@ -130,8 +142,19 @@
           s.zila?.name?.toLowerCase().includes(searchTerm) ||
           s.ksheter?.name?.toLowerCase().includes(searchTerm) ||
           s.kender?.name?.toLowerCase().includes(searchTerm);
-        return matchZila && matchKsheter && matchKender && inSearch;
+
+        // 🚫 Exclude roles for Ksheter and Kender team
+        let roleAllowed = true;
+        if (user.roles.includes("Ksheter Pradhan") || user.roles.includes("Ksheter Mantri")) {
+          roleAllowed = !s.role?.some(r => ksheterRoles.includes(r));
+        }
+        if (user.roles.includes("Kender Pramukh") || user.roles.includes("Seh Kender Pramukh")) {
+          roleAllowed = !s.role?.some(r => [...ksheterRoles, ...kenderMainTeam].includes(r));
+        }
+
+        return matchZila && matchKsheter && matchKender && inSearch && roleAllowed;
       });
+
 
       currentFilteredSaadhaks = filtered;
       const totalPages = Math.ceil(filtered.length / pageSize);

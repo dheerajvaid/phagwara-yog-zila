@@ -11,7 +11,7 @@ const {
 
 const { formatName } = require("../utils/formatters");
 
-const { zilaRoles, ksheterRoles, kenderMainRoles } = require("../config/roles");
+const { zilaRoles, ksheterRoles, kenderMainTeam, kenderMainRoles } = require("../config/roles");
 
 const allowedRoles = [...zilaRoles, ...ksheterRoles, ...kenderMainRoles];
 
@@ -307,7 +307,6 @@ exports.listSaadhaks = async (req, res) => {
     const user = req.session.user;
 
     let query = {};
-
     const isAuthorized = user.roles.some((role) => allowedRoles.includes(role));
 
     if (!isAuthorized) {
@@ -315,6 +314,7 @@ exports.listSaadhaks = async (req, res) => {
       query = { _id: null }; // This will ensure no match
     } else if (!user.roles.includes("Admin")) {
       // Admin has access to everything, skip limiting query
+
       if (
         user.roles.includes("Zila Pradhan") ||
         user.roles.includes("Zila Mantri") ||
@@ -329,6 +329,9 @@ exports.listSaadhaks = async (req, res) => {
         user.roles.includes("Ksheter Mantri")
       ) {
         query.ksheter = user.ksheter;
+
+        // ❌ Exclude Ksheter roles from result
+        query.roles = { $nin: ksheterRoles };
       }
 
       if (
@@ -336,6 +339,9 @@ exports.listSaadhaks = async (req, res) => {
         user.roles.includes("Seh Kender Pramukh")
       ) {
         query.kender = user.kender;
+
+        // ❌ Exclude Ksheter + Kender roles from result
+        query.roles = { $nin: [...ksheterRoles, ...kenderMainTeam] };
       }
     }
 
@@ -348,10 +354,6 @@ exports.listSaadhaks = async (req, res) => {
     const zilas = await Zila.find().sort({ name: 1 });
     const ksheters = await Ksheter.find().sort({ name: 1 });
     const kenders = await Kender.find().sort({ name: 1 });
-
-    // console.log(user.zila);
-    // console.log(user.Ksheter);
-    // console.log(user.Kender);
 
     res.render("saadhak/list", {
       saadhaks,
