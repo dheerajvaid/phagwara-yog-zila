@@ -42,7 +42,7 @@ exports.generateGreeting = async (req, res) => {
       path.join(__dirname, "../public/images/bg.png")
     );
     const logoImage = await loadImage(
-      path.join(__dirname, "../public/images/logo.jpg")
+      path.join(__dirname, "../public/images/logo-nbg.png")
     );
 
     ctx.drawImage(backgroundImage, 0, 0, width, height);
@@ -118,18 +118,18 @@ exports.generateGreeting = async (req, res) => {
     const boxHeight = 360; // reduced height
     const padding = 24;
 
-    ctx.save();
-    ctx.shadowColor = "#00000022";
-    ctx.shadowBlur = 5;
-    ctx.fillStyle = "#ffffffee";
-    ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = "#cccccc";
-    ctx.strokeRect(boxX, boxY, boxWidth, boxHeight);
-    ctx.restore();
+    // ctx.save();
+    // ctx.shadowColor = "#00000022";
+    // ctx.shadowBlur = 5;
+    // ctx.fillStyle = "#ffffffee";
+    // ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
+    // ctx.lineWidth = 2;
+    // ctx.strokeStyle = "#cccccc";
+    // ctx.strokeRect(boxX, boxY, boxWidth, boxHeight);
+    // ctx.restore();
 
     // 📝 Message (larger font, top-aligned)
-    ctx.fillStyle = "#000000";
+    ctx.fillStyle = "black";
     ctx.font = "58px Arial"; // larger font for sharpness
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
@@ -153,15 +153,15 @@ exports.generateGreeting = async (req, res) => {
     ctx.shadowBlur = 2;
 
     ctx.font = "bold 30px Arial";
-    ctx.fillStyle = "#000";
-    drawCenteredText(ctx, fromLabel, width / 2, 770);
+    ctx.fillStyle = "red";
+    drawCenteredText(ctx, fromLabel, width / 2, 670);
 
     ctx.font = "bold 36px Arial";
-    ctx.fillStyle = "#b71c1c";
+    ctx.fillStyle = "green";
     ctx.textAlign = "center";
-    ctx.fillText(fromText, width / 2, 810);
+    ctx.fillText(fromText, width / 2, 710);
     ctx.font = "bold 24px Arial";
-    ctx.fillText(hierarchyText, width / 2, 845);
+    ctx.fillText(hierarchyText, width / 2, 745);
 
     // Save File
     const safeName = name.replace(/\s+/g, "_");
