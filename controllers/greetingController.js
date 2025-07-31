@@ -162,7 +162,9 @@ exports.generateGreeting = async (req, res) => {
     ctx.fillText(fromText, width / 2, 710);
     ctx.font = "bold 24px Arial";
     ctx.fillText(hierarchyText, width / 2, 745);
-
+    ctx.font = "bold 48px Arial"
+    ctx.fillStyle = "red"
+    ctx.fillText("BHARATIYA YOG SANSTHAN (REGD.)", width / 2, 930);
     // Save File
     const safeName = name.replace(/\s+/g, "_");
     const safeMobile = (mobile || "").replace(/\s+/g, "_");

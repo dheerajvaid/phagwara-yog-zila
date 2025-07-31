@@ -131,6 +131,7 @@
 
 <script>
   let selectedName = '', selectedType = '', selectedMobile = '', selectedDate = '';
+  const spinner = document.getElementById('loadingSpinner'); 
 
   function openGreetingModal(card) {
     selectedName = card.getAttribute('data-saadhak-name');
@@ -144,12 +145,15 @@
   }
 
   document.getElementById('confirmGreetingBtn').addEventListener('click', async () => {
+    if (spinner) spinner.style.display = 'block';
     await createGreeting(selectedName, selectedType, selectedMobile, selectedDate);
+    if (spinner) spinner.style.display = 'none';
+
     bootstrap.Modal.getInstance(document.getElementById('greetingModal')).hide();
   });
 
   document.getElementById('downloadGreetingBtn').addEventListener('click', () => {
-  const spinner = document.getElementById('loadingSpinner'); // Use your spinner's actual ID
+ // Use your spinner's actual ID
   if (spinner) spinner.style.display = 'block';
 
   setTimeout(() => {
