@@ -27,15 +27,9 @@ exports.createZila = async (req, res) => {
   try {
     let { name } = req.body;
 
-    if (!name || !/^[A-Za-z\s]+$/.test(name)) {
+    if (!validateName(name, true, ".-()")) {
       return res.render('zila/add', {
-        error: '❌ Zila name should contain alphabets and spaces only.'
-      });
-    }
-
-    if (!validateName(name)) {
-      return res.render('zila/add', {
-        error: '❌ Zila name should contain alphabets and spaces only.'
+        error: '❌ Zila name should contain alphabets, numbers, .-()'
       });
     }
     
@@ -83,18 +77,10 @@ exports.updateZila = async (req, res) => {
   try {
     let { name } = req.body;
     const zilaId = req.params.id;
-
-    if (!name || !/^[A-Za-z\s]+$/.test(name)) {
-      const zila = await Zila.findById(zilaId);
-      return res.render('zila/edit', {
-        zila,
-        error: '❌ Zila name should contain alphabets and spaces only.'
-      });
-    }
-
-    if (!validateName(name)) {
+  
+    if (!validateName(name, true, ".-()")) {
       return res.render('zila/add', {
-        error: '❌ Zila name should contain alphabets and spaces only.'
+         error: '❌ Zila name should contain alphabets, numbers, .-()'
       });
     }
     

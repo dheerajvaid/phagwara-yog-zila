@@ -39,11 +39,11 @@ exports.createKsheter = async (req, res) => {
     let { name, zila } = req.body;
     const formData = { name, zila };
 
-    if (!validateName(name)) {
+    if (!validateName(name, true, "-.()")) {
       const zilas = await Zila.find();
       return res.render("ksheter/add", {
         zilas,
-        error: "❌ Ksheter name must contain only alphabets and spaces.",
+        error: "❌ Ksheter name must contain only alphabets, numbers, -.()",
         formData,
       });
     }
@@ -77,7 +77,6 @@ exports.createKsheter = async (req, res) => {
 
 exports.listKsheter = async (req, res) => {
   try {
-    
     const selectedZilaId = req.query.zila;
     const user = req.session.user;
     // console.log(user);
@@ -134,13 +133,13 @@ exports.updateKsheter = async (req, res) => {
     let { name, zila } = req.body;
     const ksheterId = req.params.id;
 
-    if (!validateName(name)) {
+    if (!validateName(name, true, ".-()")) {
       const ksheter = await Ksheter.findById(ksheterId);
       const zilas = await Zila.find();
       return res.render("ksheter/edit", {
         ksheter,
         zilas,
-        error: "❌ Ksheter name must contain only alphabets and spaces.",
+        error: "❌ Ksheter name must contain only alphabets, numbers, -.()",
       });
     }
 
@@ -185,11 +184,14 @@ exports.deleteKsheter = async (req, res) => {
     if (linkedSaadhaks) {
       // Send back with warning
       return res.render("ksheter/list", {
-        ksheters: await Ksheter.find({ zila: zilaId }).sort({ name: 1 }).populate("zila"),
+        ksheters: await Ksheter.find({ zila: zilaId })
+          .sort({ name: 1 })
+          .populate("zila"),
         zilas: await Zila.find().sort({ name: 1 }),
         selectedZilaId: zilaId,
         user: req.session.user,
-        error: "⚠️ Cannot delete this Ksheter because some Saadhaks are linked to it."
+        error:
+          "⚠️ Cannot delete this Ksheter because some Saadhaks are linked to it.",
       });
     }
 

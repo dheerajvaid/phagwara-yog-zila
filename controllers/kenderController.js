@@ -104,11 +104,11 @@ exports.createKender = async (req, res) => {
     }
 
     // ✅ Validate name
-    if (!validateName(name)) {
+    if (!validateName(name, true, "-.()")) {
       const zilas = await Zila.find();
       const ksheters = await Ksheter.find({ zila });
       return res.render("kender/add", {
-        error: "❌ Kender name must contain only alphabets and numbers.",
+        error: "❌ Kender name must contain only alphabets, numbers, -.()",
         zilas,
         ksheters,
         formData,
@@ -314,7 +314,7 @@ exports.updateKender = async (req, res) => {
       });
     }
 
-    if (!validateName(name)) {
+    if (!validateName(name, true, "-.()")) {
       const zilas = await Zila.find().sort({ name: 1 });
       const ksheters = await Ksheter.find({ zila }).sort({ name: 1 });
 
@@ -322,7 +322,7 @@ exports.updateKender = async (req, res) => {
         kender,
         zilas,
         ksheters,
-        error: "❌ Kender name must contain only alphabets and spaces.",
+        error: "❌ Kender name must contain only alphabets, numbers, -.()",
         user,
       });
     }
