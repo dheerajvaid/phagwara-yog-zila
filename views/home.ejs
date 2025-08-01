@@ -128,42 +128,65 @@
     <p class="text-dark fw-semibold mb-1">"जियो और जीवन दो"</p>
     <p class="text-muted fst-italic mb-4">योग एक साधना है, इसे अपनाएं और फैलाएं।</p>
 
-    <div class="container mb-4">
-      <div class="row g-3 justify-content-center">
-        <div class="col-6 col-sm-3">
-          <div class="card stat-card border-success text-center">
-            <div class="card-body p-2">
-              <h6 class="text-success fw-bold mb-1">Zilas</h6>
-              <p class="m-0"><%= totalZilas %></p>
-            </div>
-          </div>
-        </div>
-        <div class="col-6 col-sm-3">
-          <div class="card stat-card border-primary text-center">
-            <div class="card-body p-2">
-              <h6 class="text-primary fw-bold mb-1">Ksheter</h6>
-              <p class="m-0"><%= totalKsheter %></p>
-            </div>
-          </div>
-        </div>
-        <div class="col-6 col-sm-3">
-          <div class="card stat-card border-danger text-center">
-            <div class="card-body p-2">
-              <h6 class="text-danger fw-bold mb-1">Kenders</h6>
-              <p class="m-0"><%= totalKenders %></p>
-            </div>
-          </div>
-        </div>
-        <div class="col-6 col-sm-3">
-          <div class="card stat-card border-warning text-center">
-            <div class="card-body p-2">
-              <h6 class="text-warning fw-bold mb-1">Saadhaks</h6>
-              <p class="m-0"><%= totalSaadhaks %></p>
-            </div>
-          </div>
+    <!-- ADD THIS RIGHT BEFORE THE stat cards container -->
+   <div class="text-center my-4 py-3 px-4 rounded-4 mx-auto shadow" style="
+  max-width: 680px;
+  background: linear-gradient(135deg, #8e44ad, #d291bc); 
+  border: 1px solid #e5c4ef;
+  color: #fff;
+  box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.25), 0 4px 12px rgba(0, 0, 0, 0.2);
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+">
+  <h4 class="fw-bold mb-0" style="font-size: 1.7rem;">
+    🌟 Punjab at a Glance
+    <span class="d-block fs-5 fw-normal text-light mt-1" style="opacity: 0.9;">⬇️</span>
+  </h4>
+</div>
+
+   <div class="container mb-4">
+  <div class="row g-3 justify-content-center">
+    <!-- Zilas -->
+    <div class="col-6 col-sm-3">
+      <div class="card text-white text-center shadow border-0" style="background: linear-gradient(135deg, #38b000, #70e000); border-radius: 1rem;">
+        <div class="card-body py-4">
+          <h6 class="fw-bold text-uppercase mb-1" style="letter-spacing: 0.5px;">Zilas</h6>
+          <p class="display-6 fw-semibold m-0"><%= totalZilas %></p>
         </div>
       </div>
     </div>
+
+    <!-- Ksheter -->
+    <div class="col-6 col-sm-3">
+      <div class="card text-white text-center shadow border-0" style="background: linear-gradient(135deg, #0077b6, #00b4d8); border-radius: 1rem;">
+        <div class="card-body py-4">
+          <h6 class="fw-bold text-uppercase mb-1" style="letter-spacing: 0.5px;">Ksheter</h6>
+          <p class="display-6 fw-semibold m-0"><%= totalKsheter %></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kenders -->
+    <div class="col-6 col-sm-3">
+      <div class="card text-white text-center shadow border-0" style="background: linear-gradient(135deg, #d00000, #ff595e); border-radius: 1rem;">
+        <div class="card-body py-4">
+          <h6 class="fw-bold text-uppercase mb-1" style="letter-spacing: 0.5px;">Kenders</h6>
+          <p class="display-6 fw-semibold m-0"><%= totalKenders %></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Saadhaks -->
+    <div class="col-6 col-sm-3">
+      <div class="card text-white text-center shadow border-0" style="background: linear-gradient(135deg, #ff9f1c, #ffbf69); border-radius: 1rem;">
+        <div class="card-body py-4">
+          <h6 class="fw-bold text-uppercase mb-1" style="letter-spacing: 0.5px;">Saadhaks</h6>
+          <p class="display-6 fw-semibold m-0"><%= totalSaadhaks %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 
     <div class="container py-3 px-2">
       <div class="accordion" id="prantAccordion">
