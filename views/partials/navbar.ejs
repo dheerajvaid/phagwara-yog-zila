@@ -1,4 +1,5 @@
 <!-- views/partials/navbar.ejs -->
+
 <style>
   :root {
     --brand-bg-1: #1b1f24;
@@ -13,15 +14,13 @@
     backdrop-filter: blur(6px);
   }
 
-  .navbar-brand,
-  .navbar-nav .nav-link {
+  .navbar-brand, .navbar-nav .nav-link {
     position: relative;
     color: var(--link) !important;
     transition: color 0.25s ease;
   }
 
-  .navbar-brand::after,
-  .navbar-nav .nav-link::after {
+  .navbar-brand::after, .navbar-nav .nav-link::after {
     content: '';
     position: absolute;
     left: 0;
@@ -33,18 +32,12 @@
     opacity: 0.85;
   }
 
-  .navbar-brand:hover,
-  .navbar-brand:focus,
-  .navbar-nav .nav-link:hover,
-  .navbar-nav .nav-link:focus {
-    color: var(--link-hover) !important;
+  .navbar-brand:hover::after, .navbar-nav .nav-link:hover::after {
+    width: 100%;
   }
 
-  .navbar-brand:hover::after,
-  .navbar-brand:focus::after,
-  .navbar-nav .nav-link:hover::after,
-  .navbar-nav .nav-link:focus::after {
-    width: 100%;
+  .navbar-brand:hover, .navbar-nav .nav-link:hover {
+    color: var(--link-hover) !important;
   }
 
   @media (max-width: 991px) {
@@ -55,7 +48,6 @@
 
     .dropdown-menu .dropdown-item {
       color: #f8f9fa;
-      transition: background 0.2s, color 0.2s;
     }
 
     .dropdown-menu .dropdown-item:hover {
@@ -83,12 +75,12 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark navbar-gradient sticky-top shadow-sm">
   <div class="container-fluid">
-   <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="/">
-    <img src="/images/logo-nbg.png" alt="BYS Logo" style="height: 28px; width: auto;" />
-    HOME
-  </a>
+    <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="/">
+      <img src="/images/logo-nbg.png" alt="BYS Logo" style="height: 28px;" />
+      HOME
+    </a>
+
     <% if (user) { %>
-      <!-- 📅 Mobile Top-Right Badge -->
       <a href="/calendar/today" class="calendar-icon-mobile d-lg-none text-decoration-none text-warning">
         <div class="position-relative">
           <i class="bi bi-calendar-event-fill"></i>
@@ -109,8 +101,6 @@
 
     <div class="collapse navbar-collapse" id="mainNavbar">
       <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-
-        <!-- 📅 Desktop Calendar Icon with Badge -->
         <% if (user) { %>
           <li class="nav-item d-none d-lg-block">
             <a href="/calendar/today" class="nav-link position-relative px-3 d-flex align-items-center">
@@ -125,7 +115,6 @@
           </li>
         <% } %>
 
-        <!-- Public Links -->
         <li class="nav-item"><a class="nav-link" href="/explore">📂 Explore BYS</a></li>
         <li class="nav-item"><a class="nav-link" href="/events">🎆 Events</a></li>
         <%- include('sharpMind') %>
@@ -158,7 +147,6 @@
               <%- include('yog-samagri') %>
               <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
             <% } %>
-
             <% if (user.roles.includes('Ksheter Pradhan') || user.roles.includes('Ksheter Mantri')) { %>
               <%- include('kender') %>
               <%- include('saadhak') %>
@@ -166,13 +154,11 @@
               <%- include('yog-samagri') %>
               <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
             <% } %>
-
             <% if (user.roles.includes('Kender Pramukh') || user.roles.includes('Seh Kender Pramukh') || user.roles.includes('Shikshak') || user.roles.includes('Karyakarta')) { %>
               <%- include('saadhak') %>
               <%- include('attendance') %>
               <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
             <% } %>
-
             <% if (user.roles.includes('Saadhak')) { %>
               <%- include('saadhak') %>
               <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
