@@ -21,7 +21,7 @@ module.exports = {
 
   kenderMainTeam : [
     "Kender Pramukh",
-    "Seh Kender Pramukh",
+    "Seh Kender Pramukh",   
   ],
 
   kenderRoles: [

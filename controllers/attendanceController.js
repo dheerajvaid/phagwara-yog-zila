@@ -663,30 +663,41 @@ exports.viewKenderWiseAttendance = async (req, res) => {
     const selectedYear = parseInt(req.query.year) || today.getFullYear();
     const sortBy = req.query.sortBy || "name";
 
-    // Scope filters
-    const zilaQuery = Array.isArray(req.query.zila)
-      ? req.query.zila[0]
-      : req.query.zila;
-    const ksheterQuery = Array.isArray(req.query.ksheter)
-      ? req.query.ksheter[0]
-      : req.query.ksheter;
-    const kenderQuery = Array.isArray(req.query.kender)
-      ? req.query.kender[0]
-      : req.query.kender;
-
     const start = new Date(selectedYear, selectedMonth - 1, 1);
     const end = new Date(selectedYear, selectedMonth, 0, 23, 59, 59);
+    // 🟡 Normalize filters
+    const normalizeScopeValue = (value) => {
+      if (!value) return "";
+      if (Array.isArray(value)) return value[0] || "";
+      return String(value);
+    };
 
-    // 🟩 Prepare Kender Filter
+    const zilaQuery = normalizeScopeValue(req.query.zila).trim();
+    const ksheterQuery = normalizeScopeValue(req.query.ksheter).trim();
+    const kenderQuery = normalizeScopeValue(req.query.kender).trim();
+
+    // 🟩 Determine filter based on role and query
     const kenderFilter = {};
-    if (zilaQuery && zilaQuery.trim() !== "") kenderFilter.zila = zilaQuery;
-    if (ksheterQuery && ksheterQuery.trim() !== "")
-      kenderFilter.ksheter = ksheterQuery;
-    if (kenderQuery && kenderQuery.trim() !== "")
-      kenderFilter._id = kenderQuery;
 
-    // fallback to user's zila if no filter
-    if (!kenderFilter.zila && user.zila) kenderFilter.zila = user.zila;
+    if (kenderQuery) {
+      kenderFilter._id = kenderQuery;
+    } else if (ksheterQuery || zilaQuery) {
+      if (zilaQuery) kenderFilter.zila = zilaQuery;
+      if (ksheterQuery) kenderFilter.ksheter = ksheterQuery;
+    } else {
+      // Role-based fallback if no query filter
+      if (user.kender) {
+        kenderFilter._id = user.kender;
+      } else {
+        if (user.zila) kenderFilter.zila = user.zila;
+        if (user.ksheter) kenderFilter.ksheter = user.ksheter;
+      }
+    }
+
+    // Set selected values for view rendering
+    const selectedZila = zilaQuery || user.zila?.toString() || "";
+    const selectedKsheter = ksheterQuery || user.ksheter?.toString() || "";
+    const selectedKender = kenderQuery || user.kender?.toString() || "";
 
     const allKenders = await Kender.find(kenderFilter).sort("name");
 
@@ -774,6 +785,9 @@ exports.viewKenderWiseAttendance = async (req, res) => {
       selectedKsheter: ksheterQuery || "",
       selectedKender: kenderQuery || "",
       viewMode,
+      selectedZila,
+      selectedKsheter,
+      selectedKender,
     });
   } catch (err) {
     console.error("Error loading Kender attendance:", err);
