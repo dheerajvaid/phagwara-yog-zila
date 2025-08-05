@@ -11,6 +11,11 @@ const kenderSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  prant: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Prant",
+    required: true,
+  },
   zila: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Zila",
@@ -27,5 +32,4 @@ const kenderSchema = new mongoose.Schema({
   },
 });
 
-// module.exports = mongoose.model("Kender", kenderSchema);
 module.exports = mongoose.models.Kender || mongoose.model('Kender', kenderSchema);

@@ -1,47 +1,37 @@
 // config/roles.js
 
 module.exports = {
+  adminRoles: ["Admin"],
+
+  prantRoles: [
+    "Prant Pradhan",
+    "Prant Upp Pradhan",
+    "Prant Sanrakshak",
+    "Prant Sangathan Mantri",
+    "Prant Mantri",
+    "Prant Cashier",
+  ],
+
   zilaRoles: [
-    "Admin",
     "Zila Pradhan",
+    "Zila Upp Pradhan",
     "Zila Mantri",
-    "Sangathan Mantri",
-    "Cashier"
+    "Zila Sangathan Mantri",
+    "Zila Sanrakshak",
+    "Zila Cashier",
   ],
-  
+
   ksheterRoles: [
-    "Admin",
-    "Zila Pradhan",
-    "Zila Mantri",
-    "Sangathan Mantri",
-    "Cashier",
     "Ksheter Pradhan",
-    "Ksheter Mantri"
+    "Ksheter Upp Pradhan",
+    "Ksheter Mantri",
+    "Ksheter Sangathan Mantri",
+    "Ksheter Cashier",
   ],
 
-  kenderMainTeam : [
-    "Kender Pramukh",
-    "Seh Kender Pramukh",   
-  ],
+  kenderRoles: ["Kender Pramukh", "Seh Kender Pramukh"],
 
-  kenderRoles: [
-    "Kender Pramukh",
-    "Seh Kender Pramukh",
-    "Shikshak",
-    "Karyakarta"
-  ],
+  kenderTeamRoles: ["Shikshak", "Karyakarta"],
 
-  kenderMainRoles: [
-    "Kender Pramukh",
-    "Seh Kender Pramukh",
-    "Shikshak",
-    "Karyakarta",
-  ],
-
-  saadhakRoles: [
-    "Saadhak",
-  ],
-
-  adminOnly: ["Admin"],
-
+  saadhakRoles: ["Saadhak"],
 };

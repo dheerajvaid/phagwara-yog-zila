@@ -10,12 +10,11 @@ exports.setEventCount = async (req, res, next) => {
     const user = req.session.user;
     const isAdmin = user.roles.includes("Admin");
 
-    // Convert to IST
+    // ✅ Get current IST date and time accurately
     const now = new Date();
-    const istOffsetMs = 5.5 * 60 * 60 * 1000;
-    const istDate = new Date(now.getTime() + istOffsetMs);
-    const day = istDate.getDate();
-    const month = istDate.getMonth() + 1;
+    const istNow = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+    const day = istNow.getDate();
+    const month = istNow.getMonth() + 1;
 
     // 🔍 Query conditions
     const query = {

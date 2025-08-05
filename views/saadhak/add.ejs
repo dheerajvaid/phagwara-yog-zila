@@ -7,13 +7,13 @@
   <% if (error) { %>
     <div class="alert alert-danger"><%= error %></div>
   <% } %>
-  
+
   <% if (success) { %>
     <div class="alert alert-success"><%= success %></div>
   <% } %>
-  
+
   <form action="/saadhak/add" method="POST" class="row g-3" onsubmit="cleanMobileNumberById('mobile')">
-    <!-- Role -->
+    <!-- Role --> 
     <div class="col-md-4">
       <label class="form-label">Select Role *</label>
       <select name="role" class="form-select" id="roleSelect" required>
@@ -36,65 +36,79 @@
       <input type="text" name="mobile" id="mobile" class="form-control" required value="<%= formData?.mobile || '' %>">
     </div>
 
+    <% const selectedPrant = formData?.prant || user.prant; %>
+    <% const selectedZila = formData?.zila || user.zila; %>
+    <% const selectedKsheterId = formData?.ksheter || user.ksheter; %>
+    <% const selectedKenderId = formData?.kender || user.kender; %>
+    
+    <!-- Prant -->
+    <div class="col-md-4 prant-field d-none">
+      <label class="form-label">Prant</label>
+      <select name="prant" id="prantSelect" class="form-select" <%= user.prant ? 'disabled' : '' %>>
+        <option value="">-- Select Prant --</option>
+        <% prants.forEach(p => { %>
+          <option value="<%= p._id %>" <%= (selectedPrant == p._id.toString()) ? 'selected' : '' %>>
+            <%= p.name %>
+          </option>
+        <% }) %>
+      </select>
+      <% if (user.prant) { %>
+        <input type="hidden" name="prant" value="<%= user.prant %>">
+      <% } %>
+    </div>
+
     <!-- Zila -->
     <div class="col-md-4 zila-field d-none">
       <label class="form-label">Zila</label>
       <select name="zila" id="zilaSelect" class="form-select" <%= user.zila ? 'disabled' : '' %>>
         <option value="">-- Select Zila --</option>
         <% zilas.forEach(z => { %>
-          <option value="<%= z._id %>"
-            <%= (formData?.zila == z._id || user.zila == z._id) ? 'selected' : '' %>>
-            <%= z.name %>
-          </option>
+          <% if (z.prant.toString() === selectedPrant?.toString()) { %>
+            <option value="<%= z._id %>" <%= (selectedZila == z._id.toString()) ? 'selected' : '' %>>
+              <%= z.name %>
+            </option>
+          <% } %>
         <% }) %>
       </select>
-    
       <% if (user.zila) { %>
         <input type="hidden" name="zila" value="<%= user.zila %>">
       <% } %>
     </div>
 
     <!-- Ksheter -->
-   <div class="col-md-4 ksheter-field d-none">
-  <label class="form-label">Ksheter</label>
-  <% const selectedZilaId = formData?.zila || user.zila; %>
-
-  <select name="ksheter" id="ksheterSelect" class="form-select" <%= user.ksheter ? 'disabled' : '' %>>
-    <option value="">-- Select Ksheter --</option>
-    <% ksheters.forEach(k => { %>
-      <% if (k.zila.toString() === selectedZilaId?.toString()) { %>
-        <option value="<%= k._id %>" <%= (formData?.ksheter == k._id || user.ksheter == k._id) ? 'selected' : '' %>>
-          <%= k.name %>
-        </option>
+    <div class="col-md-4 ksheter-field d-none">
+      <label class="form-label">Ksheter</label>
+      <select name="ksheter" id="ksheterSelect" class="form-select" <%= user.ksheter ? 'disabled' : '' %>>
+        <option value="">-- Select Ksheter --</option>
+        <% ksheters.forEach(k => { %>
+          <% if (k.zila.toString() === selectedZila?.toString()) { %>
+            <option value="<%= k._id %>" <%= (selectedKsheterId == k._id.toString()) ? 'selected' : '' %>>
+              <%= k.name %>
+            </option>
+          <% } %>
+        <% }) %>
+      </select>
+      <% if (user.ksheter) { %>
+        <input type="hidden" name="ksheter" value="<%= user.ksheter %>">
       <% } %>
-    <% }) %>
-  </select>
-
-  <% if (user.ksheter) { %>
-    <input type="hidden" name="ksheter" value="<%= user.ksheter %>">
-  <% } %>
-</div>
+    </div>
 
     <!-- Kender -->
     <div class="col-md-4 kender-field d-none">
       <label class="form-label">Kender</label>
-      <% const selectedKsheterId = formData?.ksheter || user.ksheter; %>
-
-<select name="kender" id="kenderSelect" class="form-select" <%= user.kender ? 'disabled' : '' %>>
-  <option value="">-- Select Kender --</option>
-  <% kenders.forEach(k => { %>
-    <% if (k.ksheter.toString() === selectedKsheterId?.toString()) { %>
-      <option value="<%= k._id %>" <%= (formData?.kender == k._id || user.kender == k._id) ? 'selected' : '' %>>
-        <%= k.name %>
-      </option>
-    <% } %>
-  <% }) %>
-</select>
-
-<% if (user.kender) { %>
-  <input type="hidden" name="kender" value="<%= user.kender %>">
-<% } %>
-
+      <select name="kender" id="kenderSelect" class="form-select" <%= user.kender ? 'disabled' : '' %>>
+        <option value="">-- Select Kender --</option>
+        <% kenders.forEach(k => { %>
+          <% if (k.ksheter.toString() === selectedKsheterId?.toString()) { %>
+            <option value="<%= k._id %>" <%= (selectedKenderId == k._id.toString()) ? 'selected' : '' %>>
+              <%= k.name %>
+            </option>
+          <% } %>
+        <% }) %>
+      </select>
+      <% if (user.kender) { %>
+        <input type="hidden" name="kender" value="<%= user.kender %>">
+      <% } %>
     </div>
 
     <!-- DOB -->
@@ -147,54 +161,74 @@
   </form>
 </section>
 
-<!-- JSON Data -->
-
+<!-- Data for JS use -->
 <script>
+  const allZilas = <%- JSON.stringify(zilas.map(z => ({ _id: z._id.toString(), name: z.name, prant: z.prant?.toString() }))) %>;
   const allKsheters = <%- JSON.stringify(ksheters.map(k => ({ _id: k._id.toString(), name: k.name, zila: k.zila.toString() }))) %>;
   const allKenders = <%- JSON.stringify(kenders.map(k => ({ _id: k._id.toString(), name: k.name, ksheter: k.ksheter.toString() }))) %>;
+  const roleConfig = <%- JSON.stringify(roleConfig) %>;
 </script>
 
-<!-- JavaScript Logic -->
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     const roleSelect = document.getElementById('roleSelect');
+    const prantField = document.querySelector('.prant-field');
     const zilaField = document.querySelector('.zila-field');
     const ksheterField = document.querySelector('.ksheter-field');
     const kenderField = document.querySelector('.kender-field');
+
+    const prantSelect = document.getElementById('prantSelect');
     const zilaSelect = document.getElementById('zilaSelect');
     const ksheterSelect = document.getElementById('ksheterSelect');
     const kenderSelect = document.getElementById('kenderSelect');
 
-    // 🌟 Toggle Field Visibility Based on Role
+    const roleHierarchyMap = {
+      adminRoles: [],
+      prantRoles: ['prant'],
+      zilaRoles: ['prant', 'zila'],
+      ksheterRoles: ['prant', 'zila', 'ksheter'],
+      kenderRoles: ['prant', 'zila', 'ksheter', 'kender'],
+      kenderTeamRoles: ['prant', 'zila', 'ksheter', 'kender'],
+      saadhakRoles: ['prant', 'zila', 'ksheter', 'kender'],
+    };
+
+    function getFieldVisibilityForRole(role) {
+      for (const [group, roles] of Object.entries(roleConfig)) {
+        if (roles.includes(role)) {
+          return roleHierarchyMap[group] || [];
+        }
+      }
+      return [];
+    }
+
     function toggleFields(role) {
-      if (['Admin'].includes(role)) {
-        zilaField.classList.add('d-none');
-        ksheterField.classList.add('d-none');
-        kenderField.classList.add('d-none');
-      } else if (['Zila Pradhan', 'Zila Mantri', 'Sangathan Mantri', 'Cashier'].includes(role)) {
-        zilaField.classList.remove('d-none');
-        ksheterField.classList.add('d-none');
-        kenderField.classList.add('d-none');
-      } else if (['Ksheter Pradhan', 'Ksheter Mantri'].includes(role)) {
-        zilaField.classList.remove('d-none');
-        ksheterField.classList.remove('d-none');
-        kenderField.classList.add('d-none');
-      } else if (['Kender Pramukh', 'Seh Kender Pramukh','Shikshak','Karyakarta','Saadhak'].includes(role)) {
-        zilaField.classList.remove('d-none');
-        ksheterField.classList.remove('d-none');
-        kenderField.classList.remove('d-none');
-      } else {
-        zilaField.classList.add('d-none');
-        ksheterField.classList.add('d-none');
-        kenderField.classList.add('d-none');
+      const visibleFields = getFieldVisibilityForRole(role);
+      const allFields = { prant: prantField, zila: zilaField, ksheter: ksheterField, kender: kenderField };
+
+      for (const [field, el] of Object.entries(allFields)) {
+        el.classList.toggle('d-none', !visibleFields.includes(field));
       }
     }
 
-    // Initial role check
-    toggleFields(roleSelect.value);
-    roleSelect.addEventListener('change', () => toggleFields(roleSelect.value));
+    // 🌟 Populate Zila when Prant changes
+    prantSelect?.addEventListener('change', function () {
+      const prantId = this.value;
+      const filteredZilas = allZilas.filter(z => z.prant === prantId);
 
-    // 🌟 Populate Ksheter dropdown when Zila changes
+      zilaSelect.removeAttribute('disabled');
+      zilaSelect.innerHTML = '<option value="">-- Select Zila --</option>';
+      filteredZilas.forEach(z => {
+        zilaSelect.innerHTML += `<option value="${z._id}">${z.name}</option>`;
+      });
+
+      ksheterSelect.innerHTML = '<option value="">-- Select Ksheter --</option>';
+      kenderSelect.innerHTML = '<option value="">-- Select Kender --</option>';
+
+      <% if (user.zila) { %>
+        zilaSelect.setAttribute('disabled', 'disabled');
+      <% } %>
+    });
+
     zilaSelect?.addEventListener('change', function () {
       const zilaId = this.value;
       const filteredKsheters = allKsheters.filter(k => k.zila === zilaId);
@@ -202,10 +236,10 @@
       filteredKsheters.forEach(k => {
         ksheterSelect.innerHTML += `<option value="${k._id}">${k.name}</option>`;
       });
+
       kenderSelect.innerHTML = '<option value="">-- Select Kender --</option>';
     });
 
-    // 🌟 Populate Kender dropdown when Ksheter changes
     ksheterSelect?.addEventListener('change', function () {
       const ksheterId = this.value;
       const filteredKenders = allKenders.filter(k => k.ksheter === ksheterId);
@@ -214,6 +248,10 @@
         kenderSelect.innerHTML += `<option value="${k._id}">${k.name}</option>`;
       });
     });
+
+    // Initial role check
+    toggleFields(roleSelect.value);
+    roleSelect.addEventListener('change', () => toggleFields(roleSelect.value));
   });
 </script>
 

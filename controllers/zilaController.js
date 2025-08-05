@@ -2,7 +2,9 @@ const Zila = require('../models/Zila');
 const Ksheter = require('../models/Ksheter');
 const Kender = require('../models/Kender');
 const Saadhak = require('../models/Saadhak');
+const Prant = require('../models/Prant');
 
+const roles = require('../config/roles');
 const ZILA_ROLES = ['Zila Pradhan', 'Zila Mantri', 'Sangathan Mantri', 'Cashier'];
 const { formatName, validateName } = require('../utils/formatters');
 
@@ -17,33 +19,76 @@ exports.showZilaDashboard = async (req, res) => {
   }
 };
 
-// ✅ Show Add Form
-exports.showAddForm = (req, res) => {
-  res.render('zila/add');
+
+exports.showAddForm = async (req, res) => {
+  try {
+    const user = req.session.user || {};
+    const prantId = user.prant;
+
+    let prantName = 'N/A';
+    if (prantId) {
+      const prant = await Prant.findById(prantId);
+      if (prant) {
+        prantName = prant.name;
+      }
+    }
+
+    // Pass full user object with updated prantName and roles
+    res.render('zila/add', {
+      user: {
+        ...user,
+        prant: prantId,
+        prantName: prantName,
+      },
+      prantName,
+      prantId,
+      roles // pass roles to be used in navbar
+    });
+  } catch (error) {
+    console.error('Error loading add Zila form:', error);
+    res.status(500).send('Internal Server Error');
+  }
 };
 
 // ✅ Handle Zila Creation
 exports.createZila = async (req, res) => {
   try {
-    let { name } = req.body;
+    let { name, prant } = req.body;
 
     if (!validateName(name, true, ".-()")) {
+      const prantDoc = await Prant.findById(prant);
       return res.render('zila/add', {
-        error: '❌ Zila name should contain alphabets, numbers, .-()'
+        error: '❌ Zila name should contain alphabets, numbers, .-()',
+        prantId: prant,
+        prantName: prantDoc ? prantDoc.name : 'N/A',
+        user: {
+          ...req.session.user,
+          prant,
+          prantName: prantDoc?.name || 'N/A',
+        },
+        roles
       });
     }
-    
-    name = formatName(name); // format cleanly
+
+    name = formatName(name);
 
     const existing = await Zila.findOne({ name });
-
     if (existing) {
+      const prantDoc = await Prant.findById(prant);
       return res.render('zila/add', {
-        error: '⚠️ A Zila with this name already exists.'
+        error: '⚠️ A Zila with this name already exists.',
+        prantId: prant,
+        prantName: prantDoc ? prantDoc.name : 'N/A',
+        user: {
+          ...req.session.user,
+          prant,
+          prantName: prantDoc?.name || 'N/A',
+        },
+        roles
       });
     }
 
-    const zila = new Zila({ name });
+    const zila = new Zila({ name, prant });
     await zila.save();
 
     res.redirect('/zila/manage');
@@ -54,11 +99,12 @@ exports.createZila = async (req, res) => {
 };
 
 
+
 // ✅ View All Zilas
 exports.listZilas = async (req, res) => {
   try {
     const zilas = await Zila.find().sort({ name: 1 });
-    res.render('zila/list', { zilas });
+    res.render('zila/manage', { zilas });
   } catch (err) {
     console.error('Error listing Zilas:', err);
     res.status(500).send('Server Error');

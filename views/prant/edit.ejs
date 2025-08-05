@@ -1,0 +1,45 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-4">
+  <div class="card shadow-sm p-4 mx-auto" style="max-width: 600px;">
+    <h4 class="mb-4 text-primary">✏️ Edit Prant</h4>
+    <form method="POST" action="/prant/edit/<%= prant._id %>">
+      <div class="mb-3">
+        <label for="name" class="form-label">Prant Name</label>
+        <input type="text" name="name" class="form-control" value="<%= prant.name %>" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Update</button>
+    </form>
+  </div>
+</div>
+
+<!-- Error Modal -->
+<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content border-danger">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="errorModalLabel">⚠️ Error</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <%= error %>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>
+
+<!-- Auto-trigger modal if error -->
+<% if (error) { %>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+    errorModal.show();
+  });
+</script>
+<% } %>

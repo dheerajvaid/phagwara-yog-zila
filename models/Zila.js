@@ -6,6 +6,11 @@ const zilaSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  prant: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Prant",
+    required: true,
+  },
   pradhan: String,
   mantri: String,
   sangathanMantri: String,

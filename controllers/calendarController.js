@@ -15,9 +15,14 @@ exports.viewUpcomingEvents = async (req, res) => {
 
     if (!user.roles.includes("Admin")) {
       if (user.zila) {
-        saadhakQuery.zila = user.zila;
+        saadhakQuery = {
+          $or: [
+            { zila: user.zila },
+            { zila: { $exists: false } }, // Saadhak without zila
+            { zila: null }, // Saadhak with null zila
+          ],
+        };
       } else {
-        // if user has no zila (edge case), show nothing
         saadhakQuery = { _id: null };
       }
     }
@@ -95,6 +100,20 @@ exports.viewUpcomingEvents = async (req, res) => {
         }
       }
     }
+
+    // Sort function: by date, then type, then name
+    const sortEvents = (a, b) => {
+      const dateDiff = a.date - b.date;
+      if (dateDiff !== 0) return dateDiff;
+
+      const typeOrder = a.type.localeCompare(b.type); // "🎂" comes before "💍"
+      if (typeOrder !== 0) return typeOrder;
+
+      return a.saadhak.name.localeCompare(b.saadhak.name);
+    };
+
+    todayEvents.sort(sortEvents);
+    upcomingEvents.sort(sortEvents);
 
     res.render("calendar/upcoming", {
       title: "Today & Upcoming Events",

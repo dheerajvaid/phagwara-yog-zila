@@ -1,4 +1,13 @@
-<!-- views/partials/navbar.ejs -->
+<%
+const { adminRoles, prantRoles, zilaRoles, ksheterRoles, kenderRoles, kenderTeamRoles, saadhakRoles } = roles;
+
+const isAdmin = user?.roles.some(role => adminRoles.includes(role));
+const isPrantLevel = user?.roles.some(role => prantRoles.includes(role));
+const isZilaLevel = user?.roles.some(role => zilaRoles.includes(role));
+const isKsheterLevel = user?.roles.some(role => ksheterRoles.includes(role));
+const isKenderLevel = user?.roles.some(role => [...kenderRoles, ...kenderTeamRoles].includes(role));
+const isSaadhakOnly = user?.roles.some(role => saadhakRoles.includes(role));
+%>
 
 <style>
   :root {
@@ -8,18 +17,15 @@
     --link-hover: #0d6efd;
     --underline: #0d6efd;
   }
-
   .navbar-gradient {
     background: linear-gradient(145deg, var(--brand-bg-1), var(--brand-bg-2));
     backdrop-filter: blur(6px);
   }
-
   .navbar-brand, .navbar-nav .nav-link {
     position: relative;
     color: var(--link) !important;
     transition: color 0.25s ease;
   }
-
   .navbar-brand::after, .navbar-nav .nav-link::after {
     content: '';
     position: absolute;
@@ -31,11 +37,9 @@
     transition: width 0.25s ease;
     opacity: 0.85;
   }
-
   .navbar-brand:hover::after, .navbar-nav .nav-link:hover::after {
     width: 100%;
   }
-
   .navbar-brand:hover, .navbar-nav .nav-link:hover {
     color: var(--link-hover) !important;
   }
@@ -45,27 +49,22 @@
       background: var(--brand-bg-2);
       border: none;
     }
-
     .dropdown-menu .dropdown-item {
       color: #f8f9fa;
     }
-
     .dropdown-menu .dropdown-item:hover {
       background: rgba(13, 110, 253, 0.15);
       color: #fff;
     }
-
     .calendar-icon-mobile {
       position: absolute;
       top: 10px;
       right: 85px;
       z-index: 1050;
     }
-
     .calendar-icon-mobile i {
       font-size: 1.5rem;
     }
-
     .calendar-icon-mobile .badge {
       font-size: 0.65rem;
       padding: 4px 6px;
@@ -101,6 +100,7 @@
 
     <div class="collapse navbar-collapse" id="mainNavbar">
       <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+
         <% if (user) { %>
           <li class="nav-item d-none d-lg-block">
             <a href="/calendar/today" class="nav-link position-relative px-3 d-flex align-items-center">
@@ -119,16 +119,12 @@
         <li class="nav-item"><a class="nav-link" href="/events">🎆 Events</a></li>
         <%- include('sharpMind') %>
 
-        <% if (user) { %>
-          <% if (user.roles.includes('Saadhak') || user.roles.includes('Shikshak') || user.roles.includes('Karyakarta') || user.roles.includes('Kender Pramukh') || user.roles.includes('Seh Kender Pramukh')) { %>
-            <li class="nav-item"><a class="nav-link" href="/yog-samagri/report">🛍️ Yog Samagri</a></li>
-          <% } %>
-        <% } else { %>
+        <% if (!user || isAdmin || isZilaLevel || isKsheterLevel || isKenderLevel || isSaadhakOnly) { %>
           <li class="nav-item"><a class="nav-link" href="/yog-samagri/report">🛍️ Yog Samagri</a></li>
         <% } %>
 
         <% if (user) { %>
-          <% if (user.roles.includes('Admin')) { %>
+          <% if (isAdmin || isPrantLevel) { %>
             <li class="nav-item"><a class="nav-link" href="/admin/panel">🛠️ Admin Panel</a></li>
             <%- include('zila') %>
             <%- include('ksheter') %>
@@ -139,33 +135,31 @@
             <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
             <li class="nav-item"><a class="nav-link" href="/roles/manage">🎖️ Role Management</a></li>
           <% } else { %>
-            <% if (user.roles.includes('Zila Pradhan') || user.roles.includes('Zila Mantri') || user.roles.includes('Sangathan Mantri') || user.roles.includes('Cashier')) { %>
+            <% if (isZilaLevel) { %>
               <%- include('ksheter') %>
               <%- include('kender') %>
               <%- include('saadhak') %>
               <%- include('attendance') %>
               <%- include('yog-samagri') %>
               <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
-            <% } %>
-            <% if (user.roles.includes('Ksheter Pradhan') || user.roles.includes('Ksheter Mantri')) { %>
+            <% } else if (isKsheterLevel) { %>
               <%- include('kender') %>
               <%- include('saadhak') %>
               <%- include('attendance') %>
               <%- include('yog-samagri') %>
               <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
-            <% } %>
-            <% if (user.roles.includes('Kender Pramukh') || user.roles.includes('Seh Kender Pramukh') || user.roles.includes('Shikshak') || user.roles.includes('Karyakarta')) { %>
+            <% } else if (isKenderLevel) { %>
               <%- include('saadhak') %>
               <%- include('attendance') %>
               <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
-            <% } %>
-            <% if (user.roles.includes('Saadhak')) { %>
+            <% } else if (isSaadhakOnly) { %>
               <%- include('saadhak') %>
               <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
             <% } %>
           <% } %>
-          <li class="nav-item"><a class="nav-link" href="/dashboard">🗳️ DASHBOARD</a></li>    
-          <li class="nav-item"><a class="nav-link" href="/auth/change-password">🔑 Change Password</a></li>    
+
+          <li class="nav-item"><a class="nav-link" href="/dashboard">🗳️ DASHBOARD</a></li>
+          <li class="nav-item"><a class="nav-link" href="/auth/change-password">🔑 Change Password</a></li>
           <li class="nav-item"><a class="nav-link text-danger" href="/auth/logout">🚪 Logout</a></li>
         <% } else { %>
           <li class="nav-item"><a class="nav-link" href="/auth/login">🔑 Login</a></li>

@@ -15,7 +15,7 @@ const roleHierarchy = {
 
 function canManage(allowedRoles, calledBy = "") {
   return (req, res, next) => {
-    // console.log(allowedRoles);
+     console.log(allowedRoles);
 
     const userRoles = req.session.user?.roles || [];
     // console.log(userRoles);
@@ -47,7 +47,7 @@ function canManage(allowedRoles, calledBy = "") {
       next();
     } else {
       console.log("❌ Role access denied");
-      res.status(403).send("❌ You are not authorized to access this.");
+      return res.status(403).render('error/unauthorized');
     }
   };
 }

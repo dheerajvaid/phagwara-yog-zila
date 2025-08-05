@@ -2,23 +2,40 @@
 <%- include('../partials/navbar') %>
 
 <section class="container mt-5">
-  <h2 class="mb-4">Add New Zila</h2>
+  <h2 class="mb-4 fw-bold text-primary">➕ Add New Zila</h2>
+
   <% if (typeof error !== 'undefined') { %>
     <div class="alert alert-danger alert-dismissible fade show" role="alert">
       <%= error %>
       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
   <% } %>
+
   <form action="/zila/add" method="POST" class="row g-3">
+
+        <!-- Prant Name (Read-only dropdown and hidden field for submission) -->
     <div class="col-md-6">
-      <label class="form-label">Zila Name</label>
-      <input type="text" name="name" class="form-control" required>
+      <label for="prant" class="form-label">Prant</label>
+      <select class="form-select" id="prant" disabled>
+        <option selected><%= prantName %></option>
+      </select>
+      <input type="hidden" name="prant" value="<%= prantId %>">
     </div>
 
-    <div class="col-12">
-      <button type="submit" class="btn btn-success">Save</button>
-      <a href="/zila/manage" class="btn btn-secondary ms-2">Back</a>
+    <!-- Zila Name -->
+    <div class="col-md-6">
+      <label for="zilaName" class="form-label">Zila Name <span class="text-danger">*</span></label>
+      <input type="text" name="name" id="zilaName" class="form-control" required>
     </div>
+
+
+
+    <!-- Action Buttons -->
+    <div class="col-12 mt-3">
+      <button type="submit" class="btn btn-success">💾 Save</button>
+      <a href="/zila/manage" class="btn btn-secondary ms-2">↩️ Back</a>
+    </div>
+
   </form>
 </section>
 

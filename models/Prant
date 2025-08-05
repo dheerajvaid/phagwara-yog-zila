@@ -1,0 +1,19 @@
+const mongoose = require('mongoose');
+
+const prantSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  deleted: {
+    type: Boolean,
+    default: false
+  },
+  deletedAt: {
+    type: Date,
+    default: null
+  }
+}, { timestamps: true });
+
+module.exports = mongoose.models.Prant || mongoose.model('Prant', prantSchema);

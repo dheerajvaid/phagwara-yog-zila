@@ -16,6 +16,7 @@ const saadhakSchema = new mongoose.Schema({
     required: true,
     default: ['Saadhak']
   },
+  prant: { type: mongoose.Schema.Types.ObjectId, ref: 'Prant' },
   zila: { type: mongoose.Schema.Types.ObjectId, ref: 'Zila' },
   ksheter: { type: mongoose.Schema.Types.ObjectId, ref: 'Ksheter' },
   kender: { type: mongoose.Schema.Types.ObjectId, ref: 'Kender' },

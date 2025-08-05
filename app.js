@@ -8,7 +8,10 @@ const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const methodOverride = require("method-override");
 const flash = require("connect-flash");
+const roles = require('./config/roles');
 
+
+const prantRoutes = require('./routes/prantRoutes');
 const zilaRoutes = require("./routes/zilaRoutes");
 const ksheterRoutes = require("./routes/ksheterRoutes");
 const kenderRoutes = require("./routes/kenderRoutes");
@@ -77,6 +80,11 @@ app.use((req, res, next) => {
     next();
 });
 
+app.use((req, res, next) => {
+  res.locals.roles = roles; // Expose roles globally to EJS
+  next();
+});
+
 app.use(setEventCount);
 
 // ✅ Apply roleLevel and scopeData middleware early:
@@ -91,6 +99,7 @@ app.use("/", adminRoutes);
 app.use("/", roleRoutes);
 app.use("/auth", authRoutes);
 app.use(dashboardRoutes);
+app.use('/prant', prantRoutes);
 app.use("/", zilaRoutes);
 app.use(ksheterRoutes);
 app.use(kenderRoutes);

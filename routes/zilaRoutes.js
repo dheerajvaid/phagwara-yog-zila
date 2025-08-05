@@ -3,13 +3,13 @@ const router = express.Router();
 const zilaController = require('../controllers/zilaController');
 const { requireLogin } = require('../middleware/authMiddleware');
 const { canManage } = require('../middleware/roleMiddleware');
-const { zilaRoles, adminOnly } = require('../config/roles'); // ✅ DRY import
-
+const { adminRoles, prantRoles, zilaRoles } = require('../config/roles'); // ✅ DRY import
+const allowedRoles = [...adminRoles, ...prantRoles];
 // Manage Zilas (Zila-level access)
 router.get(
   '/zila/manage',
   requireLogin,
-  canManage(zilaRoles),
+  canManage([...allowedRoles, ...zilaRoles]),
   zilaController.listZilas
 );
 
@@ -17,13 +17,13 @@ router.get(
 router.get(
   '/zila/add',
   requireLogin,
-  canManage(adminOnly),
+  canManage(allowedRoles),
   zilaController.showAddForm
 );
 router.post(
   '/zila/add',
   requireLogin,
-  canManage(adminOnly),
+  canManage(allowedRoles),
   zilaController.createZila
 );
 
@@ -31,13 +31,13 @@ router.post(
 router.get(
   '/zila/edit/:id',
   requireLogin,
-  canManage(adminOnly),
+  canManage(allowedRoles),
   zilaController.showEditForm
 );
 router.post(
   '/zila/edit/:id',
   requireLogin,
-  canManage(adminOnly),
+  canManage(allowedRoles),
   zilaController.updateZila
 );
 
@@ -45,7 +45,7 @@ router.post(
 router.get(
   '/zila/delete/:id',
   requireLogin,
-  canManage(adminOnly),
+  canManage(allowedRoles),
   zilaController.deleteZila
 );
 

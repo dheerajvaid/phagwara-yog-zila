@@ -11,6 +11,15 @@
   <!-- Filters and Search -->
   <div class="row gy-3 mb-3">
     <div class="col-md-3">
+      <label class="form-label">Prant</label>
+      <select id="prantFilter" class="form-select">
+        <option value="">Select Prant</option>
+        <% prants.forEach(p => { %>
+          <option value="<%= p._id %>"><%= p.name %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="col-md-3">
       <label class="form-label">Zila</label>
       <select id="zilaFilter" class="form-select">
         <option value="">Select Zila</option>
@@ -53,7 +62,6 @@
         <tr>
           <th style="white-space: nowrap; width: 1%;">#</th>
           <th>Details</th>
-         
         </tr>
       </thead>
       <tbody id="saadhakTableBody"></tbody>
@@ -66,18 +74,29 @@
   const allSaadhaks = <%- JSON.stringify(saadhaks) %>;
   const allKsheters = <%- JSON.stringify(ksheters) %>;
   const allKenders = <%- JSON.stringify(kenders) %>;
+  const allZilas = <%- JSON.stringify(zilas) %>;
+  const allPrant = <%- JSON.stringify(prants) %>;
   const user = <%- JSON.stringify(user) %>;
   let currentFilteredSaadhaks = [];
   let currentPage = 1;
   const pageSize = 50;
 
   document.addEventListener("DOMContentLoaded", function () {
+    const prantFilter = document.getElementById("prantFilter");
     const zilaFilter = document.getElementById("zilaFilter");
     const ksheterFilter = document.getElementById("ksheterFilter");
     const kenderFilter = document.getElementById("kenderFilter");
     const resetBtn = document.getElementById("resetBtn");
     const tableBody = document.getElementById("saadhakTableBody");
     const searchBtn = document.getElementById("searchBtn");
+
+    function populateZila(prantId) {
+      zilaFilter.innerHTML = '<option value="">All Zila</option>';
+      const filtered = allZilas.filter(z => z.prant === prantId);
+      filtered.forEach(z => {
+        zilaFilter.innerHTML += `<option value="${z._id}">${z.name}</option>`;
+      });
+    }
 
     function populateKsheter(zilaId) {
       ksheterFilter.innerHTML = '<option value="">All Ksheter</option>';
@@ -95,7 +114,13 @@
       });
     }
 
-    // Role-based filters
+    // Role-based preselection
+    if (user.prant) {
+      prantFilter.value = user.prant;
+      prantFilter.disabled = true;
+      populateZila(user.prant);
+    }
+
     if (user.zila) {
       zilaFilter.value = user.zila;
       zilaFilter.disabled = true;
@@ -113,37 +138,46 @@
       kenderFilter.disabled = true;
     }
 
+    prantFilter.addEventListener("change", function () {
+      populateZila(this.value);
+      ksheterFilter.innerHTML = '<option value="">All Ksheter</option>';
+      kenderFilter.innerHTML = '<option value="">All Kender</option>';
+    });
+
+    zilaFilter.addEventListener("change", function () {
+      populateKsheter(this.value);
+      kenderFilter.innerHTML = '<option value="">All Kender</option>';
+    });
+
+    ksheterFilter.addEventListener("change", function () {
+      populateKender(this.value);
+    });
+
     function renderTable() {
+      const selectedPrant = prantFilter.value;
       const selectedZila = zilaFilter.value;
       const selectedKsheter = ksheterFilter.value;
       const selectedKender = kenderFilter.value;
       const searchTerm = searchInput.value.trim().toLowerCase();
 
-            const ksheterRoles = [
-        "Admin",
-        "Zila Pradhan",
-        "Zila Mantri",
-        "Sangathan Mantri",
-        "Cashier",
-        "Ksheter Pradhan",
-        "Ksheter Mantri"
-      ];
-      
+      const ksheterRoles = ["Admin", "Zila Pradhan", "Zila Mantri", "Sangathan Mantri", "Cashier", "Ksheter Pradhan", "Ksheter Mantri"];
       const kenderMainTeam = ["Kender Pramukh", "Seh Kender Pramukh"];
 
       const filtered = allSaadhaks.filter(s => {
+        const matchPrant = !selectedPrant || (s.prant && s.prant._id === selectedPrant);
         const matchZila = !selectedZila || (s.zila && s.zila._id === selectedZila);
         const matchKsheter = !selectedKsheter || (s.ksheter && s.ksheter._id === selectedKsheter);
         const matchKender = !selectedKender || (s.kender && s.kender._id === selectedKender);
+
         const inSearch =
           s.name?.toLowerCase().includes(searchTerm) ||
           s.mobile?.includes(searchTerm) ||
           (Array.isArray(s.role) && s.role.join(',').toLowerCase().includes(searchTerm)) ||
           s.zila?.name?.toLowerCase().includes(searchTerm) ||
           s.ksheter?.name?.toLowerCase().includes(searchTerm) ||
-          s.kender?.name?.toLowerCase().includes(searchTerm);
+          s.kender?.name?.toLowerCase().includes(searchTerm) ||
+          s.prant?.name?.toLowerCase().includes(searchTerm);
 
-        // 🚫 Exclude roles for Ksheter and Kender team
         let roleAllowed = true;
         if (user.roles.includes("Ksheter Pradhan") || user.roles.includes("Ksheter Mantri")) {
           roleAllowed = !s.role?.some(r => ksheterRoles.includes(r));
@@ -152,9 +186,8 @@
           roleAllowed = !s.role?.some(r => [...ksheterRoles, ...kenderMainTeam].includes(r));
         }
 
-        return matchZila && matchKsheter && matchKender && inSearch && roleAllowed;
+        return matchPrant && matchZila && matchKsheter && matchKender && inSearch && roleAllowed;
       });
-
 
       currentFilteredSaadhaks = filtered;
       const totalPages = Math.ceil(filtered.length / pageSize);
@@ -171,9 +204,7 @@
       }
 
       paginated.forEach((s, index) => {
-        // Determine badge color logic based on first role (if any)
         const primaryRole = Array.isArray(s.role) ? s.role[0] : null;
-
         const badgeColor = primaryRole?.includes('Admin') ? 'dark' :
           primaryRole?.includes('Zila') ? 'danger' :
           primaryRole?.includes('Ksheter') ? 'primary' :
@@ -181,40 +212,29 @@
           primaryRole?.includes('Shikshak') ? 'info' :
           primaryRole?.includes('Karyakarta') ? 'warning' : 'secondary';
 
-        // Render roles
         const rolesHtml = Array.isArray(s.role) && s.role.length > 0
           ? s.role.map(r => `<span class="badge bg-${badgeColor} me-1 mb-1">${r}</span>`).join('')
           : '<span class="text-muted">—</span>';
 
-       tableBody.innerHTML += `
+        tableBody.innerHTML += `
         <tr style="border: 2px solid black">
           <td style="border: 2px solid black" class="fw-bold">${start + index + 1}</td>
           <td class="position-relative">
             <div class="position-absolute top-0 end-0 mt-1 me-1 d-flex gap-1">
-              <a href="/saadhak/edit/${s._id}" class="btn btn-sm btn-outline-primary btn-sm py-0 px-1" title="Edit">🖊️</a>
-              <button class="btn btn-sm btn-outline-danger btn-sm py-0 px-1" data-bs-toggle="modal" data-bs-target="#deleteModal${s._id}" title="Delete">🗑️</button>
+              <a href="/saadhak/edit/${s._id}" class="btn btn-sm btn-outline-primary py-0 px-1" title="Edit">🖊️</a>
+              <button class="btn btn-sm btn-outline-danger py-0 px-1" data-bs-toggle="modal" data-bs-target="#deleteModal${s._id}" title="Delete">🗑️</button>
             </div>
 
-           <div class="fw-bold text-primary d-flex align-items-center flex-wrap">
-            <a href="/saadhak/edit/${s._id}" class="text-decoration-none text-success me-2">${s.name}</a>
-            <span class="d-flex flex-wrap gap-1 me-2">${rolesHtml}</span>
-           
+            <div class="fw-bold text-primary d-flex align-items-center flex-wrap">
+              <a href="/saadhak/edit/${s._id}" class="text-decoration-none text-success me-2">${s.name}</a>
+              <span class="d-flex flex-wrap gap-1 me-2">${rolesHtml}</span>
             </div>
-               <span class="text-danger fw-bold">${s.mobile || '—'}</span>
-            <div>
-            
-              </div>
+            <span class="text-danger fw-bold">${s.mobile || '—'}</span>
 
-            <div class="text-dark small">
-              <span class="text-primary fw-bold">${s.kender?.name || '—'}</span>
-            </div>
-            <div class="text-dark small">
-              <span class="fw-bold" style="color: orange;">${s.ksheter?.name || '—'}</span>
-            </div>
-            <div class="text-dark small">       
-              <span class="text-dark fw-bold">${s.zila?.name || '—'}</span>
-            </div>
-
+            <div class="text-dark small"><span class="text-primary fw-bold">${s.kender?.name || '—'}</span></div>
+            <div class="text-dark small"><span class="fw-bold" style="color: orange;">${s.ksheter?.name || '—'}</span></div>
+            <div class="text-dark small"><span class="text-dark fw-bold">${s.zila?.name || '—'}</span></div>
+            <div class="text-dark small"><span class="text-secondary fw-bold">${s.prant?.name || '—'}</span></div>
 
             <div class="modal fade" id="deleteModal${s._id}" tabindex="-1">
               <div class="modal-dialog modal-dialog-centered">
@@ -234,96 +254,10 @@
           </td>
         </tr>
       `;
-
-
-      
       });
 
       renderPagination(filtered.length);
     }
-
-
-    function renderPagination(totalItems) {
-  const totalPages = Math.ceil(totalItems / pageSize);
-  document.getElementById("pagination")?.remove();
-  if (totalPages <= 1) return;
-
-  const wrapper = document.createElement("div");
-  wrapper.id = "pagination";
-  wrapper.className = "d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2";
-
-  // Left side: scrollable pagination buttons
-  const buttonGroup = document.createElement("div");
-  buttonGroup.className = "d-flex overflow-auto gap-1 flex-nowrap";
-
-  const createBtn = (label, page, disabled = false, active = false) => {
-    const btn = document.createElement("button");
-    btn.textContent = label;
-    btn.className = `btn btn-sm ${active ? 'btn-primary' : 'btn-outline-primary'}`;
-    if (disabled) btn.disabled = true;
-    btn.addEventListener("click", () => {
-      currentPage = page;
-      renderTable();
-    });
-    return btn;
-  };
-
-  buttonGroup.appendChild(createBtn("⏮️ Prev", currentPage - 1, currentPage === 1));
-  for (let i = 1; i <= totalPages; i++) {
-    if (i === 1 || i === totalPages || Math.abs(i - currentPage) <= 2) {
-      buttonGroup.appendChild(createBtn(i, i, false, i === currentPage));
-    } else if (
-      (i === currentPage - 3 && currentPage > 4) ||
-      (i === currentPage + 3 && currentPage < totalPages - 3)
-    ) {
-      const ellipsis = document.createElement("span");
-      ellipsis.textContent = "...";
-      ellipsis.className = "px-2 text-muted";
-      buttonGroup.appendChild(ellipsis);
-    }
-  }
-  buttonGroup.appendChild(createBtn("Next ⏭️", currentPage + 1, currentPage === totalPages));
-
-  wrapper.appendChild(buttonGroup);
-
-  // Right side: Go To Page input
-  const gotoWrapper = document.createElement("div");
-  gotoWrapper.className = "d-flex align-items-center gap-1";
-
-  const label = document.createElement("label");
-  label.textContent = "Go to page:";
-  label.className = "small mb-0";
-
-  const input = document.createElement("input");
-  input.type = "number";
-  input.min = 1;
-  input.max = totalPages;
-  input.className = "form-control form-control-sm";
-  input.style.width = "70px";
-
-  const goBtn = document.createElement("button");
-  goBtn.textContent = "Go";
-  goBtn.className = "btn btn-sm btn-outline-secondary";
-
-  goBtn.addEventListener("click", () => {
-    const page = parseInt(input.value);
-    if (!isNaN(page) && page >= 1 && page <= totalPages) {
-      currentPage = page;
-      renderTable();
-    }
-  });
-
-  gotoWrapper.appendChild(label);
-  gotoWrapper.appendChild(input);
-  gotoWrapper.appendChild(goBtn);
-
-  wrapper.appendChild(gotoWrapper);
-
-  tableBody.parentElement.parentElement.appendChild(wrapper);
-
-}
-
-
 
     document.getElementById("exportCsvBtn").addEventListener("click", () => {
       const filtered = currentFilteredSaadhaks;
@@ -332,11 +266,12 @@
         return;
       }
 
-      const headers = ["S.No", "Name", "Mobile", "Zila", "Ksheter", "Kender", "Roles"];
+      const headers = ["S.No", "Name", "Mobile", "Prant", "Zila", "Ksheter", "Kender", "Roles"];
       const rows = filtered.map((s, index) => [
         index + 1,
         s.name || '',
         s.mobile || '',
+        s.prant?.name || '',
         s.zila?.name || '',
         s.ksheter?.name || '',
         s.kender?.name || '',
@@ -352,50 +287,36 @@
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
-      const spinner = document.getElementById('loadingSpinner');
-      
-      setTimeout(() => {
-        if (spinner) spinner.style.display = 'none';
-      }, 2000);
     });
 
-    zilaFilter.addEventListener("change", function () {
-      populateKsheter(this.value);
-      kenderFilter.innerHTML = '<option value="">All Kender</option>';
-    });
-
-    ksheterFilter.addEventListener("change", function () {
-      populateKender(this.value);
-    });
-
-    searchBtn?.addEventListener("click", () => {
+    searchBtn.addEventListener("click", () => {
       currentPage = 1;
       renderTable();
     });
 
-    resetBtn?.addEventListener("click", () => {
+    resetBtn.addEventListener("click", () => {
       currentPage = 1;
       searchInput.value = "";
-
       if (user.roles.includes("Admin")) {
-        zilaFilter.value = "";
+        prantFilter.value = "";
+        zilaFilter.innerHTML = '<option value="">Select Zila</option>';
         ksheterFilter.innerHTML = '<option value="">Select Ksheter</option>';
         kenderFilter.innerHTML = '<option value="">Select Kender</option>';
       } else {
+        prantFilter.value = user.prant || "";
         zilaFilter.value = user.zila || "";
+        populateZila(user.prant);
         populateKsheter(user.zila);
         ksheterFilter.value = user.ksheter || "";
         populateKender(user.ksheter);
         kenderFilter.value = user.kender || "";
       }
-
       tableBody.innerHTML = '';
       renderTable();
     });
 
-    renderTable(); // initial render
+    renderTable();
   });
 </script>
 
-<%- include('../partials/footer') %> 
+<%- include('../partials/footer') %>

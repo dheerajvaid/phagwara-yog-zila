@@ -1,20 +1,30 @@
+<!-- PRANT -->
+<div class="col-6 col-md-3">
+  <label class="form-label">Prant</label>
+  <select name="prant" id="prantDropdown" class="form-control" <%= user.roleLevel < 120 ? 'disabled' : '' %> required>
+    <% if (user.roleLevel >= 120) { %>
+      <option value="">Select Prant</option>
+    <% } %>
+    <% prantList.forEach(prant => { %>
+      <option value="<%= prant._id %>" <%= String(selectedPrant) === String(prant._id) ? 'selected' : '' %>>
+        <%= prant.name %>
+      </option>
+    <% }) %>
+  </select>
+  <input type="hidden" name="prant" id="prantHidden" value="<%= selectedPrant %>">
+</div>
+
+<!-- ZILA -->
 <div class="col-6 col-md-3">
   <label class="form-label">Zila</label>
-  <select
-    name="zila"
-    id="zilaDropdown"
-    class="form-control"
-    <%= user.roleLevel < 100 ? 'disabled' : '' %>
-    required
-  >
+  <select name="zila" id="zilaDropdown" class="form-control" <%= user.roleLevel < 100 ? 'disabled' : '' %> required>
     <% if (user.roleLevel >= 100) { %>
       <option value="">Select Zila</option>
     <% } %>
-    <% zilaList.forEach(zila => { %>
-      <option
-        value="<%= zila._id %>"
-        <%= String(selectedZila) === String(zila._id) ? 'selected' : '' %>
-      >
+    <% zilaList
+      .filter(z => !selectedPrant || String(z.prant) === String(selectedPrant))
+      .forEach(zila => { %>
+      <option value="<%= zila._id %>" data-prant="<%= zila.prant %>" <%= String(selectedZila) === String(zila._id) ? 'selected' : '' %>>
         <%= zila.name %>
       </option>
     <% }) %>
@@ -22,50 +32,83 @@
   <input type="hidden" name="zila" id="zilaHidden" value="<%= selectedZila %>">
 </div>
 
-
+<!-- KSHETER -->
 <div class="col-6 col-md-3">
   <label class="form-label">Ksheter</label>
-  <select
-    name="ksheter"
-    id="ksheterDropdown"
-    class="form-control"
-    <%= user.roleLevel < 80 && !user.roles.includes('Admin') ? 'disabled' : '' %>
-  >
+  <select name="ksheter" id="ksheterDropdown" class="form-control" <%= user.roleLevel < 80 && !user.roles.includes('Admin') ? 'disabled' : '' %>>
     <option value="">Select Ksheter</option>
+    <% ksheterList
+      .filter(k => !selectedZila || String(k.zila) === String(selectedZila))
+      .forEach(ksheter => { %>
+      <option value="<%= ksheter._id %>" data-zila="<%= ksheter.zila %>" <%= String(selectedKsheter) === String(ksheter._id) ? 'selected' : '' %>>
+        <%= ksheter.name %>
+      </option>
+    <% }) %>
   </select>
   <input type="hidden" name="ksheter" id="ksheterHidden" value="<%= selectedKsheter %>">
 </div>
 
+<!-- KENDER -->
 <div class="col-6 col-md-3">
   <label class="form-label">Kender</label>
-  <select
-    name="kender"
-    id="kenderDropdown"
-    class="form-control"
-    <%= user.roleLevel < 60 ? 'disabled' : '' %>
-  >
+  <select name="kender" id="kenderDropdown" class="form-control" <%= user.roleLevel < 60 ? 'disabled' : '' %>>
     <option value="">Select Kender</option>
+    <% kenderList
+      .filter(k => !selectedKsheter || String(k.ksheter) === String(selectedKsheter))
+      .forEach(kender => { %>
+      <option value="<%= kender._id %>" data-ksheter="<%= kender.ksheter %>" <%= String(selectedKender) === String(kender._id) ? 'selected' : '' %>>
+        <%= kender.name %>
+      </option>
+    <% }) %>
   </select>
   <input type="hidden" name="kender" id="kenderHidden" value="<%= selectedKender %>">
 </div>
 
+
 <script>
+  const prantDropdown = document.getElementById('prantDropdown');
   const zilaDropdown = document.getElementById('zilaDropdown');
   const ksheterDropdown = document.getElementById('ksheterDropdown');
   const kenderDropdown = document.getElementById('kenderDropdown');
 
+  const prantList = <%- JSON.stringify(prantList) %>;
+  const zilaList = <%- JSON.stringify(zilaList) %>;
   const ksheterList = <%- JSON.stringify(ksheterList) %>;
   const kenderList = <%- JSON.stringify(kenderList) %>;
 
   const userRoleLevel = parseInt("<%= user.roleLevel %>");
+  const userZila = "<%= selectedZila %>";
   const userKsheter = "<%= selectedKsheter %>";
   const userKender = "<%= selectedKender %>";
+  const userPrant = "<%= selectedPrant %>";
+
+  function populateZilas(prantId) {
+    zilaDropdown.innerHTML = '<option value="">Select Zila</option>';
+    const filteredZilas = zilaList.filter(z => String(z.prant) === prantId);
+    filteredZilas.forEach(zila => {
+      const option = document.createElement('option');
+      option.value = zila._id;
+      option.textContent = zila.name;
+      option.dataset.prant = zila.prant;
+      if (String(zila._id) === userZila) option.selected = true;
+      zilaDropdown.appendChild(option);
+    });
+
+    // Cascade to ksheter if one is already selected
+    if (zilaDropdown.value) {
+      populateKsheter(zilaDropdown.value);
+    } else {
+      ksheterDropdown.innerHTML = '<option value="">Select Ksheter</option>';
+      kenderDropdown.innerHTML = '<option value="">Select Kender</option>';
+    }
+
+    updateHiddenInputs();
+  }
 
   function populateKsheter(zilaId) {
     ksheterDropdown.innerHTML = '<option value="">Select Ksheter</option>';
 
     if (userRoleLevel >= 40 && userRoleLevel < 60) {
-      // Kender-level user: show only their ksheter, preselect, disable
       const ksheter = ksheterList.find(k => String(k._id) === userKsheter);
       if (ksheter) {
         const option = document.createElement('option');
@@ -86,15 +129,18 @@
       });
     }
 
-    // Reset kender always after changing ksheter
     kenderDropdown.innerHTML = '<option value="">Select Kender</option>';
+
+    // Cascade to kender if ksheter already selected
+    if (ksheterDropdown.value) {
+      populateKender(ksheterDropdown.value);
+    }
   }
 
   function populateKender(ksheterId) {
     kenderDropdown.innerHTML = '<option value="">Select Kender</option>';
 
     if (userRoleLevel >= 40 && userRoleLevel < 60) {
-      // Kender-level user: show only their kender, preselect, disable
       const kender = kenderList.find(k => String(k._id) === userKender);
       if (kender) {
         const option = document.createElement('option');
@@ -117,29 +163,40 @@
   }
 
   function updateHiddenInputs() {
-    document.getElementById('zilaHidden').value = zilaDropdown.value;
-    document.getElementById('ksheterHidden').value = ksheterDropdown.value;
-    document.getElementById('kenderHidden').value = kenderDropdown.value;
+    document.getElementById('prantHidden').value = prantDropdown?.value || '';
+    document.getElementById('zilaHidden').value = zilaDropdown?.value || '';
+    document.getElementById('ksheterHidden').value = ksheterDropdown?.value || '';
+    document.getElementById('kenderHidden').value = kenderDropdown?.value || '';
   }
 
-  zilaDropdown.addEventListener('change', function () {
+  // Event bindings
+  prantDropdown?.addEventListener('change', function () {
+    populateZilas(this.value);
+    updateHiddenInputs();
+  });
+
+  zilaDropdown?.addEventListener('change', function () {
     populateKsheter(this.value);
     updateHiddenInputs();
   });
 
-  ksheterDropdown.addEventListener('change', function () {
+  ksheterDropdown?.addEventListener('change', function () {
     populateKender(this.value);
     updateHiddenInputs();
   });
 
-  kenderDropdown.addEventListener('change', updateHiddenInputs);
+  kenderDropdown?.addEventListener('change', updateHiddenInputs);
 
-  // Initialize on page load
-  if (zilaDropdown.value) {
+  // Initial load logic
+  if (prantDropdown && prantDropdown.value) {
+    populateZilas(prantDropdown.value);
+  } else if (zilaDropdown.value) {
     populateKsheter(zilaDropdown.value);
   }
+
   if (ksheterDropdown.value) {
     populateKender(ksheterDropdown.value);
   }
+
   updateHiddenInputs();
 </script>

@@ -1,72 +1,43 @@
+// scripts/addPrantToAllCollections.js
+
 const mongoose = require('mongoose');
-require('dotenv').config(); // Loads MONGODB_URI from .env
+const dotenv = require('dotenv');
+dotenv.config();
 
-// Import all models
-// const Zila = require('../models/Zila');
-// const Ksheter = require('../models/Ksheter');
-// const Kender = require('../models/Kender');
-// const Saadhak = require('../models/Saadhak');
+const Zila = require('../models/Zila');
+const Ksheter = require('../models/Ksheter');
+const Kender = require('../models/Kender');
+const Saadhak = require('../models/Saadhak');
 
-const Attendance = require('../models/Attendance');
+const ObjectId = mongoose.Types.ObjectId;
+const prantId = new ObjectId('6890868bc19fc86268bd78bd');
 
-
-// Add more models below if needed
-// const SomeOtherModel = require('../models/SomeOtherModel');
-
-async function clearDatabasePreservingSaadhak() {
-
-    mongoose
-      .connect(process.env.MONGO_URI, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      })
-      .then(() => console.log("MongoDB connected"))
-      .catch((err) => console.log(err));
-
-
-    console.log('✅ Connected to MongoDB');
-
-   
+async function addPrantToAllCollections() {
   try {
-    const records = await Attendance.find({});
+    await mongoose.connect(process.env.MONGO_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    console.log("✅ Connected to MongoDB");
 
-    for (const record of records) {
-      const originalDate = new Date(record.date);
-      const updatedDate = new Date(
-        originalDate.getFullYear(),
-        originalDate.getMonth(),
-        originalDate.getDate(),
-        10, 0, 0, 0 // set to 10:00:00.000
-      );
+    const [zilaResult, ksheterResult, kenderResult, saadhakResult] = await Promise.all([
+      Zila.updateMany({}, { $set: { prant: prantId } }),
+      Ksheter.updateMany({}, { $set: { prant: prantId } }),
+      Kender.updateMany({}, { $set: { prant: prantId } }),
+      Saadhak.updateMany({}, { $set: { prant: prantId } }),
+    ]);
 
-      record.date = updatedDate;
-      await record.save();
-      console.log(`Updated ${record._id} → ${updatedDate.toISOString()}`);
-    }
+    console.log(`✔ Zila updated: ${zilaResult.modifiedCount}`);
+    console.log(`✔ Ksheter updated: ${ksheterResult.modifiedCount}`);
+    console.log(`✔ Kender updated: ${kenderResult.modifiedCount}`);
+    console.log(`✔ Saadhak updated: ${saadhakResult.modifiedCount}`);
 
-    console.log('✅ All attendance date times updated.');
-    mongoose.disconnect();
+    await mongoose.disconnect();
+    console.log("🔌 Disconnected from MongoDB");
   } catch (err) {
-    console.error('❌ Error updating attendance records:', err);
-    mongoose.disconnect();
+    console.error("❌ Error updating documents:", err);
+    await mongoose.disconnect();
   }
-    // 🔥 Delete everything from each collection except the Saadhak with mobile 9316161666
-    // await Zila.deleteMany({});
-    // await Ksheter.deleteMany({});
-    // await Kender.deleteMany({});
-    // await Attendance.deleteMany({});
-    
-    // Preserve Saadhak with mobile = 9316161666
-    // await Saadhak.deleteMany({ mobile: { $ne: '9316161666' } });
+}
 
-    // Optional: If you have more collections, add below
-    // await SomeOtherModel.deleteMany({});
-
-    // console.log('✅ Cleared all data except Saadhak with mobile 9316161666');
-    console.log("done");
-    mongoose.connection.close();
-    process.exit(0);
-  } 
-
-  // updateAttendanceTimes();
- clearDatabasePreservingSaadhak();
+addPrantToAllCollections();

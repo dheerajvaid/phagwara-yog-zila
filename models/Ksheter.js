@@ -7,6 +7,11 @@ const ksheterSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  prant: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Prant',
+    required: true
+  },
   zila: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Zila',
@@ -14,5 +19,4 @@ const ksheterSchema = new mongoose.Schema({
   }
 });
 
-// module.exports = mongoose.model('Ksheter', ksheterSchema);
 module.exports = mongoose.models.Ksheter || mongoose.model('Ksheter', ksheterSchema);
