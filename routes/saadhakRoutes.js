@@ -7,16 +7,16 @@ const { canManage } = require("../middleware/roleMiddleware");
 const { checkSaadhakOwnership } = require("../middleware/ownershipMiddleware");
 
 // ✅ Role groups from config
-const { zilaRoles, ksheterRoles, kenderRoles } = require("../config/roles");
+const { adminRoles, prantRoles, zilaRoles, ksheterRoles, kenderRoles, kenderTeamRoles } = require("../config/roles");
 
 // ✅ Unified allowed roles for Saadhak management
-const saadhakManagerRoles = [...zilaRoles, ...ksheterRoles, ...kenderRoles];
+const allowedRoles = [...adminRoles, ...prantRoles, ...zilaRoles, ...ksheterRoles, ...kenderRoles, ...kenderTeamRoles];
 
 // Manage all Saadhaks
 router.get(
   "/saadhak/manage",
   requireLogin,
-  canManage(saadhakManagerRoles),
+  canManage(allowedRoles),
   saadhakController.listSaadhaks
 );
 
@@ -24,14 +24,14 @@ router.get(
 router.get(
   "/saadhak/add",
   requireLogin,
-  canManage(saadhakManagerRoles),
+  canManage(allowedRoles),
   saadhakController.showAddForm
 );
 
 router.post(
   "/saadhak/add",
   requireLogin,
-  canManage(saadhakManagerRoles),
+  canManage(allowedRoles),
   saadhakController.createSaadhak
 );
 
@@ -39,14 +39,14 @@ router.post(
 router.get(
   "/saadhak/edit/:id",
   requireLogin,
-  canManage(saadhakManagerRoles),
+  canManage(allowedRoles),
   checkSaadhakOwnership,
   saadhakController.showEditForm
 );
 router.post(
   "/saadhak/edit/:id",
   requireLogin,
-  canManage(saadhakManagerRoles),
+  canManage(allowedRoles),
   checkSaadhakOwnership,
   saadhakController.updateSaadhak
 );
@@ -55,7 +55,7 @@ router.post(
 router.get(
   "/saadhak/delete/:id",
   requireLogin,
-  canManage(saadhakManagerRoles),
+  canManage(allowedRoles),
   checkSaadhakOwnership,
   saadhakController.deleteSaadhak
 );

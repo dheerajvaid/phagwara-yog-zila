@@ -1,29 +1,36 @@
 const Ksheter = require("../models/Ksheter");
 const Zila = require("../models/Zila");
 const Saadhak = require("../models/Saadhak");
-const { zilaRoles } = require("../config/roles");
+const Prant = require("../models/Prant"); // 👈 Import Prant model
+const { zilaRoles, prantRoles, adminRoles } = require("../config/roles"); // 👈 Import prantRoles
 const { formatName, validateName } = require("../utils/formatters");
+const allowedRoles = [...adminRoles, ...zilaRoles, ...prantRoles];
+
 
 // ✅ Helper: Get accessible Zilas based on user role
 async function getAccessibleZilas(user) {
-  if (user.roles.includes("Admin")) {
+  if (user.roles.some((role) => adminRoles.includes(role))) {
+    // Admins see all Zilas
     return await Zila.find().sort({ name: 1 });
+  } else if (user.roles.some((role) => prantRoles.includes(role))) {
+    // Prant-level users see Zilas under their Prant
+    return await Zila.find({ prant: user.prant }).sort({ name: 1 });
   } else if (user.roles.some((role) => zilaRoles.includes(role))) {
-    const saadhak = await Saadhak.findById(user.id);
-    if (saadhak && saadhak.zila) {
-      return await Zila.find({ _id: saadhak.zila });
-    }
+    // Zila-level users see only their own Zila
+    return await Zila.find({ _id: user.zila }).sort({ name: 1 });
   }
-  return []; // No access or no zila assigned
+  return [];
 }
 
 exports.showAddForm = async (req, res) => {
   try {
     const user = req.session.user;
     const zilas = await getAccessibleZilas(user);
+    // const prants = await getAccessiblePrants(user); // 👈 New line
 
     res.render("ksheter/add", {
       zilas,
+      prant: user.prant, // 👈 Pass prants to view
       formData: {},
       error: null,
       user,
@@ -38,7 +45,8 @@ exports.createKsheter = async (req, res) => {
   try {
     let { name, zila } = req.body;
     const formData = { name, zila };
-
+    const user = req.session.user;
+    
     if (!validateName(name, true, "-.()")) {
       const zilas = await Zila.find();
       return res.render("ksheter/add", {
@@ -61,7 +69,7 @@ exports.createKsheter = async (req, res) => {
       });
     }
 
-    const ksheter = new Ksheter({ name, zila });
+    const ksheter = new Ksheter({ name, zila, prant: user.prant });
     await ksheter.save();
     res.redirect("/ksheter/manage");
   } catch (err) {

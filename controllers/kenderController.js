@@ -143,6 +143,7 @@ exports.createKender = async (req, res) => {
       address: formattedAddress,
       zila,
       ksheter,
+      prant: user.prant,
       startTime: startTime?.trim() || undefined, // Optional field
     });
 

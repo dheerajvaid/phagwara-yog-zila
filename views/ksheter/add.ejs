@@ -16,7 +16,7 @@
         <select name="zila" id="zilaSelect" class="form-select" <%= user.zila ? 'disabled' : '' %> required>
           <option value="">-- Select Zila --</option>
           <% zilas.forEach(z => { %>
-            <option value="<%= z._id %>" <%= (formData?.zila == z._id || user.zila == z._id) ? 'selected' : '' %>><%= z.name %></option>
+            <option value="<%= z._id %>" <%= (formData?.zila?.toString() === z._id.toString() || user.zila?.toString() === z._id.toString()) ? 'selected' : '' %>><%= z.name %></option>
           <% }) %>
         </select>
         <% if (user.zila) { %>

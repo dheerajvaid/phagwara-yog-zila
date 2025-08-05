@@ -15,13 +15,13 @@ const roleHierarchy = {
 
 function canManage(allowedRoles, calledBy = "") {
   return (req, res, next) => {
-     console.log(allowedRoles);
-
+    
     const userRoles = req.session.user?.roles || [];
     // console.log(userRoles);
     // Admins bypass checks
     // console.log(req.session.user);
-    // console.log(userRoles);
+     console.log(userRoles);
+     console.log(allowedRoles);
     if (userRoles.includes("Admin")) return next();
 
     if (

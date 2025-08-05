@@ -5,35 +5,35 @@ const ksheterController = require("../controllers/ksheterController");
 const { requireLogin } = require("../middleware/authMiddleware");
 const { canManage } = require("../middleware/roleMiddleware");
 const { canManageKsheter } = require("../middleware/ownershipMiddleware");
+const { adminRoles, prantRoles, zilaRoles } = require('../config/roles'); // ✅ DRY import
+const allowedRoles = [...adminRoles, ...prantRoles, ...zilaRoles];
 
-// Import roles
-const { zilaRoles } = require("../config/roles");
 
 // 🗂️ Manage all Ksheter (Admin + Zila Team)
 router.get(
   "/ksheter/manage",
   requireLogin,
-  canManage(zilaRoles),
+  canManage(allowedRoles),
   ksheterController.listKsheter
 );
 
 // ➕ Add Ksheter
 router
   .route("/ksheter/add")
-  .get(requireLogin, canManage(zilaRoles), ksheterController.showAddForm)
-  .post(requireLogin, canManage(zilaRoles), ksheterController.createKsheter);
+  .get(requireLogin, canManage(allowedRoles), ksheterController.showAddForm)
+  .post(requireLogin, canManage(allowedRoles), ksheterController.createKsheter);
 
 // 🖊️ Edit Ksheter
 router
   .route("/ksheter/edit/:id")
-  .get(requireLogin, canManage(zilaRoles), canManageKsheter, ksheterController.showEditForm)
-  .post(requireLogin, canManage(zilaRoles), canManageKsheter, ksheterController.updateKsheter);
+  .get(requireLogin, canManage(allowedRoles), canManageKsheter, ksheterController.showEditForm)
+  .post(requireLogin, canManage(allowedRoles), canManageKsheter, ksheterController.updateKsheter);
 
 // 🗑️ Delete Ksheter
 router.get(
   "/ksheter/delete/:id",
   requireLogin,
-  canManage(zilaRoles),
+  canManage(allowedRoles),
   canManageKsheter,
   ksheterController.deleteKsheter
 );

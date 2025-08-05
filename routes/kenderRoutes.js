@@ -1,37 +1,38 @@
 const express = require("express");
 const router = express.Router();
 const kenderController = require("../controllers/kenderController");
+const { checkKenderOwnership } = require("../middleware/ownershipMiddleware");
 const { requireLogin } = require("../middleware/authMiddleware");
 const { canManage } = require("../middleware/roleMiddleware");
-const { checkKenderOwnership } = require("../middleware/ownershipMiddleware");
-const { ksheterRoles, kenderMainRoles } = require("../config/roles"); // ✅ DRY import
+const { adminRoles, prantRoles, zilaRoles, ksheterRoles, kenderRoles } = require('../config/roles'); // ✅ DRY import
+const allowedRoles = [...adminRoles, ...prantRoles, ...zilaRoles, ...ksheterRoles];
 
 // Routes
 router.get(
   "/kender/manage",
   requireLogin,
-  canManage(ksheterRoles),
+  canManage(allowedRoles),
   kenderController.listKenders
 );
 
 router.get(
   "/kender/add",
   requireLogin,
-  canManage(ksheterRoles),
+  canManage(allowedRoles),
   kenderController.showAddForm
 );
 
 router.post(
   "/kender/add",
   requireLogin,
-  canManage(ksheterRoles),
+  canManage(allowedRoles),
   kenderController.createKender
 );
 
 router.get(
   "/kender/edit/:id",
   requireLogin,
-  canManage(ksheterRoles),
+  canManage(allowedRoles),
   checkKenderOwnership,
   kenderController.showEditForm
 );
@@ -39,7 +40,7 @@ router.get(
 router.post(
   "/kender/edit/:id",
   requireLogin,
-  canManage(ksheterRoles),
+  canManage(allowedRoles),
   checkKenderOwnership,
   kenderController.updateKender
 );
@@ -47,7 +48,7 @@ router.post(
 router.get(
   "/kender/delete/:id",
   requireLogin,
-  canManage(ksheterRoles),
+  canManage(allowedRoles),
   kenderController.deleteKender
 );
 
@@ -55,7 +56,7 @@ router.get(
 router.get(
   "/kender/print-cards",
   requireLogin,
-  canManage(kenderMainRoles),
+  canManage(kenderRoles),
   kenderController.showPrintPage
 );
 
@@ -63,7 +64,7 @@ router.get(
 router.post(
   "/kender/print-cards",
   requireLogin,
-  canManage(kenderMainRoles),
+  canManage(kenderRoles),
   kenderController.generateCardsZip
 );
 
@@ -74,7 +75,7 @@ router.get(
   kenderController.listByKsheter
 );
 
-router.get("/kender/print-cards/data", requireLogin, canManage(kenderMainRoles), kenderController.getSaadhakCardData);
+router.get("/kender/print-cards/data", requireLogin, canManage(kenderRoles), kenderController.getSaadhakCardData);
 
 router.get('/api/kenders/by-ksheter/:ksheterId', async (req, res) => {
   const kenderList = await Kender.find({ ksheter: req.params.ksheterId }).sort({ name: 1 }).lean();

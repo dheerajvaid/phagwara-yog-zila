@@ -1,20 +1,42 @@
 const Ksheter = require('../models/Ksheter');
 const Kender = require('../models/Kender');
 const Saadhak = require('../models/Saadhak');
+const {
+  adminRoles,
+  prantRoles,
+  zilaRoles,
+  ksheterRoles,
+  kenderRoles
+} = require('../config/roles');
+
+// Helper to check if user has any role from a list
+function hasRole(user, allowedRoles) {
+  return user?.roles?.some(role => allowedRoles.includes(role));
+}
+
+// Helper to compare ObjectIds
+function isSameId(a, b) {
+  return a?.toString() === b?.toString();
+}
+
+// ========== MIDDLEWARES ==========
 
 async function canManageKsheter(req, res, next) {
   try {
     const user = req.session.user;
-
-    if (user.roles.includes('Admin')) return next();
+    if (hasRole(user, adminRoles)) return next();
 
     const saadhak = await Saadhak.findById(user.id);
-    if (!saadhak?.zila) return res.status(403).send('❌ No Zila association found.');
+    if (!saadhak?.zila) {
+      return res.status(403).send('❌ No Zila association found.');
+    }
 
     const ksheter = await Ksheter.findById(req.params.id);
-    if (!ksheter) return res.status(404).send('❌ Ksheter not found.');
+    if (!ksheter) {
+      return res.status(404).send('❌ Ksheter not found.');
+    }
 
-    if (saadhak.zila.toString() !== ksheter.zila.toString()) {
+    if (!isSameId(saadhak.zila, ksheter.zila)) {
       return res.status(403).send('❌ Unauthorized: different Zila.');
     }
 
@@ -30,15 +52,12 @@ async function checkKsheterOwnership(req, res, next) {
     const ksheter = await Ksheter.findById(req.params.id);
     if (!ksheter) return res.status(404).send('❌ Ksheter not found.');
 
-    const roles = req.session.user.roles;
+    const user = req.session.user;
 
-    if (roles.includes('Admin')) return next();
+    if (hasRole(user, adminRoles) || hasRole(user, prantRoles)) return next();
 
-    if (
-      roles.includes('Zila Pradhan') ||
-      roles.includes('Zila Mantri')
-    ) {
-      if (ksheter.zila.toString() !== req.session.user.zila?.toString()) {
+    if (hasRole(user, zilaRoles)) {
+      if (!isSameId(ksheter.zila, user.zila)) {
         return res.status(403).send('❌ Unauthorized: Zila mismatch.');
       }
     }
@@ -56,26 +75,15 @@ async function checkKenderOwnership(req, res, next) {
     if (!kender) return res.status(404).send('❌ Kender not found.');
 
     const user = req.session.user;
-    const roles = user.roles;
 
-    if (roles.includes('Admin')) return next();
+    if (hasRole(user, adminRoles) || hasRole(user, prantRoles)) return next();
 
-    if (
-      roles.includes('Zila Pradhan') ||
-      roles.includes('Zila Mantri')
-    ) {
-      if (kender.zila.toString() !== user.zila?.toString()) {
-        return res.status(403).send('❌ Unauthorized: Zila mismatch.');
-      }
+    if (hasRole(user, zilaRoles) && !isSameId(kender.zila, user.zila)) {
+      return res.status(403).send('❌ Unauthorized: Zila mismatch.');
     }
 
-    if (
-      roles.includes('Ksheter Pradhan') ||
-      roles.includes('Ksheter Mantri')
-    ) {
-      if (kender.ksheter.toString() !== user.ksheter?.toString()) {
-        return res.status(403).send('❌ Unauthorized: Ksheter mismatch.');
-      }
+    if (hasRole(user, ksheterRoles) && !isSameId(kender.ksheter, user.ksheter)) {
+      return res.status(403).send('❌ Unauthorized: Ksheter mismatch.');
     }
 
     next();
@@ -91,35 +99,19 @@ async function checkSaadhakOwnership(req, res, next) {
     if (!saadhak) return res.status(404).send('❌ Saadhak not found.');
 
     const user = req.session.user;
-    const roles = user.roles;
 
-    if (roles.includes('Admin')) return next();
+    if (hasRole(user, adminRoles) || hasRole(user, prantRoles)) return next();
 
-    if (
-      roles.includes('Zila Pradhan') ||
-      roles.includes('Zila Mantri')
-    ) {
-      if (saadhak.zila?.toString() !== user.zila?.toString()) {
-        return res.status(403).send('❌ Unauthorized: Zila mismatch.');
-      }
+    if (hasRole(user, zilaRoles) && !isSameId(saadhak.zila, user.zila)) {
+      return res.status(403).send('❌ Unauthorized: Zila mismatch.');
     }
 
-    if (
-      roles.includes('Ksheter Pradhan') ||
-      roles.includes('Ksheter Mantri')
-    ) {
-      if (saadhak.ksheter?.toString() !== user.ksheter?.toString()) {
-        return res.status(403).send('❌ Unauthorized: Ksheter mismatch.');
-      }
+    if (hasRole(user, ksheterRoles) && !isSameId(saadhak.ksheter, user.ksheter)) {
+      return res.status(403).send('❌ Unauthorized: Ksheter mismatch.');
     }
 
-    if (
-      roles.includes('Kender Pramukh') ||
-      roles.includes('Seh Kender Pramukh')
-    ) {
-      if (saadhak.kender?.toString() !== user.kender?.toString()) {
-        return res.status(403).send('❌ Unauthorized: Kender mismatch.');
-      }
+    if (hasRole(user, kenderRoles) && !isSameId(saadhak.kender, user.kender)) {
+      return res.status(403).send('❌ Unauthorized: Kender mismatch.');
     }
 
     next();
@@ -129,6 +121,7 @@ async function checkSaadhakOwnership(req, res, next) {
   }
 }
 
+// Export all middleware functions
 module.exports = {
   canManageKsheter,
   checkKsheterOwnership,
