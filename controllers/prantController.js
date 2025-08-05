@@ -1,4 +1,4 @@
-const Prant = require("../models/prant");
+const Prant = require("../models/Prant");
 
 // GET: All Prants
 exports.listPrants = async (req, res) => {
