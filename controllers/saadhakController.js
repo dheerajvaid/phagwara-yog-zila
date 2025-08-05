@@ -107,180 +107,180 @@ if (user.roles.some((role) => adminRoles.includes(role))) {
 };
 
 
-// ✅ Handle Create
-exports.createSaadhak = async (req, res) => {
-  try {
-    const {
-      name,
-      mobile,
-      dob,
-      gender,
-      maritalStatus,
-      marriageDate,
-      address,
-      livingArea,
-      role,
-      prant,
-      zila,
-      ksheter,
-      kender,
-    } = req.body;
+  // ✅ Handle Create
+  exports.createSaadhak = async (req, res) => {
+    try {
+      const {
+        name,
+        mobile,
+        dob,
+        gender,
+        maritalStatus,
+        marriageDate,
+        address,
+        livingArea,
+        role,
+        prant,
+        zila,
+        ksheter,
+        kender,
+      } = req.body;
 
-    const formData = {
-      name,
-      mobile,
-      dob,
-      gender,
-      maritalStatus,
-      marriageDate,
-      address,
-      livingArea,
-      role,
-      prant,
-      zila,
-      ksheter,
-      kender,
-    };
+      const formData = {
+        name,
+        mobile,
+        dob,
+        gender,
+        maritalStatus,
+        marriageDate,
+        address,
+        livingArea,
+        role,
+        prant,
+        zila,
+        ksheter,
+        kender,
+      };
 
-    const user = req.session.user;
+      const user = req.session.user;
 
-    // Role-based permissions using roleConfig
-    let allowedRoles = [];
-    if (user.roles.some((r) => adminRoles.includes(r))) {
-      allowedRoles = ALL_ROLES;
-    } else if (user.roles.some((r) => prantRoles.includes(r))) {
-      allowedRoles = ALL_ROLES.filter(
-        (r) => ![...adminRoles, ...prantRoles].includes(r)
-      );
-    } else if (user.roles.some((r) => zilaRoles.includes(r))) {
-      allowedRoles = [...ksheterRoles, ...kenderRoles, ...kenderTeamRoles, ...saadhakRoles];
-    } else if (user.roles.some((r) => ksheterRoles.includes(r))) {
-      allowedRoles = [...kenderRoles, ...kenderTeamRoles, ...saadhakRoles];
-    } else if (user.roles.some((r) => kenderRoles.includes(r))) {
-      allowedRoles = [...kenderTeamRoles, ...saadhakRoles];
-    } else {
-      allowedRoles = ["Saadhak"];
-    }
+      // Role-based permissions using roleConfig
+      let allowedRoles = [];
+      if (user.roles.some((r) => adminRoles.includes(r))) {
+        allowedRoles = ALL_ROLES;
+      } else if (user.roles.some((r) => prantRoles.includes(r))) {
+        allowedRoles = ALL_ROLES.filter(
+          (r) => ![...adminRoles, ...prantRoles].includes(r)
+        );
+      } else if (user.roles.some((r) => zilaRoles.includes(r))) {
+        allowedRoles = [...ksheterRoles, ...kenderRoles, ...kenderTeamRoles, ...saadhakRoles];
+      } else if (user.roles.some((r) => ksheterRoles.includes(r))) {
+        allowedRoles = [...kenderRoles, ...kenderTeamRoles, ...saadhakRoles];
+      } else if (user.roles.some((r) => kenderRoles.includes(r))) {
+        allowedRoles = [...kenderTeamRoles, ...saadhakRoles];
+      } else {
+        allowedRoles = ["Saadhak"];
+      }
 
-    // Validate fields
-    if (!validateName(name)) {
-      return await renderWithError("❌ Name should contain only alphabets and spaces");
-    }
+      // Validate fields
+      if (!validateName(name)) {
+        return await renderWithError("❌ Name should contain only alphabets and spaces");
+      }
 
-    if (!validateMobile(mobile)) {
-      return await renderWithError("❌ Invalid Mobile Number");
-    }
+      if (!validateMobile(mobile)) {
+        return await renderWithError("❌ Invalid Mobile Number");
+      }
 
-    if (!name || !mobile || !role) {
-      return await renderWithError("❌ Name, Mobile, and Role are required.");
-    }
+      if (!name || !mobile || !role) {
+        return await renderWithError("❌ Name, Mobile, and Role are required.");
+      }
 
-    if (dob && !validateDOB(dob)) {
-      return await renderWithError("❌ Invalid Date of Birth");
-    }
+      if (dob && !validateDOB(dob)) {
+        return await renderWithError("❌ Invalid Date of Birth");
+      }
 
-    if (marriageDate && maritalStatus === "Married" && !validateDOB(marriageDate)) {
-      return await renderWithError("❌ Invalid Marriage Date");
-    }
+      if (marriageDate && maritalStatus === "Married" && !validateDOB(marriageDate)) {
+        return await renderWithError("❌ Invalid Marriage Date");
+      }
 
-    const existing = await Saadhak.findOne({ mobile });
-    if (existing) {
-      return await renderWithError("❌ Mobile number already registered.");
-    }
+      const existing = await Saadhak.findOne({ mobile });
+      if (existing) {
+        return await renderWithError("❌ Mobile number already registered.");
+      }
 
-    // Hierarchical association validation
-    if (prantRoles.includes(role) && !prant) {
-      return await renderWithError("❌ Prant selection is required for Prant-level roles.");
-    }
+      // Hierarchical association validation
+      if (prantRoles.includes(role) && !prant) {
+        return await renderWithError("❌ Prant selection is required for Prant-level roles.");
+      }
 
-    if (zilaRoles.includes(role) && (!zila || !prant)) {
-      return await renderWithError("❌ Prant & Zila selection is required for Zila-level roles.");
-    }
+      if (zilaRoles.includes(role) && (!zila || !prant)) {
+        return await renderWithError("❌ Prant & Zila selection is required for Zila-level roles.");
+      }
 
-    if (ksheterRoles.includes(role) && (!prant || !zila || !ksheter)) {
-      return await renderWithError("❌ Prant, Zila and Ksheter must be selected for Ksheter-level roles.");
-    }
+      if (ksheterRoles.includes(role) && (!prant || !zila || !ksheter)) {
+        return await renderWithError("❌ Prant, Zila and Ksheter must be selected for Ksheter-level roles.");
+      }
 
-    if (
-      [...kenderRoles, ...kenderTeamRoles, ...saadhakRoles].includes(role) &&
-      (!prant || !zila || !ksheter || !kender)
-    ) {
-      return await renderWithError(
-        "❌ Prant, Zila, Ksheter, and Kender must be selected for Kender, Shikshak, Karyakarta & Saadhak level roles."
-      );
-    }
+      if (
+        [...kenderRoles, ...kenderTeamRoles, ...saadhakRoles].includes(role) &&
+        (!prant || !zila || !ksheter || !kender)
+      ) {
+        return await renderWithError(
+          "❌ Prant, Zila, Ksheter, and Kender must be selected for Kender, Shikshak, Karyakarta & Saadhak level roles."
+        );
+      }
 
-    // Determine prantId cleanly
-    const prantId = prant?.trim() || user?.prant?.$oid || user?.prant;
-    if (!prantId) {
-      return await renderWithError("❌ Prant association is missing.");
-    }
+      // Determine prantId cleanly
+      const prantId = prant?.trim() || user?.prant?.$oid || user?.prant;
+      if (!prantId) {
+        return await renderWithError("❌ Prant association is missing.");
+      }
 
-    // Save Saadhak
-    const saadhak = new Saadhak({
-      name: formatName(name.trim()),
-      mobile,
-      dob,
-      gender,
-      maritalStatus,
-      marriageDate: maritalStatus === "Married" ? marriageDate : undefined,
-      address,
-      livingArea,
-      role,
-      prant: prantId,
-      zila: zila || undefined,
-      ksheter: ksheter || undefined,
-      kender: kender || undefined,
-    });
+      // Save Saadhak
+      const saadhak = new Saadhak({
+        name: formatName(name.trim()),
+        mobile,
+        dob,
+        gender,
+        maritalStatus,
+        marriageDate: maritalStatus === "Married" ? marriageDate : undefined,
+        address,
+        livingArea,
+        role,
+        prant: prantId,
+        zila: zila || undefined,
+        ksheter: ksheter || undefined,
+        kender: kender || undefined,
+      });
 
-    await saadhak.save();
+      await saadhak.save();
 
-    const [zilas, ksheters, kenders, prants] = await loadDropdownData();
-
-    return res.render("saadhak/add", {
-      success: "✅ Saadhak added successfully!",
-      roleConfig,
-      zilas,
-      ksheters,
-      kenders,
-      prants,
-      allowedRoles,
-      formData: {},
-      error: null,
-      user: req.session.user,
-    });
-
-    // ---------- Helpers ----------
-    async function renderWithError(errorMessage) {
       const [zilas, ksheters, kenders, prants] = await loadDropdownData();
+
       return res.render("saadhak/add", {
-        success: null,
-        error: errorMessage,
+        success: "✅ Saadhak added successfully!",
         roleConfig,
         zilas,
         ksheters,
         kenders,
         prants,
         allowedRoles,
-        formData,
+        formData: {},
+        error: null,
         user: req.session.user,
       });
-    }
 
-    async function loadDropdownData() {
-      return Promise.all([
-        Zila.find(),
-        Ksheter.find(),
-        Kender.find(),
-        Prant.find(),
-      ]);
-    }
+      // ---------- Helpers ----------
+      async function renderWithError(errorMessage) {
+        const [zilas, ksheters, kenders, prants] = await loadDropdownData();
+        return res.render("saadhak/add", {
+          success: null,
+          error: errorMessage,
+          roleConfig,
+          zilas,
+          ksheters,
+          kenders,
+          prants,
+          allowedRoles,
+          formData,
+          user: req.session.user,
+        });
+      }
 
-  } catch (err) {
-    console.error("❌ Error creating Saadhak:", err);
-    res.status(500).send("Server Error");
-  }
-};
+      async function loadDropdownData() {
+        return Promise.all([
+          Zila.find(),
+          Ksheter.find(),
+          Kender.find(),
+          Prant.find(),
+        ]);
+      }
+
+    } catch (err) {
+      console.error("❌ Error creating Saadhak:", err);
+      res.status(500).send("Server Error");
+    }
+  };
 
 
 exports.listSaadhaks = async (req, res) => {
@@ -360,67 +360,82 @@ exports.listSaadhaks = async (req, res) => {
 };
 
 
-// ✅ Show Edit Form
+// ✅ Show Edit Form (Updated with unified role logic)
 exports.showEditForm = async (req, res) => {
   try {
     const user = req.session.user;
     const saadhak = await Saadhak.findById(req.params.id);
 
-    //console.log(req.session.user);
-    const prants = await Prant.find(); // ✅    
-    const zilas = await Zila.find().sort({ name: 1 });
-    const ksheters = await Ksheter.find({ zila: saadhak.zila }).sort({
-      name: 1,
-    });
-    const kenders = await Kender.find({ ksheter: saadhak.ksheter }).sort({
-      name: 1,
-    });
+    // Determine allowedRoles based on user's highest role
+    let allowedRoles = [];
 
-    // console.log(kenders);
-
-    // ✅ Determine allowedRoles based on the logged-in user
-    let allowedRoles = ["Saadhak"];
-    if (user.roles.includes("Admin")) {
+    if (user.roles.some((role) => adminRoles.includes(role))) {
       allowedRoles = ALL_ROLES;
-    } else if (user.roles.includes("Zila Pradhan")) {
+    } else if (user.roles.some((role) => prantRoles.includes(role))) {
       allowedRoles = ALL_ROLES.filter(
-        (role) => !["Admin", "Zila Pradhan"].includes(role)
+        (role) => ![...adminRoles, ...prantRoles].includes(role)
       );
-    } else if (user.roles.includes("Zila Mantri")) {
-      allowedRoles = ALL_ROLES.filter(
-        (role) => !["Admin", "Zila Pradhan", "Zila Mantri"].includes(role)
-      );
-    } else if (
-      user.roles.includes("Ksheter Pradhan") ||
-      user.roles.includes("Ksheter Mantri")
-    ) {
+    } else if (user.roles.some((role) => zilaRoles.includes(role))) {
       allowedRoles = [
-        "Saadhak",
-        "Karyakarta",
-        "Shikshak",
-        "Seh Kender Pramukh",
-        "Kender Pramukh",
+        ...ksheterRoles,
+        ...kenderRoles,
+        ...kenderTeamRoles,
+        ...saadhakRoles,
       ];
-    } else if (
-      user.roles.includes("Kender Pramukh") ||
-      user.roles.includes("Seh Kender Pramukh")
-    ) {
-      allowedRoles = ["Saadhak", "Karyakarta", "Shikshak"];
+    } else if (user.roles.some((role) => ksheterRoles.includes(role))) {
+      allowedRoles = [...kenderRoles, ...kenderTeamRoles, ...saadhakRoles];
+    } else if (user.roles.some((role) => kenderRoles.includes(role))) {
+      allowedRoles = [...kenderTeamRoles, ...saadhakRoles];
+    } else {
+      allowedRoles = ["Saadhak"];
     }
 
-    // console.log(kenders);
-    // console.log("------");
-    // console.log(saadhak);
-    // console.log(zilas);
-    // console.log(ksheters);
-    // console.log(kenders);
+    // Fetch dropdowns based on user's level
+    let prants = [];
+    let zilas = [];
+    let ksheters = [];
+    let kenders = [];
+
+    const prantId = user.prant?.$oid || user.prant;
+    const zilaId = user.zila?.$oid || user.zila;
+    const ksheterId = user.ksheter?.$oid || user.ksheter;
+    const kenderId = user.kender?.$oid || user.kender;
+
+    if (user.roles.some((role) => adminRoles.includes(role))) {
+      prants = await Prant.find();
+      zilas = await Zila.find().sort({ name: 1 });
+      ksheters = await Ksheter.find().sort({ name: 1 });
+      kenders = await Kender.find().sort({ name: 1 });
+    } else if (user.roles.some((role) => prantRoles.includes(role))) {
+      prants = await Prant.find({ _id: prantId });
+      zilas = await Zila.find({ prant: prantId }).sort({ name: 1 });
+      ksheters = await Ksheter.find({ prant: prantId }).sort({ name: 1 });
+      kenders = await Kender.find({ prant: prantId }).sort({ name: 1 });
+    } else if (user.roles.some((role) => zilaRoles.includes(role))) {
+      prants = await Prant.find({ _id: prantId });
+      zilas = await Zila.find({ _id: zilaId }).sort({ name: 1 });
+      ksheters = await Ksheter.find({ zila: zilaId }).sort({ name: 1 });
+      kenders = await Kender.find({ zila: zilaId }).sort({ name: 1 });
+    } else if (user.roles.some((role) => ksheterRoles.includes(role))) {
+      prants = await Prant.find({ _id: prantId });
+      zilas = await Zila.find({ _id: zilaId }).sort({ name: 1 });
+      ksheters = await Ksheter.find({ _id: ksheterId }).sort({ name: 1 });
+      kenders = await Kender.find({ ksheter: ksheterId }).sort({ name: 1 });
+    } else if (user.roles.some((role) => kenderRoles.includes(role))) {
+      prants = await Prant.find({ _id: prantId });
+      zilas = await Zila.find({ _id: zilaId }).sort({ name: 1 });
+      ksheters = await Ksheter.find({ _id: ksheterId }).sort({ name: 1 });
+      kenders = await Kender.find({ _id: kenderId }).sort({ name: 1 });
+    }
+
     res.render("saadhak/edit", {
+      roleConfig,
       saadhak,
       prants,
       zilas,
       ksheters,
       kenders,
-      allowedRoles, // ✅ Fix: pass this to EJS
+      allowedRoles,
       error: null,
     });
   } catch (err) {
@@ -428,6 +443,7 @@ exports.showEditForm = async (req, res) => {
     res.status(500).send("Server Error");
   }
 };
+
 
 // ✅ Handle Update
 exports.updateSaadhak = async (req, res) => {
@@ -467,194 +483,104 @@ exports.updateSaadhak = async (req, res) => {
       kender,
     };
 
-    // Role logic
-    let allowedRoles = ["Saadhak"];
-    if (user.roles.includes("Admin")) {
+    const {
+      adminRoles,
+      prantRoles,
+      zilaRoles,
+      ksheterRoles,
+      kenderRoles,
+      kenderTeamRoles,
+      saadhakRoles,
+    } = require("../config/roles");
+
+    const ALL_ROLES = [
+      ...adminRoles,
+      ...prantRoles,
+      ...zilaRoles,
+      ...ksheterRoles,
+      ...kenderRoles,
+      ...kenderTeamRoles,
+      ...saadhakRoles,
+    ];
+
+    // ✅ Determine allowed roles based on user's highest role
+    let allowedRoles = [];
+    if (user.roles.some((r) => adminRoles.includes(r))) {
       allowedRoles = ALL_ROLES;
-    } else if (user.roles.includes("Zila Pradhan")) {
-      allowedRoles = ALL_ROLES.filter(
-        (r) => !["Admin", "Zila Pradhan"].includes(r)
-      );
-    } else if (user.roles.includes("Zila Mantri")) {
-      allowedRoles = ALL_ROLES.filter(
-        (r) => !["Admin", "Zila Pradhan", "Zila Mantri"].includes(r)
-      );
-    } else if (
-      user.roles.includes("Ksheter Pradhan") ||
-      user.roles.includes("Ksheter Mantri")
-    ) {
-      allowedRoles = [
-        "Saadhak",
-        "Karyakarta",
-        "Shikshak",
-        "Seh Kender Pramukh",
-        "Kender Pramukh",
-      ];
-    } else if (
-      user.roles.includes("Kender Pramukh") ||
-      user.roles.includes("Seh Kender Pramukh")
-    ) {
-      allowedRoles = ["Saadhak", "Karyakarta", "Shikshak"];
+    } else if (user.roles.some((r) => prantRoles.includes(r))) {
+      allowedRoles = ALL_ROLES.filter((r) => ![...adminRoles, ...prantRoles].includes(r));
+    } else if (user.roles.some((r) => zilaRoles.includes(r))) {
+      allowedRoles = [...ksheterRoles, ...kenderRoles, ...kenderTeamRoles, ...saadhakRoles];
+    } else if (user.roles.some((r) => ksheterRoles.includes(r))) {
+      allowedRoles = [...kenderRoles, ...kenderTeamRoles, ...saadhakRoles];
+    } else if (user.roles.some((r) => kenderRoles.includes(r))) {
+      allowedRoles = [...kenderTeamRoles, ...saadhakRoles];
+    } else {
+      allowedRoles = ["Saadhak"];
     }
 
-    // Validations
+    // ✅ Validations
     if (!validateName(name)) {
-      return res.render("saadhak/edit", {
-        error: "❌ Name should contain only alphabets and spaces",
-        saadhak: formData,
-        zilas: await Zila.find(),
-        ksheters: await Ksheter.find({ zila }),
-        kenders: await Kender.find({ ksheter }),
-        allowedRoles,
-        user,
-      });
+      return await renderEdit("❌ Name should contain only alphabets and spaces");
     }
 
     if (!validateMobile(mobile)) {
-      return res.render("saadhak/edit", {
-        error: "❌ Invalid Mobile Number",
-        saadhak: formData,
-        zilas: await Zila.find(),
-        ksheters: await Ksheter.find({ zila }),
-        kenders: await Kender.find({ ksheter }),
-        allowedRoles,
-        user,
-      });
+      return await renderEdit("❌ Invalid Mobile Number");
     }
 
     const existing = await Saadhak.findOne({ mobile });
     if (existing && existing._id.toString() !== saadhakId) {
-      return res.render("saadhak/edit", {
-        error: "❌ Mobile number already registered with another Saadhak.",
-        saadhak: formData,
-        zilas: await Zila.find(),
-        ksheters: await Ksheter.find({ zila }),
-        kenders: await Kender.find({ ksheter }),
-        allowedRoles,
-        user,
-      });
+      return await renderEdit("❌ Mobile number already registered with another Saadhak.");
     }
 
     if (!name || !mobile || !role) {
-      return res.render("saadhak/edit", {
-        error: "❌ Name, Mobile, and Role are required.",
-        saadhak: formData,
-        zilas: await Zila.find(),
-        ksheters: await Ksheter.find({ zila }),
-        kenders: await Kender.find({ ksheter }),
-        allowedRoles,
-        user,
-      });
+      return await renderEdit("❌ Name, Mobile, and Role are required.");
     }
 
     if (dob && !validateDOB(dob)) {
-      return res.render("saadhak/edit", {
-        error: "❌ Invalid Date of Birth",
-        saadhak: formData,
-        zilas: await Zila.find(),
-        ksheters: await Ksheter.find({ zila }),
-        kenders: await Kender.find({ ksheter }),
-        allowedRoles,
-        user,
-      });
+      return await renderEdit("❌ Invalid Date of Birth");
+    }
+
+    if (marriageDate && maritalStatus === "Married" && !validateDOB(marriageDate)) {
+      return await renderEdit("❌ Invalid Marriage Date");
+    }
+
+    // ✅ Association validations
+    if (prantRoles.includes(role) && !prant) {
+      return await renderEdit("❌ Prant selection is required for Prant-level roles.");
+    }
+
+    if (zilaRoles.includes(role) && (!zila || !prant)) {
+      return await renderEdit("❌ Prant & Zila selection is required for Zila-level roles.");
+    }
+
+    if (ksheterRoles.includes(role) && (!prant || !zila || !ksheter)) {
+      return await renderEdit("❌ Prant, Zila and Ksheter must be selected for Ksheter-level roles.");
     }
 
     if (
-      marriageDate &&
-      maritalStatus === "Married" &&
-      !validateDOB(marriageDate)
+      [...kenderRoles, ...kenderTeamRoles, ...saadhakRoles].includes(role) &&
+      (!prant || !zila || !ksheter || !kender)
     ) {
-      return res.render("saadhak/edit", {
-        error: "❌ Invalid Marriage Date",
-        saadhak: formData,
-        zilas: await Zila.find(),
-        ksheters: await Ksheter.find({ zila }),
-        kenders: await Kender.find({ ksheter }),
-        allowedRoles,
-        user,
-      });
+      return await renderEdit(
+        "❌ Prant, Zila, Ksheter, and Kender must be selected for Kender, Shikshak, Karyakarta & Saadhak level roles."
+      );
     }
 
-    // Role-specific association checks
-    if (
-      ["Zila Pradhan", "Zila Mantri", "Sangathan Mantri", "Cashier"].includes(
-        role
-      ) &&
-      !zila
-    ) {
-      return res.render("saadhak/edit", {
-        error: "❌ Zila selection is required for Zila-level roles.",
-        saadhak: formData,
-        zilas: await Zila.find(),
-        ksheters: await Ksheter.find({ zila }),
-        kenders: await Kender.find({ ksheter }),
-        allowedRoles,
-        user,
-      });
+    // ✅ Hierarchy clean-up based on role
+    let updatedPrant = prant && prant !== "" ? prant : user?.prant?.$oid || user?.prant || undefined;
+    let updatedZila = zila && zila !== "" ? zila : undefined;
+    let updatedKsheter = ksheter && ksheter !== "" ? ksheter : undefined;
+    let updatedKender = kender && kender !== "" ? kender : undefined;
+
+    if (zilaRoles.includes(role)) {
+      updatedKsheter = undefined;
+      updatedKender = undefined;
+    } else if (ksheterRoles.includes(role)) {
+      updatedKender = undefined;
     }
 
-    if (
-      ["Ksheter Pradhan", "Ksheter Mantri"].includes(role) &&
-      (!zila || !ksheter)
-    ) {
-      return res.render("saadhak/edit", {
-        error: "❌ Zila and Ksheter must be selected for Ksheter-level roles.",
-        saadhak: formData,
-        zilas: await Zila.find(),
-        ksheters: await Ksheter.find({ zila }),
-        kenders: await Kender.find({ ksheter }),
-        allowedRoles,
-        user,
-      });
-    }
-
-    if (
-      [
-        "Kender Pramukh",
-        "Seh Kender Pramukh",
-        "Shikshak",
-        "Karyakarta",
-        "Saadhak",
-      ].includes(role) &&
-      (!zila || !ksheter || !kender)
-    ) {
-      return res.render("saadhak/edit", {
-        error:
-          "❌ Zila, Ksheter, and Kender must be selected for Kender-level roles.",
-        saadhak: formData,
-        zilas: await Zila.find(),
-        ksheters: await Ksheter.find({ zila }),
-        kenders: await Kender.find({ ksheter }),
-        allowedRoles,
-        user,
-      });
-    }
-
-    // 🧼 Clean up hierarchy fields based on role level
-    let updatedKsheter = ksheter;
-    let updatedKender = kender;
-
-    const rolesArray = Array.isArray(role) ? role : [role];
-    const lowerRoles = rolesArray.map((r) => r.toLowerCase());
-
-    const isZilaLevel = lowerRoles.some((r) =>
-      ["zila pradhan", "zila mantri", "sangathan mantri", "cashier"].includes(r)
-    );
-    const isKsheterLevel = lowerRoles.some((r) =>
-      ["ksheter pradhan", "ksheter mantri"].includes(r)
-    );
-
-    if (isZilaLevel) {
-      updatedKsheter = null;
-      updatedKender = null;
-    } else if (isKsheterLevel) {
-      updatedKender = null;
-    }
-
-    console.log(updatedKsheter);
-    console.log(updatedKender);
-
-    // ✅ Final update
+    // ✅ Final DB Update
     await Saadhak.findByIdAndUpdate(saadhakId, {
       name: formatName(name.trim()),
       mobile,
@@ -664,19 +590,39 @@ exports.updateSaadhak = async (req, res) => {
       marriageDate: maritalStatus === "Married" ? marriageDate : undefined,
       address,
       livingArea,
-      role: rolesArray,
-      prant: prant || undefined,
-      zila: zila || undefined,
-      ksheter: updatedKsheter === null ? null : updatedKsheter,
-      kender: updatedKender === null ? null : updatedKender,
+      role,
+      prant: updatedPrant,
+      zila: updatedZila,
+      ksheter: updatedKsheter,
+      kender: updatedKender,
     });
 
-    res.redirect("/saadhak/manage");
+    return res.redirect("/saadhak/manage");
+
+    // ---------- Helper: render form with error ----------
+    async function renderEdit(error) {
+      const prants = await Prant.find();
+      const zilas = await Zila.find();
+      const ksheters = await Ksheter.find({ zila });
+      const kenders = await Kender.find({ ksheter });
+
+      return res.render("saadhak/edit", {
+        error,
+        saadhak: formData,
+        zilas,
+        ksheters,
+        kenders,
+        prants,
+        allowedRoles,
+        user,
+      });
+    }
   } catch (err) {
     console.error("❌ Error updating Saadhak:", err);
     res.status(500).send("Server Error");
   }
 };
+
 
 
 // ✅ Handle Delete
