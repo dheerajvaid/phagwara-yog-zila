@@ -336,6 +336,8 @@ exports.listSaadhaks = async (req, res) => {
       .populate("kender")
       .sort({ name: 1 });
 
+      console.log(saadhaks.length);
+
     const [prants, zilas, ksheters, kenders] = await Promise.all([
       Prant.find().sort({ name: 1 }),
       Zila.find().sort({ name: 1 }),

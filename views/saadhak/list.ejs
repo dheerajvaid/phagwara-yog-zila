@@ -1,6 +1,10 @@
 <%- include('../partials/header') %>
 <%- include('../partials/navbar') %>
-
+<style>
+  .pagination .page-link {
+  padding: 0.25rem 0.5rem;
+}
+</style>
 <section class="container mt-4">
   <!-- Header Row -->
   <div class="d-flex justify-content-between align-items-center mb-3">
@@ -67,6 +71,11 @@
       <tbody id="saadhakTableBody"></tbody>
     </table>
   </div>
+
+  <nav id="paginationNav" class="d-flex justify-content-center mt-3">
+  <ul id="pagination" class="pagination pagination-sm"></ul>
+</nav>
+     
 </section>
 
 <!-- Script -->
@@ -258,6 +267,79 @@
 
       renderPagination(filtered.length);
     }
+
+  function renderPagination(totalItems) {
+  const pagination = document.getElementById("pagination");
+  const totalPages = Math.ceil(totalItems / pageSize);
+  pagination.innerHTML = "";
+
+  if (totalPages <= 1) return; // No need to paginate
+
+  const createPageItem = (page, label = null, active = false, disabled = false) => {
+    const li = document.createElement("li");
+    li.className = `page-item${active ? " active" : ""}${disabled ? " disabled" : ""}`;
+    const button = document.createElement("button");
+    button.className = "page-link";
+    button.textContent = label || page;
+    button.disabled = disabled;
+
+    if (!disabled && !active) {
+      button.addEventListener("click", () => {
+        currentPage = page;
+        renderTable();
+      });
+    }
+
+    li.appendChild(button);
+    return li;
+  };
+
+  // Previous button
+  pagination.appendChild(createPageItem(currentPage - 1, "«", false, currentPage === 1));
+
+  const maxVisible = 5;
+  let startPage = Math.max(1, currentPage - 2);
+  let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+
+  if (endPage - startPage < maxVisible - 1 && startPage > 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1);
+  }
+
+  if (startPage > 1) {
+    pagination.appendChild(createPageItem(1));
+    if (startPage > 2) {
+      const dots = document.createElement("li");
+      dots.className = "page-item disabled";
+      dots.innerHTML = `<span class="page-link">…</span>`;
+      pagination.appendChild(dots);
+    }
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pagination.appendChild(createPageItem(i, null, i === currentPage));
+  }
+
+  if (endPage < totalPages) {
+    if (endPage < totalPages - 1) {
+      const dots = document.createElement("li");
+      dots.className = "page-item disabled";
+      dots.innerHTML = `<span class="page-link">…</span>`;
+      pagination.appendChild(dots);
+    }
+    pagination.appendChild(createPageItem(totalPages));
+  }
+
+  // Next button
+  pagination.appendChild(createPageItem(currentPage + 1, "»", false, currentPage === totalPages));
+}
+
+  function changePage(page) {
+    currentPage = page;
+    renderTable();
+  }
+
+  window.changePage = changePage;
+
 
     document.getElementById("exportCsvBtn").addEventListener("click", () => {
       const filtered = currentFilteredSaadhaks;
