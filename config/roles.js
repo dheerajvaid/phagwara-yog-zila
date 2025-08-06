@@ -4,11 +4,11 @@ module.exports = {
   adminRoles: ["Admin"],
 
   prantRoles: [
-    "Prant Pradhan",
-    "Prant Upp Pradhan",
     "Prant Sanrakshak",
-    "Prant Sangathan Mantri",
-    "Prant Mantri",
+    "Prant Pradhan",
+    "Prant Upp Pradhan", 
+    "Prant Mantri",   
+    "Prant Sangathan Mantri",    
     "Prant Cashier",
   ],
 

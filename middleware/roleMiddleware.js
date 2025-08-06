@@ -20,8 +20,8 @@ function canManage(allowedRoles, calledBy = "") {
     // console.log(userRoles);
     // Admins bypass checks
     // console.log(req.session.user);
-     console.log(userRoles);
-     console.log(allowedRoles);
+    //  console.log(userRoles);
+    //  console.log(allowedRoles);
     if (userRoles.includes("Admin")) return next();
 
     if (

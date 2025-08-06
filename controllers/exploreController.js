@@ -107,7 +107,6 @@ exports.showExploreHome = async (req, res) => {
   }
 };
 
-
 // 🏢 Zila Detail Page
 exports.showZilaDetail = async (req, res) => {
   try {
@@ -172,7 +171,6 @@ exports.showKenderDetail = async (req, res) => {
   }
 };
 
-
 exports.handleSearchQuery = async (req, res) => {
   try {
     const query = req.query.q?.trim();
@@ -180,81 +178,148 @@ exports.handleSearchQuery = async (req, res) => {
 
     const regex = new RegExp(query, "i");
 
-    // Fetch all saadhaks first (needed for team enrichment)
-    const allSaadhaks = await Saadhak.find()
-      .populate("prant zila ksheter kender") // for name-based filtering
-      .lean();
+    // 👤 Only allow specific role types
+    const searchableRoles = [...prantRoles, ...zilaRoles, ...kenderRoles];
 
-    // 📍 Filter saadhaks by query (name, mobile, address, role, OR associated location names)
-    const saadhaks = allSaadhaks.filter((s) =>
-      regex.test(s.name || "") ||
-      regex.test(s.mobile || "") ||
-      regex.test(s.address || "") ||
-      s.roles?.some((r) => regex.test(r)) ||
-      regex.test(s?.prant?.name || "") ||
-      regex.test(s?.zila?.name || "") ||
-      regex.test(s?.ksheter?.name || "") ||
-      regex.test(s?.kender?.name || "")
+    // 🔍 Search saadhaks
+    const matchedSaadhaks = await Saadhak.find({
+      roles: { $in: searchableRoles },
+      $or: [
+        { name: regex },
+        { mobile: regex },
+        { gender: regex },
+        { address: regex },
+        { maritalStatus: regex },
+        { roles: regex }, // ✅ match strings in array
+      ],
+    }).lean();
+
+    // 🔍 Direct unit matches
+    const [matchedZilas, matchedKsheters, matchedKenders] = await Promise.all([
+      Zila.find({ $or: [{ name: regex }, { address: regex }] }).lean(),
+      Ksheter.find({ $or: [{ name: regex }, { address: regex }] }).lean(),
+      Kender.find({ $or: [{ name: regex }, { address: regex }] }).lean(),
+    ]);
+
+    // 🧠 Collect IDs from both saadhaks & direct units
+    const zilaIds = [
+      ...new Set([
+        ...matchedSaadhaks.map((s) => s.zila?.toString()).filter(Boolean),
+        ...matchedZilas.map((z) => z._id.toString()),
+      ]),
+    ];
+
+    const ksheterIds = [
+      ...new Set([
+        ...matchedSaadhaks.map((s) => s.ksheter?.toString()).filter(Boolean),
+        ...matchedKsheters.map((k) => k._id.toString()),
+      ]),
+    ];
+
+    const kenderIds = [
+      ...new Set([
+        ...matchedSaadhaks.map((s) => s.kender?.toString()).filter(Boolean),
+        ...matchedKenders.map((k) => k._id.toString()),
+      ]),
+    ];
+
+    // 📦 Fetch units and all eligible saadhaks for team building
+    const [zilas, ksheters, kenders, allSaadhaks] = await Promise.all([
+      Zila.find({ _id: { $in: zilaIds } })
+        .sort({ name: 1 })
+        .lean(),
+      Ksheter.find({ _id: { $in: ksheterIds } })
+        .sort({ name: 1 })
+        .lean(),
+      Kender.find({ _id: { $in: kenderIds } })
+        .sort({ name: 1 })
+        .lean(),
+      Saadhak.find({
+        roles: { $in: searchableRoles },
+        $or: [
+          { zila: { $in: zilaIds } },
+          { ksheter: { $in: ksheterIds } },
+          { kender: { $in: kenderIds } },
+        ],
+      }).lean(),
+    ]);
+
+    const enrichedZilas = await Promise.all(
+      zilas.map(async (z) => {
+        const team = await Saadhak.find({
+          zila: z._id,
+          role: { $in: [...zilaRoles] },
+        }).lean();
+
+        // ✅ Sort team by first matching role's index in zilaRoles
+        team.sort(
+          (a, b) =>
+            zilaRoles.findIndex((role) => a.role.includes(role)) -
+            zilaRoles.findIndex((role) => b.role.includes(role))
+        );
+
+        return {
+          ...z,
+          team,
+        };
+      })
     );
 
-    // 🏢 Prants
-    const prantsRaw = await Prant.find({ name: regex }).lean();
-    const enrichedPrants = prantsRaw.map((prant) => {
-      const team = allSaadhaks.filter(
-        (s) =>
-          s.prant?._id?.toString() === prant._id.toString() &&
-          s.roles?.some((r) => prantRoles.includes(r))
-      );
-      return { ...prant, team };
-    });
+    const enrichedKsheters = await Promise.all(
+      ksheters.map(async (k) => {
+        const team = await Saadhak.find({
+          ksheter: k._id,
+          role: { $in: [...ksheterRoles] },
+        }).lean();
 
-    // 🏙️ Zilas
-    const zilasRaw = await Zila.find({ name: regex }).lean();
-    const enrichedZilas = zilasRaw.map((zila) => {
-      const team = allSaadhaks.filter(
-        (s) =>
-          s.zila?._id?.toString() === zila._id.toString() &&
-          s.roles?.some((r) => zilaRoles.includes(r))
-      );
-      return { ...zila, team };
-    });
+        // ✅ Sort team by role priority
+        team.sort(
+          (a, b) =>
+            ksheterRoles.findIndex((role) => a.role.includes(role)) -
+            ksheterRoles.findIndex((role) => b.role.includes(role))
+        );
 
-    // 🏞️ Ksheters
-    const kshetersRaw = await Ksheter.find({ name: regex }).lean();
-    const enrichedKsheters = kshetersRaw.map((ksheter) => {
-      const team = allSaadhaks.filter(
-        (s) =>
-          s.ksheter?._id?.toString() === ksheter._id.toString() &&
-          s.roles?.some((r) => ksheterRoles.includes(r))
-      );
-      return { ...ksheter, team };
-    });
+        return {
+          ...k,
+          team,
+        };
+      })
+    );
 
-    // 🧘‍♂️ Kenders
-    const kendersRaw = await Kender.find({
-      $or: [{ name: regex }, { address: regex }],
-    }).lean();
-    const enrichedKenders = kendersRaw.map((kender) => {
-      const team = allSaadhaks.filter(
-        (s) =>
-          s.kender?._id?.toString() === kender._id.toString() &&
-          s.roles?.some((r) => kenderRoles.includes(r))
-      );
-      return { ...kender, team };
-    });
+    const enrichedKenders = await Promise.all(
+      kenders.map(async (k) => {
+        const team = await Saadhak.find({
+          kender: k._id,
+          role: { $in: [...kenderRoles] },
+        }).lean();
 
-    // 🎯 Send to EJS
+        // ✅ Sort team by role priority
+        team.sort(
+          (a, b) =>
+            kenderRoles.findIndex((role) => a.role.includes(role)) -
+            kenderRoles.findIndex((role) => b.role.includes(role))
+        );
+
+        return {
+          ...k,
+          team,
+        };
+      })
+    );
+
+    console.log(enrichedKenders);
+    
+    // 🖥️ Final render
     res.render("public/searchResults", {
       query,
-      prants: enrichedPrants,
+      results: matchedSaadhaks,
       zilas: enrichedZilas,
       ksheters: enrichedKsheters,
       kenders: enrichedKenders,
-      saadhaks,
       getBadgeColor,
     });
   } catch (err) {
-    console.error("❌ Error in handleSearchQuery:", err);
-    res.status(500).send("Error processing search");
+    console.error("🔴 Search error:", err);
+    res.status(500).send("Server error during search.");
   }
 };

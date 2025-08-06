@@ -25,6 +25,7 @@ async function canManageKsheter(req, res, next) {
   try {
     const user = req.session.user;
     if (hasRole(user, adminRoles)) return next();
+    if (hasRole(user, prantRoles)) return next();
 
     const saadhak = await Saadhak.findById(user.id);
     if (!saadhak?.zila) {

@@ -2,12 +2,17 @@
 <%- include('../partials/navbar') %>
 
 <section class="container mt-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
+ <div class="d-flex justify-content-between align-items-center mb-3">
     <h4 class="fw-bold text-primary">🏞️ Ksheter Management</h4>
-    <% if (user.roles.includes('Admin') || user.roles.includes('Zila Pradhan') || user.roles.includes('Zila Mantri')) { %>
+    <% if (
+      user.roles.some(role => adminRoles.includes(role)) ||
+      user.roles.some(role => zilaRoles.includes(role)) ||
+      user.roles.some(role => prantRoles.includes(role))
+    ) { %>
       <a href="/ksheter/add" class="btn btn-sm btn-success">➕ Add Ksheter</a>
     <% } %>
   </div>
+
 
   <% if (error) { %>
   <div class="alert alert-warning alert-dismissible fade show" role="alert">
@@ -19,7 +24,7 @@
   <!-- ✅ Zila Filter -->
   <form method="GET" action="/ksheter/manage" class="row g-2 mb-3">
     <div class="col-md-4">
-      <% if (user.roles.includes('Admin')) { %>
+      <% if (user.roles.includes('Admin') || user.prant) { %>
         <select name="zila" class="form-select" onchange="this.form.submit()">
           <option value="">-- All Zilas --</option>
           <% zilas.forEach(z => { %>

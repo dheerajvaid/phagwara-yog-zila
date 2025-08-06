@@ -1,126 +1,256 @@
 <%- include('../partials/header') %>
 <%- include('../partials/navbar') %>
 
-<section class="container mt-4">
-  <h4 class="fw-bold text-primary mb-4">🔍 Search Results for "<%= query %>"</h4>
+<style>
+  body {
+    font-family: 'Segoe UI', 'Poppins', sans-serif;
+    background: #f0f4ff;
+    color: #212529;
+  }
 
-  <% const showRoles = (saadhak) => { %>
-    <% if (saadhak.roles && saadhak.roles.length > 0) { %>
-      <% saadhak.roles.forEach(role => { %>
-        <span class="badge <%= getBadgeColor(role) %> me-1 mb-1"><%= role %></span>
-      <% }) %>
-    <% } %>
-  <% } %>
+  .card {
+    border-radius: 1rem !important;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+  }
 
-  <% const showContact = (s) => { %>
-    <% if (s.name) { %><strong><%= s.name %></strong><br><% } %>
-    <% if (s.mobile) { %>📱 <%= s.mobile %><br><% } %>
-    <%= showRoles(s) %>
-  <% } %>
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+  }
 
-  <% const showTeam = (team) => { %>
-    <% if (team && team.length > 0) { %>
-      <hr class="my-2">
-      <small class="text-muted">Team:</small><br>
-      <% team.forEach(member => { %>
-        <div class="mb-1">
-          <%= showContact(member) %>
-        </div>
-      <% }) %>
-    <% } %>
-  <% } %>
+  .card.zila {
+    background: linear-gradient(to bottom right, #fff0f0, #ffe3e3);
+  }
 
-  <% if (
-    prants.length === 0 &&
-    zilas.length === 0 &&
-    ksheters.length === 0 &&
-    kenders.length === 0 &&
-    saadhaks.length === 0
-  ) { %>
-    <div class="alert alert-warning">No results found for "<%= query %>"</div>
-  <% } %>
+  .card.ksheter {
+    background: linear-gradient(to bottom right, #f0fff5, #e0ffe6);
+  }
 
-  <% if (prants.length > 0) { %>
-    <h5 class="text-success mt-4">🛕 Prants</h5>
-    <div class="row">
-      <% prants.forEach(prant => { %>
-        <div class="col-md-4 mb-3">
-          <div class="card shadow-sm">
-            <div class="card-body">
-              <h6 class="card-title text-primary fw-bold"><%= prant.name %></h6>
-              <%= showTeam(prant.team) %>
-            </div>
-          </div>
-        </div>
-      <% }) %>
+  .card.kender {
+    background: linear-gradient(to bottom right, #e8f1ff, #d0e4ff);
+  }
+
+  .bg-purple {
+    background-color: #6f42c1 !important;
+  }
+
+  .bg-pink {
+    background-color: #e83e8c !important;
+  }
+
+  .card-header {
+    padding: 0.75rem 1rem;
+    border-bottom: none;
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
+  }
+
+  .card-zila-header {
+    background: linear-gradient(135deg, #ff6a6a, #ff9999);
+  }
+
+  .card-ksheter-header {
+    background: linear-gradient(135deg, #4cd964, #76e7a2);
+  }
+
+  .card-kender-header {
+    background: linear-gradient(135deg, #4a90e2, #8ab6f9);
+  }
+
+  h4, h5, h6 {
+    font-weight: 700;
+    color: #111 !important;
+  }
+
+  .btn-primary {
+    background: linear-gradient(45deg, #ff416c, #ff4b2b);
+    border: none;
+    font-weight: bold;
+    color: white;
+    box-shadow: 0 4px 10px rgba(255,65,108,0.3);
+  }
+
+  .btn-primary:hover {
+    background: linear-gradient(45deg, #e60039, #ff5722);
+  }
+
+  .form-control {
+    border-radius: 0.75rem;
+    border: 1px solid #ff4b2b;
+    color: #000;
+    font-weight: 500;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+  }
+
+  .form-control::placeholder {
+    color: #333;
+    opacity: 1;
+    font-weight: 500;
+  }
+
+  .badge {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  }
+
+  .badge.bg-danger { background-color: #dc3545 !important; }
+  .badge.bg-primary { background-color: #007bff !important; }
+  .badge.bg-warning { background-color: #ffc107 !important; color: #111 !important; }
+  .badge.bg-success { background-color: #28a745 !important; }
+  .badge.bg-info { background-color: #17a2b8 !important; }
+  .badge.bg-secondary { background-color: #6c757d !important; }
+
+  .card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #111;
+  }
+
+  .card-body p,
+  .card-body small {
+    font-size: 0.9rem;
+    color: #222 !important;
+    font-weight: 500;
+  }
+
+  .alert {
+    border-radius: 0.75rem;
+    background: linear-gradient(to right, #fff0b3, #ffe066);
+    border: none;
+    color: #5c3700;
+    font-weight: 600;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+
+  ul li {
+    line-height: 1.7;
+    color: #111;
+    font-weight: 500;
+  }
+
+  .text-primary {
+    color: #003399 !important;
+  }
+
+  .text-success {
+    color: #007e33 !important;
+  }
+
+  .text-muted {
+    color: #222 !important;
+    font-weight: 500;
+  }
+
+  .section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    color: #333;
+  }
+
+  .card-info-block {
+    background: #ffffff;
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+    padding: 0.75rem 1rem;
+  }
+
+  .card-info-block p {
+    margin-bottom: 0.25rem;
+    color: #111;
+    font-weight: 600;
+  }
+</style>
+
+<section class="container mt-4 mb-5">
+  <form class="d-flex mb-4" action="/explore/search" method="get">
+    <input class="form-control me-2" type="search" name="q" placeholder="Search name, role, phone, area..." required />
+    <button class="btn btn-primary" type="submit">Search</button>
+  </form>
+
+  <% if ((!zilas || zilas.length === 0) && (!ksheters || ksheters.length === 0) && (!kenders || kenders.length === 0)) { %>
+    <div class="alert alert-warning shadow-sm">
+      No results found for "<%= query %>"
     </div>
   <% } %>
 
-  <% if (zilas.length > 0) { %>
-    <h5 class="text-success mt-4">🏙️ Zilas</h5>
-    <div class="row">
-      <% zilas.forEach(zila => { %>
-        <div class="col-md-4 mb-3">
-          <div class="card shadow-sm">
-            <div class="card-body">
-              <h6 class="card-title text-primary fw-bold"><%= zila.name %></h6>
-              <%= showTeam(zila.team) %>
-            </div>
-          </div>
-        </div>
-      <% }) %>
-    </div>
-  <% } %>
+  <% function getBadgeColor(role) {
+    role = role.trim().toLowerCase();
+    if (role.includes("pradhan")) return "bg-danger text-white";
+    if (role.includes("mantri")) return "bg-primary text-white";
+    if (role.includes("cashier")) return "bg-warning text-dark";
+    if (role.includes("shikshak")) return "bg-success text-white";
+    if (role.includes("karyakarta")) return "bg-info text-white";
+    if (role.includes("seh kender pramukh")) return "bg-pink text-white";
+    if (role.includes("kender pramukh")) return "bg-purple text-white";
+    return "bg-secondary text-white";
+  } %>
 
-  <% if (ksheters.length > 0) { %>
-    <h5 class="text-success mt-4">🏞️ Ksheters</h5>
-    <div class="row">
-      <% ksheters.forEach(ksheter => { %>
-        <div class="col-md-4 mb-3">
-          <div class="card shadow-sm">
-            <div class="card-body">
-              <h6 class="card-title text-primary fw-bold"><%= ksheter.name %></h6>
-              <%= showTeam(ksheter.team) %>
-            </div>
-          </div>
-        </div>
-      <% }) %>
-    </div>
-  <% } %>
+  <% function getRoleBadge(roles = []) {
+    return roles.map(role => `
+      <span class="badge ${getBadgeColor(role)} me-1 mb-1 px-2 py-1 rounded-pill text-uppercase fw-semibold" style="font-size: 0.75rem;">
+        ${role}
+      </span>
+    `).join('');
+  } %>
 
-  <% if (kenders.length > 0) { %>
-    <h5 class="text-success mt-4">🧘‍♂️ Kenders</h5>
-    <div class="row">
-      <% kenders.forEach(kender => { %>
-        <div class="col-md-4 mb-3">
-          <div class="card shadow-sm">
-            <div class="card-body">
-              <h6 class="card-title text-primary fw-bold"><%= kender.name %></h6>
-              <% if (kender.address) { %>
-                <p class="mb-1">🏠 <%= kender.address %></p>
-              <% } %>
-              <%= showTeam(kender.team) %>
-            </div>
-          </div>
-        </div>
-      <% }) %>
-    </div>
-  <% } %>
+  <% function renderTeam(team = []) {
+    if (!team || team.length === 0) {
+      return '<div class="text-muted"><small>No team members found.</small></div>';
+    }
+    return `
+      <small class="text-dark fw-bold">👥 Team Members:</small>
+      <ul class="mt-2 ps-3 mb-0" style="font-size: 0.875rem;">
+        ${team.map(member => `
+          <li class="mb-2">
+            <strong>${member.name}</strong>
+            ${member.mobile ? `<span class="text-dark fw-semibold"> 📱 ${member.mobile}</span>` : ''}
+            <div class="mt-1">${getRoleBadge(member.role)}</div>
+          </li>
+        `).join('')}
+      </ul>
+    `;
+  } %>
 
-  <% if (saadhaks.length > 0) { %>
-    <h5 class="text-success mt-4">👤 Saadhaks</h5>
-    <div class="row">
-      <% saadhaks.forEach(s => { %>
-        <div class="col-md-4 mb-3">
-          <div class="card shadow-sm">
-            <div class="card-body">
-              <%= showContact(s) %>
+  <% function renderSection(titleIcon, label, items, key) {
+    if (!items || items.length === 0) return '';
+    return `
+      <h5 class="text-success mt-5">${titleIcon} ${label}</h5>
+      <div class="row">
+        ${items.map(item => {
+          const hasInfo = key === 'kender' && (item.address || item.startTime);
+          return `
+            <div class="col-md-6 col-lg-4 mb-4">
+              <div class="card ${key} shadow-sm border-0 rounded-4 h-100">
+                <div class="card-header card-${key}-header rounded-top-4">
+                  <h6 class="m-0 text-white">${item.name}</h6>
+                </div>
+
+                ${hasInfo ? `
+                  <div class="card-info-block">
+                    ${item.address ? `<p>🏠 ${item.address}</p>` : ''}
+                    ${item.startTime ? `<p>🕒 ${item.startTime}</p>` : ''}
+                  </div>
+                ` : ''}
+
+                <div class="card-body">
+                  ${renderTeam(item.team)}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      <% }) %>
-    </div>
-  <% } %>
+          `;
+        }).join('')}
+      </div>
+    `;
+  } %>
+
+  <%- renderSection("🏙️", "Zilas", zilas, "zila") %>
+  <%- renderSection("🏞️", "Ksheters", ksheters, "ksheter") %>
+  <%- renderSection("🧘‍♂️", "Kenders", kenders, "kender") %>
 </section>
 
 <%- include('../partials/footer') %>
