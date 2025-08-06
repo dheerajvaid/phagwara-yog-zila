@@ -20,7 +20,7 @@ const dashboardRoutes = require("./routes/dashboardRoutes");
 const authRoutes = require("./routes/authRoutes");
 const roleRoutes = require("./routes/roleRoutes");
 const adminRoutes = require("./routes/adminRoutes");
-const exploreRoutes = require("./routes/exploreRoutes");
+const publicExploreRoutes = require("./routes/publicExploreRoutes");
 const exportRoutes = require("./routes/exportRoutes");
 const passwordResetRoutes = require("./routes/passwordResetRoutes");
 const attendanceRoutes = require("./routes/attendanceRoutes");
@@ -105,7 +105,7 @@ app.use(ksheterRoutes);
 app.use(kenderRoutes);
 app.use("/", saadhakRoutes);
 app.use("/attendance", attendanceRoutes);
-app.use("/", exploreRoutes); // Public-facing
+app.use("/explore", publicExploreRoutes); // Public-facing
 app.use("/", exportRoutes);
 app.use("/", passwordResetRoutes);
 app.use("/report", reportRoutes);

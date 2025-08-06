@@ -1,0 +1,23 @@
+const {
+  adminRoles,
+  prantRoles,
+  zilaRoles,
+  ksheterRoles,
+  kenderRoles,
+  kenderTeamRoles,
+  saadhakRoles,
+} = require("../config/roles");
+
+function getBadgeColor(role) {
+  if (adminRoles.includes(role)) return "danger"; // 🔴 Admin
+  if (prantRoles.includes(role)) return "primary"; // 🔵 Prant Level
+  if (zilaRoles.includes(role)) return "success"; // 🟢 Zila Level
+  if (ksheterRoles.includes(role)) return "warning"; // 🟡 Ksheter Level
+  if (kenderRoles.includes(role)) return "info"; // 🔵 Kender Leaders
+  if (kenderTeamRoles.includes(role)) return "secondary"; // ⚪ Team
+  if (saadhakRoles.includes(role)) return "dark"; // ⚫ General Saadhak
+
+  return "secondary"; // Default fallback
+}
+
+module.exports = getBadgeColor;

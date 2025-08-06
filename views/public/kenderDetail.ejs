@@ -1,0 +1,62 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+<a href="/export/pdf/zila/<%= zila._id %>" class="btn btn-sm btn-outline-danger">🧾 Export PDF</a>
+<a href="/export/csv/zila/<%= zila._id %>" class="btn btn-sm btn-outline-success">📥 Export CSV</a>
+
+<section class="container mt-4">
+  <h4 class="fw-bold text-primary mb-4">🏠 Kender Detail</h4>
+
+  <!-- Kender Info -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title text-success">🏷️ <%= kender.name %></h5>
+      <% if (kender.address) { %>
+        <p class="card-text"><strong>📍 Address:</strong> <%= kender.address %></p>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Saadhak List -->
+  <h5 class="mb-3 fw-bold text-secondary">👥 Saadhak Team in this Kender</h5>
+
+  <% if (saadhaks.length === 0) { %>
+    <div class="alert alert-info">No Saadhaks found for this Kender.</div>
+  <% } else { %>
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Mobile</th>
+            <th>Roles</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% saadhaks.forEach((s, index) => { %>
+            <tr>
+              <td><%= index + 1 %></td>
+              <td><%= s.name %></td>
+              <td><%= s.mobile %></td>
+              <td>
+                <% s.roles.forEach(role => { %>
+                  <% if (kenderTeamRoles.includes(role)) { %>
+                    <span class="badge bg-info me-1"><%= role %></span>
+                  <% } else { %>
+                    <span class="badge bg-secondary me-1"><%= role %></span>
+                  <% } %>
+                <% }) %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+
+  <div class="mt-4">
+    <a href="/explore" class="btn btn-sm btn-outline-primary">← Back to Explore</a>
+  </div>
+</section>
+
+<%- include('../partials/footer') %>

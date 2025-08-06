@@ -1,0 +1,126 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<section class="container mt-4">
+  <h4 class="fw-bold text-primary mb-4">🔍 Search Results for "<%= query %>"</h4>
+
+  <% const showRoles = (saadhak) => { %>
+    <% if (saadhak.roles && saadhak.roles.length > 0) { %>
+      <% saadhak.roles.forEach(role => { %>
+        <span class="badge <%= getBadgeColor(role) %> me-1 mb-1"><%= role %></span>
+      <% }) %>
+    <% } %>
+  <% } %>
+
+  <% const showContact = (s) => { %>
+    <% if (s.name) { %><strong><%= s.name %></strong><br><% } %>
+    <% if (s.mobile) { %>📱 <%= s.mobile %><br><% } %>
+    <%= showRoles(s) %>
+  <% } %>
+
+  <% const showTeam = (team) => { %>
+    <% if (team && team.length > 0) { %>
+      <hr class="my-2">
+      <small class="text-muted">Team:</small><br>
+      <% team.forEach(member => { %>
+        <div class="mb-1">
+          <%= showContact(member) %>
+        </div>
+      <% }) %>
+    <% } %>
+  <% } %>
+
+  <% if (
+    prants.length === 0 &&
+    zilas.length === 0 &&
+    ksheters.length === 0 &&
+    kenders.length === 0 &&
+    saadhaks.length === 0
+  ) { %>
+    <div class="alert alert-warning">No results found for "<%= query %>"</div>
+  <% } %>
+
+  <% if (prants.length > 0) { %>
+    <h5 class="text-success mt-4">🛕 Prants</h5>
+    <div class="row">
+      <% prants.forEach(prant => { %>
+        <div class="col-md-4 mb-3">
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <h6 class="card-title text-primary fw-bold"><%= prant.name %></h6>
+              <%= showTeam(prant.team) %>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+
+  <% if (zilas.length > 0) { %>
+    <h5 class="text-success mt-4">🏙️ Zilas</h5>
+    <div class="row">
+      <% zilas.forEach(zila => { %>
+        <div class="col-md-4 mb-3">
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <h6 class="card-title text-primary fw-bold"><%= zila.name %></h6>
+              <%= showTeam(zila.team) %>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+
+  <% if (ksheters.length > 0) { %>
+    <h5 class="text-success mt-4">🏞️ Ksheters</h5>
+    <div class="row">
+      <% ksheters.forEach(ksheter => { %>
+        <div class="col-md-4 mb-3">
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <h6 class="card-title text-primary fw-bold"><%= ksheter.name %></h6>
+              <%= showTeam(ksheter.team) %>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+
+  <% if (kenders.length > 0) { %>
+    <h5 class="text-success mt-4">🧘‍♂️ Kenders</h5>
+    <div class="row">
+      <% kenders.forEach(kender => { %>
+        <div class="col-md-4 mb-3">
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <h6 class="card-title text-primary fw-bold"><%= kender.name %></h6>
+              <% if (kender.address) { %>
+                <p class="mb-1">🏠 <%= kender.address %></p>
+              <% } %>
+              <%= showTeam(kender.team) %>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+
+  <% if (saadhaks.length > 0) { %>
+    <h5 class="text-success mt-4">👤 Saadhaks</h5>
+    <div class="row">
+      <% saadhaks.forEach(s => { %>
+        <div class="col-md-4 mb-3">
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <%= showContact(s) %>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</section>
+
+<%- include('../partials/footer') %>

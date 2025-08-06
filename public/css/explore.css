@@ -1,0 +1,60 @@
+/* public/css/explore.css */
+
+/* General */
+body {
+  background-color: #f8f9fa;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Section Headings */
+.section-title {
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: #0d6efd;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+/* Cards */
+.explore-card {
+  border: 1px solid #dee2e6;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease-in-out;
+  background-color: #ffffff;
+}
+
+.explore-card:hover {
+  transform: scale(1.015);
+}
+
+.explore-card .card-header {
+  background-color: #f1f3f5;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+/* Role Badges */
+.role-badge {
+  padding: 3px 8px;
+  font-size: 0.8rem;
+  border-radius: 10px;
+  color: white;
+  font-weight: 600;
+  margin-right: 5px;
+  margin-bottom: 4px;
+  display: inline-block;
+}
+
+/* Specific role colors */
+.badge-Pradhan { background-color: #dc3545; }        /* Red */
+.badge-Zila\ Mantri { background-color: #0d6efd; }    /* Blue */
+.badge-Sangathan\ Mantri { background-color: #6610f2; } /* Purple */
+.badge-Cashier { background-color: #198754; }         /* Green */
+.badge-Kshetriya\ Pradhan { background-color: #fd7e14; } /* Orange */
+.badge-Kshetriya\ Mantri { background-color: #20c997; }  /* Teal */
+.badge-Kender\ Pramukh { background-color: #6f42c1; }     /* Violet */
+.badge-Seh\ Kender\ Pramukh { background-color: #6c757d; } /* Grey */
+.badge-Shikshak { background-color: #0dcaf0; }         /* Cyan */
+.badge-Karyakarta { background-color: #ffc107; }       /* Yellow */
+.badge-Saadhak { background-color: #adb5bd; }          /* Light Grey */

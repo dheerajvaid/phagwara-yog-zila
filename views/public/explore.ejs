@@ -1,0 +1,158 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-4">
+  <h4 class="fw-bold text-primary mb-4">🌐 Explore Bhartiya Yog Sansthan Directory</h4>
+
+  <!-- 🔍 Search Bar -->
+  <form class="d-flex mb-4" action="/explore/search" method="get">
+    <input class="form-control me-2" type="search" name="q" placeholder="Search name, role, phone, area..." required />
+    <button class="btn btn-primary" type="submit">Search</button>
+   </form>
+
+  <% prants.forEach(prant => { %>
+    <div class="mb-5">
+      <h5 class="text-success">🛕 Prant: <%= prant.name %></h5>
+
+      <!-- 👥 Prant Team -->
+      <% if (prant.team && prant.team.length > 0) { %>
+        <div class="row mb-3">
+          <% prant.team.forEach(member => { %>
+            <div class="col-md-3 col-sm-6">
+              <div class="card shadow-sm mb-3 border border-success bg-white">
+                <div class="card-body">
+                  <strong class="card-title"><%= member.name %></strong><br>
+                  <% if (Array.isArray(member.role)) { %>
+                    <small class="text-secondary fst-italic d-block mb-1">
+                      <%= member.role.join(', ') %>
+                    </small>
+                    <% member.role.forEach(role => { %>
+                      <span class="badge bg-<%= getBadgeColor(role) %> me-1"><%= role %></span>
+                    <% }) %>
+                  <% } %>
+                  <hr class="my-2">
+                  <small class="text-muted">📱 <%= member.mobile %></small>
+                </div>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
+
+      <!-- 🏢 Zilas under this Prant -->
+      <div class="ms-3">
+        <% zilas.filter(z => String(z.prant) === String(prant._id)).forEach(zila => { %>
+          <div class="card mb-4 shadow">
+            <div class="card-body">
+              <h6 class="text-primary fw-bold">🏢 Zila: <%= zila.name %></h6>
+
+              <!-- 📥 Export Buttons -->
+              <a href="/export/pdf/zila/<%= zila._id %>" class="btn btn-sm btn-outline-danger mb-2">🧾 Export PDF</a>
+              <a href="/export/csv/zila/<%= zila._id %>" class="btn btn-sm btn-outline-success mb-2">📥 Export CSV</a>
+
+              <!-- 👥 Zila Team -->
+              <% if (zila.team && zila.team.length > 0) { %>
+                <div class="row mb-3">
+                  <% zila.team.forEach(member => { %>
+                    <div class="col-md-3 col-sm-6">
+                      <div class="card shadow-sm mb-2 border border-primary">
+                        <div class="card-body">
+                          <strong class="card-title"><%= member.name %></strong><br>
+                          <% if (Array.isArray(member.role)) { %>
+                            <small class="text-secondary fst-italic d-block mb-1">
+                              <%= member.role.join(', ') %>
+                            </small>
+                            <% member.role.forEach(role => { %>
+                              <span class="badge bg-<%= getBadgeColor(role) %> me-1"><%= role %></span>
+                            <% }) %>
+                          <% } %>
+                          <hr class="my-2">
+                          <small class="text-muted">📱 <%= member.mobile %></small>
+                        </div>
+                      </div>
+                    </div>
+                  <% }) %>
+                </div>
+              <% } %>
+
+              <!-- 🧭 Ksheter List -->
+              <% ksheters.filter(k => String(k.zila) === String(zila._id)).forEach(ksheter => { %>
+                <div class="ms-3 mt-3">
+                  <h6 class="text-success">🏬 Ksheter: <%= ksheter.name %></h6>
+
+                  <!-- 👥 Ksheter Team -->
+                  <% if (ksheter.team && ksheter.team.length > 0) { %>
+                    <div class="row mb-2">
+                      <% ksheter.team.forEach(member => { %>
+                        <div class="col-md-3 col-sm-6">
+                          <div class="card shadow-sm mb-2 border border-info">
+                            <div class="card-body">
+                              <strong class="card-title"><%= member.name %></strong><br>
+                              <% if (Array.isArray(member.role)) { %>
+                                <small class="text-secondary fst-italic d-block mb-1">
+                                  <%= member.role.join(', ') %>
+                                </small>
+                                <% member.role.forEach(role => { %>
+                                  <span class="badge bg-<%= getBadgeColor(role) %> me-1"><%= role %></span>
+                                <% }) %>
+                              <% } %>
+                              <hr class="my-2">
+                              <small class="text-muted">📱 <%= member.mobile %></small>
+                            </div>
+                          </div>
+                        </div>
+                      <% }) %>
+                    </div>
+                  <% } %>
+
+                  <!-- 🏠 Kenders under this Ksheter -->
+                  <% kenders.filter(k => String(k.ksheter) === String(ksheter._id)).forEach(kender => { %>
+                    <div class="card card-body border mt-3 ms-3 shadow-sm bg-light">
+                      <h6 class="text-info">🏠 Kender: <%= kender.name %></h6>
+                      <% if (kender.startTime) { %>
+                        <p class="mb-1"><strong>🕒 Time:</strong> <%= kender.startTime %></p>
+                      <% } %>
+                      <p class="mb-1"><strong>📍 Address:</strong> <%= kender.address || 'N/A' %></p>
+
+                      <!-- 👥 Kender Team -->
+                      <% if (kender.team && kender.team.length > 0) { %>
+                        <div class="row mt-2">
+                          <% kender.team.forEach(member => { %>
+                            <div class="col-md-3 col-sm-6">
+                              <div class="card shadow-sm mb-2 border border-dark bg-white">
+                                <div class="card-body">
+                                  <strong class="card-title"><%= member.name %></strong><br>
+                                  <% if (Array.isArray(member.role)) { %>
+                                    <small class="text-secondary fst-italic d-block mb-1">
+                                      <%= member.role.join(', ') %>
+                                    </small>
+                                    <% member.role.forEach(role => { %>
+                                      <span class="badge bg-<%= getBadgeColor(role) %> me-1"><%= role %></span>
+                                    <% }) %>
+                                  <% } %>
+                                  <hr class="my-2">
+                                  <small class="text-muted">📱 <%= member.mobile %></small>
+                                </div>
+                              </div>
+                            </div>
+                          <% }) %>
+                        </div>
+                      <% } else { %>
+                        <p class="text-muted"><em>No Kender team listed.</em></p>
+                      <% } %>
+                    </div>
+                  <% }) %>
+                </div>
+              <% }) %>
+
+              <!-- 🔗 Explore Zila -->
+              <a href="/explore/zila/<%= zila._id %>" class="btn btn-sm btn-outline-success mt-3">🔍 Explore Zila</a>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+  <% }) %>
+</div>
+
+<%- include('../partials/footer') %>

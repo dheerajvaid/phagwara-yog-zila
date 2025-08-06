@@ -1,0 +1,59 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+<a href="/export/pdf/zila/<%= zila._id %>" class="btn btn-sm btn-outline-danger">🧾 Export PDF</a>
+<a href="/export/csv/zila/<%= zila._id %>" class="btn btn-sm btn-outline-success">📥 Export CSV</a>
+
+<div class="container mt-4">
+  <a href="/explore" class="btn btn-sm btn-secondary mb-3">← Back to Directory</a>
+
+  <h4 class="fw-bold text-primary mb-2">🏢 Zila: <%= zila.name %></h4>
+
+  <!-- 🔍 Search again -->
+  <form class="d-flex mb-4" action="/explore/search" method="GET">
+    <input type="text" name="q" class="form-control me-2" placeholder="Search by name, mobile, address, or role..." required>
+    <button class="btn btn-outline-primary">🔍 Search</button>
+  </form>
+
+  <!-- 👥 Zila Team -->
+  <h5 class="text-success mb-3">👥 Zila Team</h5>
+  <div class="row">
+    <% saadhaks.filter(s => String(s.zila) === String(zila._id) && zilaRoles.some(role => s.roles.includes(role))).forEach(member => { %>
+      <div class="col-md-3">
+        <div class="border p-2 rounded bg-light mb-3">
+          <strong><%= member.name %></strong><br>
+          <small><%= member.roles.join(", ") %></small><br>
+          <small class="text-muted"><%= member.mobile %></small>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+
+  <!-- 🏠 Ksheter List -->
+  <h5 class="text-primary mt-4 mb-3">🏠 Ksheter Under <%= zila.name %></h5>
+
+  <% ksheterList.forEach(ksheter => { %>
+    <div class="card mb-3">
+      <div class="card-body">
+        <h6 class="text-info">🏠 Ksheter: <%= ksheter.name %></h6>
+
+        <!-- 👥 Ksheter Team -->
+        <div class="row">
+          <% saadhaks.filter(s => String(s.ksheter) === String(ksheter._id) && ksheterRoles.some(role => s.roles.includes(role))).forEach(member => { %>
+            <div class="col-md-3">
+              <div class="border p-2 rounded mb-2 bg-light">
+                <strong><%= member.name %></strong><br>
+                <small><%= member.roles.join(", ") %></small><br>
+                <small class="text-muted"><%= member.mobile %></small>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+
+        <!-- 🔗 Explore button -->
+        <a href="/explore/ksheter/<%= ksheter._id %>" class="btn btn-sm btn-outline-success mt-2">🔍 Explore Ksheter</a>
+      </div>
+    </div>
+  <% }) %>
+</div>
+
+<%- include('../partials/footer') %>

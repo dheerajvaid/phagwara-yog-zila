@@ -1,19 +1,20 @@
+const {
+  adminRoles,
+  prantRoles,
+  zilaRoles,
+  ksheterRoles,
+  kenderRoles,
+  kenderTeamRoles,
+  saadhakRoles,
+} = require("../config/roles");
+
 module.exports = function getBadgeColor(role) {
-    const colors = {
-      'Admin': 'danger',
-      'Zila Pradhan': 'success',
-      'Zila Mantri': 'success',
-      'Sangathan Mantri': 'warning',
-      'Cashier': 'secondary',
-      'Ksheter Pradhan': 'info',
-      'Ksheter Mantri': 'info',
-      'Kender Pramukh': 'primary',
-      'Seh Kender Pramukh': 'primary',
-      'Shikshak': 'dark',
-      'Karyakarta': 'secondary',
-      'Saadhak': 'light'
-    };
-  
-    return colors[role] || 'primary';
-  };
-  
+  if (adminRoles.includes(role)) return "danger";
+  if (prantRoles.includes(role)) return "warning";
+  if (zilaRoles.includes(role)) return "success";
+  if (ksheterRoles.includes(role)) return "info";
+  if (kenderRoles.includes(role)) return "primary";
+  if (kenderTeamRoles.includes(role)) return "dark";
+  if (saadhakRoles.includes(role)) return "secondary";
+  return "secondary"; // fallback
+};
