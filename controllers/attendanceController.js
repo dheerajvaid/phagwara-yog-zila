@@ -12,8 +12,9 @@ exports.showMarkAttendanceForm = async (req, res) => {
     const user = req.session.user;
 
     const now = new Date();
-    const istOffset = 5.5 * 60 * 60000; // 5.5 hours in milliseconds
-    const istNow = new Date(now.getTime() + istOffset);
+    const istNow = new Date(
+      now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
+    );
 
     // Set to IST 00:00
     const today = new Date(
@@ -33,16 +34,16 @@ exports.showMarkAttendanceForm = async (req, res) => {
     const zilaRoles = [
       "Zila Pradhan",
       "Zila Mantri",
-      "Sangathan Mantri",
-      "Cashier",
+      "Zila Sangathan Mantri",
+      "Zila Cashier",
     ];
 
     if (!user.roles.includes("Admin")) {
       if (
         user.roles.includes("Zila Pradhan") ||
         user.roles.includes("Zila Mantri") ||
-        user.roles.includes("Sangathan Mantri") ||
-        user.roles.includes("Cashier")
+        user.roles.includes("Zila Sangathan Mantri") ||
+        user.roles.includes("Zila Cashier")
       ) {
         query.zila = user.zila;
       }

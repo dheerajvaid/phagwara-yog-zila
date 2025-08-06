@@ -12,24 +12,43 @@ exports.setEventCount = async (req, res, next) => {
 
     // ✅ Get current IST date and time accurately
     const now = new Date();
-    const istNow = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+    const istNow = new Date(
+      now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
+    );
     const day = istNow.getDate();
     const month = istNow.getMonth() + 1;
 
     // 🔍 Query conditions
     const query = {
-      $or: [
-        { dob: { $ne: null } },
-        { marriageDate: { $ne: null } }
-      ]
+      $or: [{ dob: { $ne: null } }, { marriageDate: { $ne: null } }],
     };
 
-    // 🧠 If not admin, filter by user's zila
+    const { prantRoles } = require("../config/roles");
+
     if (!isAdmin) {
-      query.zila = user.zila;
+      const hasPrantRole = user.roles.some((role) => prantRoles.includes(role));
+
+      if (hasPrantRole && user.prant) {
+        query.$or.push(
+          { prant: user.prant },
+          { prant: { $exists: false } },
+          { prant: null }
+        );
+      } else if (user.zila) {
+        query.$or.push(
+          { zila: user.zila },
+          { zila: { $exists: false } },
+          { zila: null }
+        );
+      } else {
+        // No access level: block all
+        query._id = null;
+      }
     }
 
-    const saadhaks = await Saadhak.find(query).select("dob marriageDate maritalStatus");
+    const saadhaks = await Saadhak.find(query).select(
+      "dob marriageDate maritalStatus"
+    );
 
     let eventCount = 0;
 

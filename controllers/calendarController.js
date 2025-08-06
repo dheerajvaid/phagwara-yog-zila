@@ -10,19 +10,33 @@ exports.viewUpcomingEvents = async (req, res) => {
   }
 
   try {
+    const { prantRoles } = require("../config/roles");
+
     const user = req.session.user;
     let saadhakQuery = {};
 
     if (!user.roles.includes("Admin")) {
-      if (user.zila) {
+      // If user has any Prant role
+      const hasPrantRole = user.roles.some((role) => prantRoles.includes(role));
+
+      if (hasPrantRole && user.prant) {
+        saadhakQuery = {
+          $or: [
+            { prant: user.prant },
+            { prant: { $exists: false } },
+            { prant: null },
+          ],
+        };
+      } else if (user.zila) {
         saadhakQuery = {
           $or: [
             { zila: user.zila },
-            { zila: { $exists: false } }, // Saadhak without zila
-            { zila: null }, // Saadhak with null zila
+            { zila: { $exists: false } },
+            { zila: null },
           ],
         };
       } else {
+        // No access level found
         saadhakQuery = { _id: null };
       }
     }
@@ -33,8 +47,9 @@ exports.viewUpcomingEvents = async (req, res) => {
 
     // Adjust to IST
     const now = new Date();
-    const istOffset = 5.5 * 60 * 60 * 1000; // +5:30 in ms
-    const todayIST = new Date(now.getTime() + istOffset);
+    const todayIST = new Date(
+      now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
+    );
 
     const today = new Date(
       todayIST.getFullYear(),
