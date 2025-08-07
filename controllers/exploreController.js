@@ -173,24 +173,24 @@ exports.showKenderDetail = async (req, res) => {
 
 exports.handleSearchQuery = async (req, res) => {
   try {
-    const query = req.query.q?.trim();
+    const query = req.query.q?.trim() || "";
     if (!query) return res.redirect("/explore");
 
     const regex = new RegExp(query, "i");
 
     // 👤 Only allow specific role types
-    const searchableRoles = [...prantRoles, ...zilaRoles, ...kenderRoles];
+    const searchableRoles = [...prantRoles, ...zilaRoles, ...ksheterRoles, ...kenderRoles];
 
     // 🔍 Search saadhaks
     const matchedSaadhaks = await Saadhak.find({
-      roles: { $in: searchableRoles },
+      role: { $in: searchableRoles },
       $or: [
         { name: regex },
         { mobile: regex },
         { gender: regex },
         { address: regex },
         { maritalStatus: regex },
-        { roles: regex }, // ✅ match strings in array
+        { role: regex }, // ✅ match strings in array
       ],
     }).lean();
 
@@ -307,7 +307,7 @@ exports.handleSearchQuery = async (req, res) => {
       })
     );
 
-    console.log(enrichedKenders);
+
     
     // 🖥️ Final render
     res.render("public/searchResults", {

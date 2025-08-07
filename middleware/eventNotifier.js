@@ -20,7 +20,11 @@ exports.setEventCount = async (req, res, next) => {
 
     // 🔍 Query conditions
     const query = {
-      $or: [{ dob: { $ne: null } }, { marriageDate: { $ne: null } }],
+      $and: [
+        {
+          $or: [{ dob: { $ne: null } }, { marriageDate: { $ne: null } }],
+        },
+      ],
     };
 
     const { prantRoles } = require("../config/roles");
@@ -29,20 +33,11 @@ exports.setEventCount = async (req, res, next) => {
       const hasPrantRole = user.roles.some((role) => prantRoles.includes(role));
 
       if (hasPrantRole && user.prant) {
-        query.$or.push(
-          { prant: user.prant },
-          { prant: { $exists: false } },
-          { prant: null }
-        );
+        query.$and.push({ prant: user.prant });
       } else if (user.zila) {
-        query.$or.push(
-          { zila: user.zila },
-          { zila: { $exists: false } },
-          { zila: null }
-        );
+        query.$and.push({ zila: user.zila });
       } else {
-        // No access level: block all
-        query._id = null;
+        query.$and.push({ _id: null }); // blocks everything
       }
     }
 
@@ -72,6 +67,8 @@ exports.setEventCount = async (req, res, next) => {
         eventCount++;
       }
     }
+
+    console.log(eventCount);
 
     res.locals.eventCount = eventCount;
     next();
