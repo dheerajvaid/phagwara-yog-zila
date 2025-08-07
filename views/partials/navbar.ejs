@@ -131,6 +131,7 @@ const isSaadhakOnly = user?.roles.some(role => saadhakRoles.includes(role));
             <%- include('kender') %>
             <%- include('saadhak') %>
             <%- include('attendance') %>
+            <%- include('question') %>
             <%- include('yog-samagri') %>
             <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
             <li class="nav-item"><a class="nav-link" href="/roles/manage">🎖️ Role Management</a></li>
@@ -140,6 +141,7 @@ const isSaadhakOnly = user?.roles.some(role => saadhakRoles.includes(role));
               <%- include('kender') %>
               <%- include('saadhak') %>
               <%- include('attendance') %>
+              <%- include('question') %>
               <%- include('yog-samagri') %>
               <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
             <% } else if (isKsheterLevel) { %>

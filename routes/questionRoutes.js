@@ -3,13 +3,14 @@ const router = express.Router();
 const questionController = require("../controllers/questionController");
 const { requireLogin } = require("../middleware/authMiddleware");
 const { canManage } = require("../middleware/roleMiddleware");
-const { adminOnly } = require("../config/roles");
+const { adminRoles, prantRoles, zilaRoles } = require("../config/roles");
+const questionRoles = [...adminRoles, ...prantRoles, ...zilaRoles];
 
 // Show add question form
 router.get(
   "/add",
   requireLogin,
-  canManage(adminOnly),
+  canManage(questionRoles),
   questionController.getAddQuestionForm
 );
 
@@ -17,32 +18,32 @@ router.get(
 router.post(
   "/add",
   requireLogin,
-  canManage(adminOnly),
+  canManage(questionRoles),
   questionController.postAddQuestion
 );
 
 router.get(
   "/list",
   requireLogin,
-  canManage(adminOnly),
+  canManage(questionRoles),
   questionController.getQuestionList
 );
 router.get(
   "/edit/:id",
   requireLogin,
-  canManage(adminOnly),
+  canManage(questionRoles),
   questionController.getEditForm
 );
 router.post(
   "/edit/:id",
   requireLogin,
-  canManage(adminOnly),
+  canManage(questionRoles),
   questionController.postEditForm
 );
 router.post(
   "/delete/:id",
   requireLogin,
-  canManage(adminOnly),
+  canManage(questionRoles),
   questionController.deleteQuestion
 );
 
