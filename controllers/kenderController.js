@@ -11,6 +11,9 @@ const Attendance = require("../models/Attendance");
 const { formatName, validateName } = require("../utils/formatters");
 const drawCard = require("../helpers/drawCard");
 const messages = require("../data/messages.json");
+const roleConfig = require("../config/roles");
+
+const { adminRoles, prantRoles, zilaRoles, ksheterRoles } = roleConfig;
 
 function getRandomMessage(attendanceCount) {
   let key = "zero";
@@ -25,62 +28,44 @@ function getRandomMessage(attendanceCount) {
   return msgList[randomIndex];
 }
 
-// ✅ Show Add Form
 exports.showAddForm = async (req, res) => {
   try {
     const user = req.session.user;
 
+    // Fetch dropdown values based on user level
     let zilas = [];
     let ksheters = [];
 
-    if (user.roles.includes("Admin")) {
-      // Admin can see all
-      zilas = await Zila.find().sort({ name: 1 });
-      ksheters = await Ksheter.find().sort({ name: 1 }).populate("zila");
-    } else {
-      const saadhak = await Saadhak.findById(user.id)
-        .populate("zila")
-        .populate("ksheter");
+    const zilaId = user.zila?.$oid || user.zila;
+    const ksheterId = user.ksheter?.$oid || user.ksheter;
 
-      if (!saadhak) {
-        return res.status(400).send("❌ Saadhak data not found.");
-      }
-
-      if (
-        user.roles.includes("Zila Pradhan") ||
-        user.roles.includes("Zila Mantri")
-      ) {
-        // Zila team - see their Zila, all Ksheter under Zila
-        if (saadhak.zila) {
-          zilas = [saadhak.zila];
-          ksheters = await Ksheter.find({ zila: saadhak.zila._id }).populate(
-            "zila"
-          );
-        }
-      } else if (
-        user.roles.includes("Ksheter Pradhan") ||
-        user.roles.includes("Ksheter Mantri")
-      ) {
-        // Ksheter team - see only their Ksheter
-        if (saadhak.zila && saadhak.ksheter) {
-          zilas = [saadhak.zila];
-          ksheters = [saadhak.ksheter];
-        }
-      }
+    if (user.roles.some((role) => adminRoles.includes(role))) {
+      zilas = await Zila.find();
+      ksheters = await Ksheter.find();
+    } else if (user.roles.some((role) => prantRoles.includes(role))) {
+      zilas = await Zila.find({ prant: user.prant });
+      ksheters = await Ksheter.find({ prant: user.prant });
+    } else if (user.roles.some((role) => zilaRoles.includes(role))) {
+      zilas = await Zila.find({ _id: zilaId });
+      ksheters = await Ksheter.find({ zila: zilaId });
+    } else if (user.roles.some((role) => ksheterRoles.includes(role))) {
+      zilas = await Zila.find({ _id: zilaId });
+      ksheters = await Ksheter.find({ _id: ksheterId });
     }
 
     res.render("kender/add", {
-      zilas: await Zila.find().sort({ name: 1 }),
-      ksheters: await Ksheter.find().sort({ name: 1 }),
-      formData: {}, // for sticky form
+      zilas,
+      ksheters,
+      formData: {},
       error: null,
-      user: req.session.user,
+      user,
     });
   } catch (err) {
     console.error("Error showing Kender Add Form:", err);
     res.status(500).send("Server Error");
   }
 };
+
 // ✅ Create New Kender
 // ✅ Create New Kender
 exports.createKender = async (req, res) => {
@@ -247,37 +232,24 @@ exports.showEditForm = async (req, res) => {
     let zilas = [];
     let ksheters = [];
 
-    if (user.roles.includes("Admin")) {
-      // Admin: All Zila and Ksheter
-      zilas = await Zila.find().sort({ name: 1 });
-      ksheters = await Ksheter.find().sort({ name: 1 });
-    } else {
-      // Non-admin: fetch user's assigned zila/ksheter
-      const saadhak = await Saadhak.findById(user.id).populate("zila ksheter");
+    const zilaId = user.zila?.$oid || user.zila;
+    const ksheterId = user.ksheter?.$oid || user.ksheter;
 
-      if (!saadhak) {
-        return res.status(400).send("❌ Saadhak not found.");
-      }
-
-      if (
-        user.roles.includes("Zila Pradhan") ||
-        user.roles.includes("Zila Mantri")
-      ) {
-        if (saadhak.zila) {
-          zilas = [saadhak.zila];
-          ksheters = await Ksheter.find({ zila: saadhak.zila._id });
-        }
-      } else if (
-        user.roles.includes("Ksheter Pradhan") ||
-        user.roles.includes("Ksheter Mantri")
-      ) {
-        if (saadhak.zila && saadhak.ksheter) {
-          zilas = [saadhak.zila];
-          ksheters = [saadhak.ksheter];
-        }
-      }
+    if (user.roles.some((role) => adminRoles.includes(role))) {
+      zilas = await Zila.find();
+      ksheters = await Ksheter.find();
+    } else if (user.roles.some((role) => prantRoles.includes(role))) {
+      zilas = await Zila.find({ prant: user.prant });
+      ksheters = await Ksheter.find({ prant: user.prant });
+    } else if (user.roles.some((role) => zilaRoles.includes(role))) {
+      zilas = await Zila.find({ _id: zilaId });
+      ksheters = await Ksheter.find({ zila: zilaId });
+    } else if (user.roles.some((role) => ksheterRoles.includes(role))) {
+      zilas = await Zila.find({ _id: zilaId });
+      ksheters = await Ksheter.find({ _id: ksheterId });
     }
-    console.log(zilas);
+
+    // console.log(zilas);
     // ✅ Add `user` to the render context
     res.render("kender/edit", {
       kender,

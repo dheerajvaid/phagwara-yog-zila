@@ -68,7 +68,7 @@ exports.setEventCount = async (req, res, next) => {
       }
     }
 
-    console.log(eventCount);
+    // console.log(eventCount);
 
     res.locals.eventCount = eventCount;
     next();
