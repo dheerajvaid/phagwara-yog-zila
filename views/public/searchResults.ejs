@@ -2,168 +2,193 @@
 <%- include('../partials/navbar') %>
 
 <style>
+  /* 🧘‍♂️ Base Styles */
   body {
-    font-family: 'Segoe UI', 'Poppins', sans-serif;
-    background: #f0f4ff;
-    color: #212529;
+    font-family: 'Poppins', 'Segoe UI', sans-serif;
+    background: #f3f7ff;
+    color: #1a1a1a;
+    font-size: 16px;
   }
 
-  .card {
-    border-radius: 1rem !important;
-    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
-  }
-
-  .card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
-  }
-
-  .card.zila {
-    background: linear-gradient(to bottom right, #fff0f0, #ffe3e3);
-  }
-
-  .card.ksheter {
-    background: linear-gradient(to bottom right, #f0fff5, #e0ffe6);
-  }
-
-  .card.kender {
-    background: linear-gradient(to bottom right, #e8f1ff, #d0e4ff);
-  }
-
-  .bg-purple {
-    background-color: #6f42c1 !important;
-  }
-
-  .bg-pink {
-    background-color: #e83e8c !important;
-  }
-
-  .card-header {
-    padding: 0.75rem 1rem;
-    border-bottom: none;
-    border-top-left-radius: 1rem;
-    border-top-right-radius: 1rem;
-  }
-
-  .card-zila-header {
-    background: linear-gradient(135deg, #ff6a6a, #ff9999);
-  }
-
-  .card-ksheter-header {
-    background: linear-gradient(135deg, #4cd964, #76e7a2);
-  }
-
-  .card-kender-header {
-    background: linear-gradient(135deg, #4a90e2, #8ab6f9);
-  }
-
-  h4, h5, h6 {
+  h4, h5, h6, .card-title {
     font-weight: 700;
     color: #111 !important;
   }
 
-  .btn-primary {
-    background: linear-gradient(45deg, #ff416c, #ff4b2b);
-    border: none;
-    font-weight: bold;
-    color: white;
-    box-shadow: 0 4px 10px rgba(255,65,108,0.3);
-  }
-
-  .btn-primary:hover {
-    background: linear-gradient(45deg, #e60039, #ff5722);
-  }
-
-  .form-control {
-    border-radius: 0.75rem;
-    border: 1px solid #ff4b2b;
-    color: #000;
-    font-weight: 500;
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
-  }
-
-  .form-control::placeholder {
-    color: #333;
-    opacity: 1;
-    font-weight: 500;
-  }
-
-  .badge {
-    font-family: 'Poppins', sans-serif;
-    font-weight: 600;
-    letter-spacing: 0.4px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-  }
-
-  .badge.bg-danger { background-color: #dc3545 !important; }
-  .badge.bg-primary { background-color: #007bff !important; }
-  .badge.bg-warning { background-color: #ffc107 !important; color: #111 !important; }
-  .badge.bg-success { background-color: #28a745 !important; }
-  .badge.bg-info { background-color: #17a2b8 !important; }
-  .badge.bg-secondary { background-color: #6c757d !important; }
-
-  .card-title {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #111;
-  }
-
-  .card-body p,
-  .card-body small {
-    font-size: 0.9rem;
-    color: #222 !important;
-    font-weight: 500;
-  }
-
-  .alert {
-    border-radius: 0.75rem;
-    background: linear-gradient(to right, #fff0b3, #ffe066);
-    border: none;
-    color: #5c3700;
-    font-weight: 600;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  }
-
   ul li {
     line-height: 1.7;
+    font-weight: 500;
+    color: #222;
+  }
+
+  /* 🧾 Cards */
+  .card {
+    border-radius: 1rem !important;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease;
+    background: #fff;
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+  }
+
+  /* 🔷 Thematic Card Backgrounds */
+  .card.prant {
+   background: linear-gradient(145deg, #f9e9ff, #f0d6ff); /* light lavender-pink tones */
+  }
+
+  .card.zila {
+    background: linear-gradient(145deg, #fff0f0, #ffe6e6);
+  }
+
+  .card.ksheter {
+    background: linear-gradient(145deg, #f0fff0, #e4ffe8);
+  }
+
+  .card.kender {
+    background: linear-gradient(145deg, #e9f4ff, #d8eaff);
+  }
+
+  /* 📌 Card Headers */
+  .card-header {
+    padding: 0.75rem 1rem;
+    border: none;
+    font-weight: 600;
+    font-size: 1rem;
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
+    color: #fff;
+  }
+
+  .card-prant-header {
+    background: linear-gradient(135deg, #b04cff, #d29dff); /* royal violet to soft lavender */
+  }
+
+  .card-zila-header {
+    background: linear-gradient(135deg, #ff5e5e, #ff8989);
+  }
+
+  .card-ksheter-header {
+    background: linear-gradient(135deg, #38b048, #6ee58e);
+  }
+
+  .card-kender-header {
+    background: linear-gradient(135deg, #4a90e2, #85b8ff);
+  }
+
+  .card-body p, .card-body small {
+    font-size: 0.95rem;
+    color: #222;
+    font-weight: 500;
+  }
+
+  .card-info-block {
+    background: #f9f9f9;
+    border-top: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+    padding: 0.75rem 1rem;
+  }
+
+  .card-info-block p {
+    margin-bottom: 0.25rem;
+    font-weight: 600;
     color: #111;
-    font-weight: 500;
-  }
-
-  .text-primary {
-    color: #003399 !important;
-  }
-
-  .text-success {
-    color: #007e33 !important;
-  }
-
-  .text-muted {
-    color: #222 !important;
-    font-weight: 500;
   }
 
   .section-title {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     font-weight: 700;
     margin-top: 2rem;
     margin-bottom: 1rem;
     color: #333;
   }
 
-  .card-info-block {
-    background: #ffffff;
-    border-top: 1px solid #ddd;
-    border-bottom: 1px solid #ddd;
-    padding: 0.75rem 1rem;
+  /* 🎯 Buttons */
+  .btn-primary {
+    background: linear-gradient(45deg, #ff416c, #ff4b2b);
+    border: none;
+    font-weight: bold;
+    color: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 12px rgba(255, 65, 108, 0.3);
   }
 
-  .card-info-block p {
-    margin-bottom: 0.25rem;
-    color: #111;
-    font-weight: 600;
+  .btn-primary:hover {
+    background: linear-gradient(45deg, #e60039, #ff5722);
   }
+
+  /* 📝 Forms */
+  .form-control {
+    border-radius: 0.75rem;
+    border: 1px solid #ff4b2b;
+    padding: 0.65rem 0.85rem;
+    color: #000;
+    font-weight: 500;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+  }
+
+  .form-control::placeholder {
+    color: #444;
+    opacity: 1;
+    font-weight: 500;
+  }
+
+  /* 🔖 Badges */
+  .badge {
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 0.4em 0.65em;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+
+  .badge.bg-danger     { background-color: #dc3545 !important; }
+  .badge.bg-primary    { background-color: #007bff !important; }
+  .badge.bg-warning    { background-color: #ffc107 !important; color: #222 !important; }
+  .badge.bg-success    { background-color: #28a745 !important; }
+  .badge.bg-info       { background-color: #17a2b8 !important; }
+  .badge.bg-secondary  { background-color: #6c757d !important; }
+
+  /* 🟣 Extended Colors for Role Badges */
+  .bg-purple     { background-color: #6f42c1 !important; }
+  .bg-pink       { background-color: #e83e8c !important; }
+  .bg-teal       { background-color: #20c997 !important; }
+  .bg-cyan       { background-color: #17a2b8 !important; }
+  .bg-blue       { background-color: #004085 !important; }
+  .bg-orange     { background-color: #fd7e14 !important; }
+  .bg-amber      { background-color: #ffca28 !important; }
+  .bg-gold       { background-color: #bfa100 !important; }
+  .bg-lime       { background-color: #a4c400 !important; }
+  .bg-forest     { background-color: #2e7d32 !important; } /* deeper green */
+  .bg-maroon     { background-color: #800000 !important; }
+  .bg-brown      { background-color: #795548 !important; }
+  .bg-gold-dark  { background-color: #b8860b !important; }
+  .bg-lime-dark  { background-color: #7cb518 !important; }
+  .bg-indigo     { background-color: #6610f2 !important; }
+  .bg-olive      { background-color: #556b2f !important; }
+
+  /* 👁️ Accessibility - Text Contrast Helpers */
+  .text-primary { color: #003399 !important; }
+  .text-success { color: #007e33 !important; }
+  .text-muted   { color: #333 !important; font-weight: 500; }
+
+  /* ⚠️ Alert */
+  .alert {
+    border-radius: 0.75rem;
+    background: linear-gradient(to right, #fff8d9, #ffe066);
+    border: none;
+    color: #5c3700;
+    font-weight: 600;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+
+  /* 🧲 Badge Border (optional) */
+  .badge.border {
+    border: 1px solid #ccc;
+  }
+
 </style>
 
 <section class="container mt-4 mb-5">
@@ -172,23 +197,80 @@
     <button class="btn btn-primary" type="submit">Search</button>
   </form>
 
-  <% if ((!zilas || zilas.length === 0) && (!ksheters || ksheters.length === 0) && (!kenders || kenders.length === 0)) { %>
+  <% if ((!prants || prants.length === 0) && (!zilas || zilas.length === 0) && (!ksheters || ksheters.length === 0) && (!kenders || kenders.length === 0)) { %>
     <div class="alert alert-warning shadow-sm">
       No results found for "<%= query %>"
     </div>
   <% } %>
 
-  <% function getBadgeColor(role) {
-    role = role.trim().toLowerCase();
-    if (role.includes("pradhan")) return "bg-danger text-white";
-    if (role.includes("mantri")) return "bg-primary text-white";
-    if (role.includes("cashier")) return "bg-warning text-dark";
-    if (role.includes("shikshak")) return "bg-success text-white";
-    if (role.includes("karyakarta")) return "bg-info text-white";
-    if (role.includes("seh kender pramukh")) return "bg-pink text-white";
-    if (role.includes("kender pramukh")) return "bg-purple text-white";
-    return "bg-secondary text-white";
-  } %>
+ <%
+function getBadgeColor(role) {
+  role = role.trim();
+
+  switch (role) {
+    // 🟣 PRANT ROLES
+    case "Prant Sanrakshak":
+      return "bg-purple text-white";
+    case "Prant Pradhan":
+      return "bg-danger text-white";
+    case "Prant Upp Pradhan":
+      return "bg-dark text-warning";
+    case "Prant Mantri":
+      return "bg-indigo text-white";
+    case "Prant Sangathan Mantri":
+      return "bg-pink text-white";
+    case "Prant Cashier":
+      return "bg-teal text-white";
+
+    // 🔵 ZILA ROLES
+    case "Zila Pradhan":
+      return "bg-primary text-white";
+    case "Zila Upp Pradhan":
+      return "bg-secondary text-white";
+    case "Zila Mantri":
+      return "bg-info text-white"; // 🛠️ was text-dark, fixed for visibility
+    case "Zila Sangathan Mantri":
+      return "bg-cyan text-white";
+    case "Zila Sanrakshak":
+      return "bg-blue text-white";
+    case "Zila Cashier":
+      return "bg-success text-white";
+
+   // 🟡 KSHETER ROLES
+case "Ksheter Pradhan":
+  return "bg-warning text-dark"; // yellow
+case "Ksheter Upp Pradhan":
+  return "bg-orange text-white"; // orange
+case "Ksheter Mantri":
+  return "bg-brown text-white"; // 🆕 distinct brown
+case "Ksheter Sangathan Mantri":
+  return "bg-gold-dark text-white"; // 🆕 dark gold
+case "Ksheter Cashier":
+  return "bg-lime-dark text-white"; // 🆕 deeper lime
+
+
+    // 🟢 KENDER ROLES
+    case "Kender Pramukh":
+      return "bg-success text-white";
+    case "Seh Kender Pramukh":
+      return "bg-olive text-white";
+
+    // ⚫ KENDER TEAM
+    case "Shikshak":
+      return "bg-dark text-white";
+    case "Karyakarta":
+      return "bg-maroon text-white";
+
+    // ⚪ SAADHAK
+    case "Saadhak":
+      return "bg-white text-dark border"; // 🛠️ ensure it shows on card
+
+    // 🔘 DEFAULT
+    default:
+      return "bg-muted text-white";
+  }
+}
+%>
 
   <% function getRoleBadge(roles = []) {
     return roles.map(role => `
@@ -248,6 +330,7 @@
     `;
   } %>
 
+  <%- renderSection("🏙️", "Prants", prants, "prant") %>
   <%- renderSection("🏙️", "Zilas", zilas, "zila") %>
   <%- renderSection("🏞️", "Ksheters", ksheters, "ksheter") %>
   <%- renderSection("🧘‍♂️", "Kenders", kenders, "kender") %>
