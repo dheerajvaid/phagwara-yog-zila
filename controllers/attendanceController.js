@@ -1,3 +1,4 @@
+const Prant = require("../models/Prant");
 const Saadhak = require("../models/Saadhak");
 const Zila = require("../models/Zila");
 const Ksheter = require("../models/Ksheter");
@@ -731,10 +732,10 @@ exports.viewKenderWiseAttendance = async (req, res) => {
       }
     }
 
-    console.log("Prant:" + prantQuery);
-    console.log("Zila:" + zilaQuery);
-    console.log("Ksheter:" + ksheterQuery);
-    console.log("Kender:" + kenderQuery);
+    // console.log("Prant:" + prantQuery);
+    // console.log("Zila:" + zilaQuery);
+    // console.log("Ksheter:" + ksheterQuery);
+    // console.log("Kender:" + kenderQuery);
     // 🟩 Determine filter based on role and query
     const kenderFilter = {};
 
@@ -1122,16 +1123,23 @@ const normalizeScopeValue = (value) => {
 
 exports.generateMissingReport = async (req, res) => {
   const { from, to } = req.body;
-
+  const user = req.session.user;
+  const prantValue = normalizeScopeValue(req.body.zila);
   const zilaValue = normalizeScopeValue(req.body.zila);
   const ksheterValue = normalizeScopeValue(req.body.ksheter);
   const kender = normalizeScopeValue(req.body.kender);
 
   let query = {};
 
+  if (prantValue.trim() !== "") query.prant = prantValue;
   if (zilaValue.trim() !== "") query.zila = zilaValue;
   if (ksheterValue.trim() !== "") query.ksheter = ksheterValue;
   if (kender.trim() !== "") query.kender = kender;
+  
+  if(user.kender) query.kender = user.kender;
+  if(user.ksheter) query.ksheter = user.ksheter;
+  if(user.zila) query.zila = user.zila;
+  if(user.prant) query.prant = user.prant;
 
   const saadhaks = await Saadhak.find(query).sort({ name: 1 });
   const saadhakIds = saadhaks.map((s) => s._id);

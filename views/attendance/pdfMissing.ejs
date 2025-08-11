@@ -1,181 +1,208 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Missing Attendance Report</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
+    /* --- Base --- */
+    * { box-sizing: border-box; }
     body {
       font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
-      font-size: 14px;
-      color: #2c3e50;
-      margin: 20px;
-      background-color: #fff;
+      font-size: 20px; /* large for readability */
+      font-weight: 600;
+      color: #000;
+      margin: 10px;
+      background: #fff;
     }
 
-    .header-logo {
-      text-align: center;
-      margin-bottom: 15px;
-    }
-
-    .header-logo img {
-      max-height: 60px;
-    }
+    .header-logo { text-align: center; margin-bottom: 8px; }
+    .header-logo img { max-height: 60px; }
 
     h2 {
       text-align: center;
-      font-size: 22px;
-      font-weight: 700;
-      margin-bottom: 15px;
-      color: #b22222;
+      font-size: 28px;
+      font-weight: 800;
+      margin: 6px 0 12px;
+      color: #000;
+      border-bottom: 3px solid #000;
+      padding-bottom: 6px;
     }
 
     .summary-table {
-  width: 100%;
-  margin-bottom: 20px;
-  border-collapse: collapse;
-  font-size: 20px;
-  font-weight: bold;
-}
-
-.summary-table td {
-  padding: 6px 10px;
-  vertical-align: top;
-}
-
-
-    table {
-      width: auto;
+      width: 100%;
+      margin-bottom: 12px;
       border-collapse: collapse;
-      margin: 20px auto;
-      font-size: 20px;
-      table-layout: fixed;
-    }
-
-    th, td {
-      padding: 8px 6px;
-      border: 1px solid #ccc;
-      text-align: center;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    th {
-      background-color: #dc3545;
-      color: #fff;
+      font-size: 18px;
       font-weight: 700;
+      color: #000;
     }
+    .summary-table td { padding: 6px 8px; vertical-align: top; }
 
-    tr:nth-child(even) {
-      background-color: #f8f8f8;
+    /* Data table style (applies to each page-table) */
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0 auto 6px;
+      font-size: 24px;
+      font-weight: 700;
+      color: #000;
+      table-layout: auto;
     }
+    table.data-table th,
+    table.data-table td {
+      padding: 8px 6px;
+      border: 2px solid #000;
+      text-align: center;
+      word-break: break-word;
+      vertical-align: middle;
+    }
+    table.data-table th {
+      background-color: #ddd;
+      font-weight: 800;
+    }
+    table.data-table tr:nth-child(even) { background: #f9f9f9; }
 
-    td.never {
-      background-color: #fff4e5;
-      color: #856404;
-      font-weight: 600;
-    }
+    /* Minimum column widths */
+    table.data-table th:nth-child(1), table.data-table td:nth-child(1) { min-width: 35px; }
+    table.data-table th:nth-child(2), table.data-table td:nth-child(2) { min-width: 180px; }
+    table.data-table th:nth-child(3), table.data-table td:nth-child(3) { min-width: 140px; }
+    table.data-table th:nth-child(4), table.data-table td:nth-child(4) { min-width: 200px; }
+    table.data-table th:nth-child(5), table.data-table td:nth-child(5) { min-width: 80px; }
 
-    td.attended {
-      background-color: #e6f4ea;
-      color: #155724;
-      font-weight: 600;
-    }
+    td.never { background: #ffebcc; font-weight:800; }
+    td.attended { background: #d4f4d7; font-weight:800; }
 
     .footer {
-      margin-top: 25px;
+      margin-top: 8px;
       text-align: right;
-      font-size: 13px;
-      color: #555;
+      font-size: 16px;
+      font-weight: 700;
+      color: #000;
+    }
+
+    /* Page break helper for manual table paging */
+    .page-break {
+      display: block;
+      page-break-after: always;
+      break-after: page;
+      height: 0;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Print rules */
+    @page { size: A4; margin: 10mm; }
+    @media print {
+      body { margin: 0; }
+      .summary-table { font-size: 20px; }
+      table.data-table { font-size: 24px; }
+      th, td { padding: 8px; }
+
+      /* Make sure headers are treated as table header groups */
+      thead { display: table-header-group; }
+      tfoot { display: table-footer-group; }
+      tbody { display: table-row-group; }
+
+      /* Prevent row splitting inside a single row */
+      tr, td, th {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+      /* Ensure backgrounds print */
+      * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+
+    /* small screen adjustments if user views in browser */
+    @media (max-width: 600px) {
+      body { font-size: 16px; }
+      table.data-table { font-size: 16px; }
     }
   </style>
 </head>
-
 <body>
 
   <div class="header-logo">
-    <img src="<%= logoBase64 %>/images/logo.jpg" alt="Bharatiya Yog Sansthan Logo">
+    <!-- if your logo variable is a base64 string provide it directly; adjust as needed -->
+    <img src="<%= logoBase64 %>/images/logo.jpg" alt="Bharatiya Yog Sansthan Logo" />
   </div>
 
   <h2>Non-Attendance Report</h2>
 
-  <!-- Summary Section in 2x3 Grid -->
- <table class="summary-table">
-  <tr>
-    <td><strong>From:</strong> <%= new Date(from).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) %></td>
-    <td><strong>Zila Name:</strong> <%= zilaName?.trim() || 'All' %></td>
-  </tr>
-  <tr>
-    <td><strong>To:</strong> <%= new Date(to).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) %></td>
-    <td><strong>Ksheter Name:</strong> <%= ksheterName?.trim() || 'All' %></td>
-  </tr>
-  <tr>
-    <td><strong>Total Count:</strong> <%= total %></td>
-    <td><strong>Kender Name:</strong> <%= kenderName?.trim() || 'All' %></td>
-  </tr>
-</table>
-
-  <table>
-    <thead>
-  <tr>
-    <th>#</th>
-    <th>Name</th>
-    <th>Mobile</th>
-    <th>Kender</th>
-    <th>Last Attended</th>
-    <th>Days</th>
-  </tr>
-</thead>
-
-    <% function getShortName(kenderName) {
-  const words = (kenderName || '').trim().split(/\s+/);
-  if (words.length === 1) return kenderName || '';
-  const lastWord = words[words.length - 1];
-  const initials = words.slice(0, -1).map(word => word[0].toUpperCase()).join('');
-  return initials + ' ' + lastWord;
-} %>
-
-<tbody>
-  <% missing.forEach((s, i) => { %>
+  <!-- Summary only once at top -->
+  <table class="summary-table">
     <tr>
-      <td><%= i + 1 %></td>
-      <td><%= s.name %></td>
-      <td><%= s.mobile %></td>
-      <td><%= getShortName(s.kenderName) %></td>
-      <td class="<%= s.lastAttended ? 'attended' : 'never' %>">
-        <% if (s.lastAttended) {
-          const d = new Date(s.lastAttended).toLocaleDateString('en-IN', {
-            day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata'
-          });
-          const wd = new Date(s.lastAttended).toLocaleDateString('en-IN', {
-            weekday: 'short', timeZone: 'Asia/Kolkata'
-          });
-        %>
-          <%= d %> (<%= wd %>)
-        <% } else { %>
-          Never Attended
-        <% } %>
+      <td><strong>From:</strong>
+        <%= new Date(from).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) %>
       </td>
-      <td>
-        <% if (s.lastAttended) { %>
-          <%= Math.floor((Date.now() - new Date(s.lastAttended).getTime()) / (1000 * 60 * 60 * 24)) %>
-        <% } else { %>
-          — 
-        <% } %>
-      </td>
+      <td><strong>Zila Name:</strong> <%= zilaName?.trim() || 'All' %></td>
     </tr>
-  <% }) %>
-</tbody>
-
+    <tr>
+      <td><strong>To:</strong>
+        <%= new Date(to).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) %>
+      </td>
+      <td><strong>Ksheter Name:</strong> <%= ksheterName?.trim() || 'All' %></td>
+    </tr>
+    <tr>
+      <td><strong>Total Count:</strong> <%= total %></td>
+      <td></td>
+    </tr>
   </table>
+
+  <% /* --- Chunking server-side in EJS: tune rowsPerPage as needed --- */ %>
+  <% const rowsPerPage = 30; /* try 20-24 for your font/margins; increase/decrease as needed */ %>
+  <% const groups = []; for (let idx = 0; idx < missing.length; idx += rowsPerPage) { groups.push(missing.slice(idx, idx + rowsPerPage)); } %>
+
+  <% groups.forEach((group, pageIndex) => { %>
+    <table class="data-table" role="table" aria-label="Non-Attendance Data">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th>Mobile</th>
+          <th>Last Attended</th>
+          <th>Days</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% group.forEach((s, i) => { %>
+          <tr>
+            <% /* absolute index across all pages for correct numbering */ %>
+            <td><%= pageIndex * rowsPerPage + i + 1 %></td>
+            <td><%= s.name %></td>
+            <td><%= s.mobile %></td>
+            <td class="<%= s.lastAttended ? 'attended' : 'never' %>">
+              <% if (s.lastAttended) {
+                   const d = new Date(s.lastAttended).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' });
+                   const wd = new Date(s.lastAttended).toLocaleDateString('en-IN', { weekday: 'short', timeZone: 'Asia/Kolkata' });
+              %>
+                <%= d %> (<%= wd %>)
+              <% } else { %>
+                Never Attended
+              <% } %>
+            </td>
+            <td>
+              <% if (s.lastAttended) { %>
+                <%= Math.floor((Date.now() - new Date(s.lastAttended).getTime()) / (1000 * 60 * 60 * 24)) %>
+              <% } else { %>
+                —
+              <% } %>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+
+    <% /* page break between tables — last table should NOT force an extra blank page */ %>
+    <% if (pageIndex < groups.length - 1) { %>
+      <div class="page-break" aria-hidden="true"></div>
+    <% } %>
+  <% }) %>
 
   <div class="footer">
     Generated on:
-    <%= new Date().toLocaleDateString('en-IN', {
-      day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata'
-    }) %>
+    <%= new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }) %>
   </div>
 
 </body>

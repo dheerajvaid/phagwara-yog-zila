@@ -21,11 +21,7 @@
 
       <%- include('../partials/scope-dropdowns') %>
 
-      <!-- Hidden inputs to ensure dropdown values submit -->
-      <input type="hidden" name="zila">
-      <input type="hidden" name="ksheter">
-      <input type="hidden" name="kender">
-
+      
       <div class="col-12 text-end mt-3">
         <button type="submit" class="btn btn-success px-4 fw-bold">
           📊 Get Report
@@ -36,16 +32,5 @@
 </div>
 
 <script src="/js/scope-dropdowns.js"></script>
-
-<script>
-  // Ensure dropdown selections populate hidden inputs before submit
-  const missingForm = document.getElementById('missingReportForm');
-
-  missingForm.addEventListener('submit', function () {
-    document.querySelector('input[name="zila"]').value = document.getElementById('zilaDropdown').value || '';
-    document.querySelector('input[name="ksheter"]').value = document.getElementById('ksheterDropdown').value || '';
-    document.querySelector('input[name="kender"]').value = document.getElementById('kenderDropdown').value || '';
-  });
-</script>
 
 <%- include('../partials/footer') %>

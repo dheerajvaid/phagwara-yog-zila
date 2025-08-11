@@ -82,23 +82,22 @@
             <% attendanceData.forEach((s) => { %>
               <tr>
                 <td class="fw-semibold text-start"><%= s.name %></td>
-                <td><%= s.ksheter %></td>
+                <td><%= getShortName(s.ksheter) %></td>
                 <td><%= getShortName(s.kender) %></td>
                 <td class="fw-bold text-danger" style="white-space: nowrap;">
-                   <%= s.presentCount %> / <%= s.totalOperationalDays %> (<%= ((s.presentCount / s.totalOperationalDays) * 100).toFixed(2) %>%)
+                  <%= s.presentCount %> / <%= s.totalOperationalDays %> (<%= ((s.presentCount / s.totalOperationalDays) * 100).toFixed(2) %>%)
                 </td>
               </tr>
             <% }) %>
           </tbody>
-
         </table>
       </div>
     <% } else { %>
       <p class="text-muted text-center mt-4">No data found for selected month.</p>
     <% } %>
   <% } %>
-  
-   <%
+
+  <%
     function getShortName(kenderName) {
       const words = kenderName.trim().split(/\s+/);
       if (words.length === 1) return kenderName;
@@ -107,14 +106,21 @@
       const initials = words.slice(0, -1).map(word => word[0].toUpperCase()).join('');
       return initials + ' ' + lastWord;
     }
-    %>  
-  
+  %>
+
   <div id="pdfCloneContainer" style="position: absolute; left: -9999px;"></div>
 </div>
 
 <!-- Scripts -->
+<!-- Remove or comment out these to avoid conflict with new PDF export -->
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+
+<!-- Add jsPDF and jsPDF AutoTable -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
 <script>
   const reportForm = document.getElementById('reportForm');
@@ -130,120 +136,198 @@
     }
   });
 
- 
-  function buildStyledClone() {
-  const cloneContainer = document.getElementById("pdfCloneContainer");
-  cloneContainer.innerHTML = "";
+  // Convert your EJS attendanceData into JS array
+  const attendanceData = <%- JSON.stringify(attendanceData) %>;
+  const topN = "<%= topN %>";
+  const zilaName = "<%= zilaName %>";
+  const selectedMonth = <%= selectedMonth %>;
+  const selectedYear = <%= selectedYear %>;
 
-  const tableClone = document.querySelector("#reportSection table").cloneNode(true);
-  tableClone.style.borderCollapse = "collapse";
-  tableClone.style.width = "100%";
-  tableClone.style.tableLayout = "auto";
+  // Helper function for short names (same as EJS one)
+  function getShortName(kenderName) {
+    const words = kenderName.trim().split(/\s+/);
+    if (words.length === 1) return kenderName;
 
-  // Apply black text, bigger font, and minimal padding to header cells
-  tableClone.querySelectorAll("th").forEach((cell) => {
-    cell.style.backgroundColor = "#dc3545";
-    cell.style.color = "#ffffff"; // keep danger theme
-    cell.style.fontWeight = "bold";
-    cell.style.fontSize = "20px"; // bigger font
-    cell.style.border = "1px solid #bbb";
-    cell.style.padding = "6px 8px"; // less padding
-    cell.style.whiteSpace = "nowrap";
-    cell.style.textAlign = "center";
+    const lastWord = words[words.length - 1];
+    const initials = words.slice(0, -1).map(word => word[0].toUpperCase()).join('');
+    return initials + ' ' + lastWord;
+  }
+
+document.getElementById('exportPdfBtn')?.addEventListener('click', function () {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({
+    unit: 'pt',
+    format: 'a4',
+    orientation: 'portrait',
   });
 
-  // Apply black text, bigger font, and less padding to data cells
-  tableClone.querySelectorAll("td").forEach((cell) => {
-    cell.style.color = "#000000"; // pure black
-    cell.style.fontSize = "24px"; // bigger font
-    cell.style.padding = "6px 8px"; // less padding
-    cell.style.border = "1px solid #000000";
-    cell.style.whiteSpace = "nowrap";
-    cell.style.textAlign = "center";
+  function addHeaderFooter(data) {
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const marginLeft = 40;
+    const marginRight = 40;
+
+    doc.setFillColor(220, 53, 69);
+    doc.rect(0, 0, pageWidth, 50, 'F');
+
+    doc.setFontSize(18);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.text("BHARTIYA YOG SANSTHAN (Regd.)", marginLeft, 30);
+
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+    doc.text(zilaName, marginLeft, 45);
+
+    const monthYearStr = new Date(2000, selectedMonth - 1).toLocaleString('default', { month: 'long' }) + " " + selectedYear;
+    const rightText = `Top ${topN} Saadhaks ${monthYearStr}`;
+    const rightTextWidth = doc.getTextWidth(rightText);
+    doc.text(rightText, pageWidth - marginRight - rightTextWidth, 45);
+
+    const pageStr = "Page " + data.pageNumber + " of " + doc.internal.getNumberOfPages();
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(pageStr, marginLeft, pageHeight - 15);
+
+    const footerText = "Exported from Bhartiya Yog Sansthan App";
+    const footerTextWidth = doc.getTextWidth(footerText);
+    doc.text(footerText, pageWidth - marginRight - footerTextWidth, pageHeight - 15);
+  }
+
+  const head = [['Saadhak', 'Ksheter', 'Kender', 'Attd%']];
+  const body = attendanceData.map(s => [
+    s.name,
+    getShortName(s.ksheter),
+    getShortName(s.kender),
+    `${s.presentCount} / ${s.totalOperationalDays} (${((s.presentCount / s.totalOperationalDays) * 100).toFixed(2)}%)`
+  ]);
+
+  doc.autoTable({
+    head: head,
+    body: body,
+    startY: 60,
+    margin: { top: 60, bottom: 40, left: 40, right: 40 },
+    styles: {
+      fontSize: 10,
+      cellPadding: 4,
+      halign: 'center',
+      valign: 'middle',
+      overflow: 'linebreak',
+      minCellHeight: 20,
+    },
+    headStyles: {
+      fillColor: [220, 53, 69],
+      textColor: 255,
+      fontStyle: 'bold',
+    },
+    columnStyles: {
+      0: { halign: 'left' },
+      3: { halign: 'center', fontStyle: 'bold', textColor: [220, 53, 69] },
+    },
+
+    didDrawPage: addHeaderFooter,
+    pageBreak: 'auto',
   });
 
-  const wrapper = document.createElement("div");
-  wrapper.style.padding = "20px";
-  wrapper.style.border = "4px solid #dc3545";
-  wrapper.style.backgroundColor = "#ffffff";
-  wrapper.style.fontFamily = "'Segoe UI', 'Roboto', sans-serif";
-  wrapper.style.maxWidth = "900px";
-  wrapper.style.margin = "0 auto";
-  wrapper.style.width = "100%";
-  wrapper.style.boxShadow = "0 0 10px rgba(0,0,0,0.1)";
+  doc.save(`Top_${topN}_Attendance_${selectedMonth}_${selectedYear}.pdf`);
+});
 
-  const header = document.createElement("div");
-  header.style.textAlign = "center";
-  header.style.marginBottom = "16px";
 
-  const logo = document.createElement("img");
-  logo.src = "/images/logo.jpg";
-  logo.alt = "BYS Logo";
-  logo.style.height = "60px";
-  logo.style.marginBottom = "8px";
-
-  const title = document.createElement("h2");
-  title.style.color = "#dc3545";
-  title.style.margin = "4px 0";
-  title.style.fontSize = "22px";
-  title.textContent = "BHARTIYA YOG SANSTHAN (Regd.)";
-
-  const zilaLine = document.createElement("p");
-  zilaLine.style.margin = "0";
-  zilaLine.style.fontSize = "16px";
-  zilaLine.style.color = "#000000";
-  zilaLine.style.fontWeight = "bold";
-  zilaLine.textContent = "<%= zilaName %>";
-
-  const subtitle = document.createElement("p");
-  subtitle.style.margin = "0";
-  subtitle.style.fontSize = "16px";
-  subtitle.style.color = "#000000";
-  subtitle.textContent =
-    "Top <%= topN %> Saadhaks – <%= new Date(2000, selectedMonth - 1).toLocaleString('default', { month: 'long' }) %> <%= selectedYear %>";
-
-  header.appendChild(logo);
-  header.appendChild(title);
-  header.appendChild(zilaLine);
-  header.appendChild(subtitle);
-
-  const footerNote = document.createElement("p");
-  footerNote.style.marginTop = "16px";
-  footerNote.style.fontSize = "13px";
-  footerNote.style.color = "#666";
-  footerNote.style.textAlign = "center";
-  footerNote.textContent = "Exported from Bhartiya Yog Sansthan App";
-
-  wrapper.appendChild(header);
-  wrapper.appendChild(tableClone);
-  wrapper.appendChild(footerNote);
-
-  cloneContainer.appendChild(wrapper);
-
-  return wrapper;
-}
-
-  document.getElementById('exportPdfBtn')?.addEventListener('click', function () {
-    const wrapper = buildStyledClone();
-    html2pdf().set({
-      margin: [0.4, 0.4, 0.4, 0.4],
-      filename: 'Top_<%= topN %>_Attendance_<%= selectedMonth %>_<%= selectedYear %>.pdf',
-      image: { type: 'jpeg', quality: 1 },
-      html2canvas: { scale: 4, useCORS: true },
-      jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-    }).from(wrapper).save();
-  });
-
+  // Image export (kept your existing code)
   document.getElementById('exportImageBtn')?.addEventListener('click', function () {
-    const wrapper = buildStyledClone();
+    const cloneContainer = document.getElementById("pdfCloneContainer");
+    cloneContainer.innerHTML = "";
+
+    // Clone and style the report table for better image quality
+    const tableClone = document.querySelector("#reportSection table").cloneNode(true);
+    tableClone.style.borderCollapse = "collapse";
+    tableClone.style.width = "100%";
+    tableClone.style.tableLayout = "auto";
+
+    tableClone.querySelectorAll("th").forEach((cell) => {
+      cell.style.backgroundColor = "#dc3545";
+      cell.style.color = "#ffffff";
+      cell.style.fontWeight = "bold";
+      cell.style.fontSize = "14px";
+      cell.style.border = "1px solid #bbb";
+      cell.style.padding = "4px 6px";
+      cell.style.whiteSpace = "nowrap";
+      cell.style.textAlign = "center";
+    });
+
+    tableClone.querySelectorAll("td").forEach((cell) => {
+      cell.style.color = "#000000";
+      cell.style.fontSize = "16px";
+      cell.style.padding = "4px 6px";
+      cell.style.border = "1px solid #000000";
+      cell.style.whiteSpace = "nowrap";
+      cell.style.textAlign = "center";
+    });
+
+    const wrapper = document.createElement("div");
+    wrapper.style.padding = "15px";
+    wrapper.style.border = "3px solid #dc3545";
+    wrapper.style.backgroundColor = "#ffffff";
+    wrapper.style.fontFamily = "'Segoe UI', 'Roboto', sans-serif";
+    wrapper.style.maxWidth = "700px";
+    wrapper.style.margin = "0 auto";
+    wrapper.style.width = "100%";
+    wrapper.style.boxShadow = "0 0 6px rgba(0,0,0,0.1)";
+
+    const header = document.createElement("div");
+    header.style.textAlign = "center";
+    header.style.marginBottom = "12px";
+
+    const logo = document.createElement("img");
+    logo.src = "/images/logo.jpg";
+    logo.alt = "BYS Logo";
+    logo.style.height = "40px";
+    logo.style.marginBottom = "6px";
+
+    const title = document.createElement("h2");
+    title.style.color = "#dc3545";
+    title.style.margin = "2px 0";
+    title.style.fontSize = "18px";
+    title.textContent = "BHARTIYA YOG SANSTHAN (Regd.)";
+
+    const zilaLine = document.createElement("p");
+    zilaLine.style.margin = "0";
+    zilaLine.style.fontSize = "12px";
+    zilaLine.style.color = "#000000";
+    zilaLine.style.fontWeight = "bold";
+    zilaLine.textContent = zilaName;
+
+    const subtitle = document.createElement("p");
+    subtitle.style.margin = "0";
+    subtitle.style.fontSize = "12px";
+    subtitle.style.color = "#000000";
+    subtitle.textContent = `Top ${topN} Saadhaks – ${monthYearStr}`;
+
+    header.appendChild(logo);
+    header.appendChild(title);
+    header.appendChild(zilaLine);
+    header.appendChild(subtitle);
+
+    const footerNote = document.createElement("p");
+    footerNote.style.marginTop = "12px";
+    footerNote.style.fontSize = "10px";
+    footerNote.style.color = "#666";
+    footerNote.style.textAlign = "center";
+    footerNote.textContent = "Exported from Bhartiya Yog Sansthan App";
+
+    wrapper.appendChild(header);
+    wrapper.appendChild(tableClone);
+    wrapper.appendChild(footerNote);
+
+    cloneContainer.appendChild(wrapper);
+
     html2canvas(wrapper, { scale: 4, useCORS: true }).then((canvas) => {
       const link = document.createElement('a');
-      link.download = 'Top_<%= topN %>_Attendance_<%= selectedMonth %>_<%= selectedYear %>.jpg';
+      link.download = `Top_${topN}_Attendance_${selectedMonth}_${selectedYear}.jpg`;
       link.href = canvas.toDataURL('image/jpeg', 1.0);
       link.click();
     });
   });
 </script>
-
 
 <%- include('../partials/footer') %>

@@ -49,7 +49,7 @@ function assignRoleLevel(req, res, next) {
   // ✅ Make available in all EJS views
   res.locals.user = user;
 
-  console.log(user);
+  // console.log(user);
 
   next();
 }
