@@ -3,6 +3,14 @@ const Zila = require("../models/Zila");
 const Ksheter = require("../models/Ksheter");
 const Kender = require("../models/Kender");
 const Attendance = require("../models/Attendance");
+const {
+  adminRoles,
+  prantRoles,
+  zilaRoles,
+  ksheterRoles,
+  kenderRoles,
+  kenderTeamRoles,
+} = require("../config/roles");
 
 exports.teamSummary = async (req, res) => {
   const user = req.session.user;
@@ -83,6 +91,7 @@ const normalizeScopeValue = (value) => {
 
 exports.attendanceSummary = async (req, res) => {
   const user = req.session.user;
+  const userRoles = user?.roles || [];
   const dateStr = req.query.date || new Date().toISOString().split("T")[0];
   const date = new Date(dateStr);
   const nextDate = new Date(date);
@@ -94,38 +103,91 @@ exports.attendanceSummary = async (req, res) => {
   const Attendance = require("../models/Attendance");
   const Kender = require("../models/Kender");
 
-  const zilaParam = normalizeScopeValue(req.query.zila).trim();
-  const ksheterParam = normalizeScopeValue(req.query.ksheter).trim();
-  const kenderParam = normalizeScopeValue(req.query.kender).trim();
+  const prantQuery = normalizeScopeValue(req.query.prant).trim();
+  const zilaQuery = normalizeScopeValue(req.query.zila).trim();
+  const ksheterQuery = normalizeScopeValue(req.query.ksheter).trim();
+  const kenderQuery = normalizeScopeValue(req.query.kender).trim();
+
+  // If no query params, skip validation
+  if (Object.keys(req.query).length > 0) {
+    // 🛡️ Check if both prant & zila are required
+    if (!prantQuery || !zilaQuery) {
+      const referer = req.get("Referer");
+      const backUrl = referer
+        ? referer.split("?")[0]
+        : "/report/attendance-filter";
+
+      return res.status(400).render("error/error-page", {
+        title: "Invalid Request",
+        message: "Both Prant and Zila are required to view attendance.",
+        backUrl,
+      });
+    }
+  }
 
   let attendanceQuery = {
     date: { $gte: date, $lt: nextDate },
     status: "Present",
   };
 
-  // User-specified filter logic (has higher priority)
-  if (kenderParam) {
-    attendanceQuery.kender = kenderParam;
-  } else if (ksheterParam || zilaParam) {
-    const kenderFilter = {};
-    if (zilaParam) kenderFilter.zila = zilaParam;
-    if (ksheterParam) kenderFilter.ksheter = ksheterParam;
+  const isAdmin = userRoles.some((role) => adminRoles.includes(role));
+  const isPrant = userRoles.some((role) => prantRoles.includes(role));
+  const isZila = userRoles.some((role) => zilaRoles.includes(role));
+  const isKsheter = userRoles.some((role) => ksheterRoles.includes(role));
+  const isKender =
+    userRoles.some((role) => kenderRoles.includes(role)) ||
+    userRoles.some((role) => kenderTeamRoles.includes(role));
 
-    const relevantKenders = await Kender.find(kenderFilter).select("_id");
-    attendanceQuery.kender = { $in: relevantKenders.map((k) => k._id) };
-  } else {
-    // Role-based fallback (if no dropdown filter was selected)
-    if (user.kender) {
-      attendanceQuery.kender = user.kender;
-    } else if (user.zila || user.ksheter) {
-      const kenderFilter = {};
-      if (user.zila) kenderFilter.zila = user.zila;
-      if (user.ksheter) kenderFilter.ksheter = user.ksheter;
+  const kenderFilter = {};
 
-      const relevantKenders = await Kender.find(kenderFilter).select("_id");
-      attendanceQuery.kender = { $in: relevantKenders.map((k) => k._id) };
-    }
+  // Base filter from role
+  if (isAdmin) {
+    Object.assign(kenderFilter, {
+      ...(prantQuery && { prant: prantQuery }),
+      ...(zilaQuery && { zila: zilaQuery }),
+      ...(ksheterQuery && { ksheter: ksheterQuery }),
+      ...(kenderQuery && { _id: kenderQuery }),
+    });
   }
+
+  if (isPrant) {
+    Object.assign(kenderFilter, {
+      prant: user.prant,
+      ...(zilaQuery && { zila: zilaQuery }),
+      ...(ksheterQuery && { ksheter: ksheterQuery }),
+      ...(kenderQuery && { _id: kenderQuery }),
+    });
+  }
+
+  if (isZila) {
+    Object.assign(kenderFilter, {
+      prant: user.prant,
+      zila: user.zila,
+      ...(ksheterQuery && { ksheter: ksheterQuery }),
+      ...(kenderQuery && { _id: kenderQuery }),
+    });
+  }
+
+  if (isKsheter) {
+    Object.assign(kenderFilter, {
+      prant: user.prant,
+      zila: user.zila,
+      ksheter: user.ksheter,
+      ...(kenderQuery && { _id: kenderQuery }),
+    });
+  }
+
+  if (isKender) {
+    Object.assign(kenderFilter, {
+      prant: user.prant,
+      zila: user.zila,
+      ksheter: user.ksheter,
+      _id: user.kender, // Always locked for kender role
+    });
+  }
+
+  const relevantKenders = await Kender.find(kenderFilter).select("_id");
+  attendanceQuery.kender = { $in: relevantKenders.map((k) => k._id) };
 
   const attendance = await Attendance.find(attendanceQuery)
     .populate({
@@ -170,20 +232,7 @@ exports.attendanceSummary = async (req, res) => {
   });
 
   // Include all kendras to show "unmarked"
-  const allKenders = await Kender.find(
-    kenderParam
-      ? { _id: kenderParam }
-      : ksheterParam
-        ? { ksheter: ksheterParam }
-        : zilaParam
-          ? { zila: zilaParam }
-          : user.kender
-            ? { _id: user.kender }
-            : {
-                ...(user.zila ? { zila: user.zila } : {}),
-                ...(user.ksheter ? { ksheter: user.ksheter } : {}),
-              }
-  )
+  const allKenders = await Kender.find(kenderFilter)
     .populate("zila", "name")
     .populate("ksheter", "name");
 
@@ -232,7 +281,6 @@ exports.attendanceSummary = async (req, res) => {
   });
 };
 
-
 exports.attendanceFilterPage = async (req, res) => {
   try {
     const user = req.session.user;
@@ -251,10 +299,8 @@ exports.attendanceFilterPage = async (req, res) => {
       user,
       zilas, // Will be 1 zila or all based on role
     });
-
   } catch (err) {
     console.error("Error loading attendance filter form:", err);
     res.status(500).send("Server Error");
   }
 };
-

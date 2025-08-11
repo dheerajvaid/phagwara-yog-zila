@@ -5,6 +5,9 @@ const Kender = require("../models/Kender");
 const Attendance = require("../models/Attendance");
 const messages = require("../utils/motivationalMessages");
 const pdfExport = require("../utils/pdfExport");
+const roleConfig = require("../config/roles");
+
+const { kenderRoles, kenderTeamRoles, saadhakRoles } = roleConfig;
 
 // Show attendance marking form
 exports.showMarkAttendanceForm = async (req, res) => {
@@ -367,6 +370,33 @@ exports.viewTodayAttendance = async (req, res) => {
       const ksheter = await Ksheter.findById(user.ksheter).select("name");
       if (ksheter) ksheterName = ksheter.name;
     }
+
+    // Get Ksheter-level pramukhs (Pradhan & Mantri)
+    let zilaPradhan = null;
+    let zilaMantri = null;
+    let zilaSangathanMantri = null;
+    let zilaCashier = null;
+
+    if (user.zila) {
+      const zilaTeam = await Saadhak.find({
+        zila: user.zila,
+        role: { $in: [...roleConfig.zilaRoles] },
+      }).select("name mobile role");
+
+      zilaTeam.forEach((member) => {
+        if (member.role.includes("Zila Pradhan")) zilaPradhan = member;
+        if (member.role.includes("Zila Mantri")) zilaMantri = member;
+        if (member.role.includes("Zila Sangathan Mantri")) zilaSangathanMantri = member;
+        if (member.role.includes("Zila Cashier")) zilaCashier = member;
+      });
+    }
+
+    let zilaName = "";
+
+    if (user.zila) {
+      const zila = await Zila.findById(user.zila).select("name");
+      if (zila) zilaName = zila.name;
+    }
     // console.log(pramukhs);
 
     // console.log (kenderPramukh);
@@ -378,6 +408,11 @@ exports.viewTodayAttendance = async (req, res) => {
         attendanceRecords.length === 0
           ? "No attendance marked for selected date"
           : "",
+      zilaName: zilaName || "",
+      zilaPradhan: zilaPradhan || "",
+      zilaMantri: zilaMantri || "",
+      zilaSangathanMantri: zilaSangathanMantri || "",
+      zilaCashier: zilaCashier || "",
       kenderName: kender.name,
       kenderAddress: kender.address,
       kenderPramukh: kenderPramukh || {},
@@ -666,6 +701,7 @@ exports.viewKenderWiseAttendance = async (req, res) => {
 
     const start = new Date(selectedYear, selectedMonth - 1, 1);
     const end = new Date(selectedYear, selectedMonth, 0, 23, 59, 59);
+
     // 🟡 Normalize filters
     const normalizeScopeValue = (value) => {
       if (!value) return "";
@@ -673,29 +709,54 @@ exports.viewKenderWiseAttendance = async (req, res) => {
       return String(value);
     };
 
+    const prantQuery = normalizeScopeValue(req.query.prant).trim();
     const zilaQuery = normalizeScopeValue(req.query.zila).trim();
     const ksheterQuery = normalizeScopeValue(req.query.ksheter).trim();
     const kenderQuery = normalizeScopeValue(req.query.kender).trim();
 
+    // If no query params, skip validation
+    if (Object.keys(req.query).length > 0) {
+      // 🛡️ Check if both prant & zila are required
+      if (!prantQuery || !zilaQuery) {
+        const referer = req.get("Referer");
+        const backUrl = referer
+          ? referer.split("?")[0]
+          : "/attendance/view-kender";
+
+        return res.status(400).render("error/error-page", {
+          title: "Invalid Request",
+          message: "Both Prant and Zila are required to view attendance.",
+          backUrl,
+        });
+      }
+    }
+
+    console.log("Prant:" + prantQuery);
+    console.log("Zila:" + zilaQuery);
+    console.log("Ksheter:" + ksheterQuery);
+    console.log("Kender:" + kenderQuery);
     // 🟩 Determine filter based on role and query
     const kenderFilter = {};
 
     if (kenderQuery) {
       kenderFilter._id = kenderQuery;
-    } else if (ksheterQuery || zilaQuery) {
-      if (zilaQuery) kenderFilter.zila = zilaQuery;
-      if (ksheterQuery) kenderFilter.ksheter = ksheterQuery;
+    } else if (ksheterQuery) {
+      kenderFilter.ksheter = ksheterQuery;
+      kenderFilter.zila = zilaQuery;
+      kenderFilter.prant = prantQuery;
+    } else if (zilaQuery) {
+      kenderFilter.zila = zilaQuery;
+      kenderFilter.prant = prantQuery;
+    } else if (user.kender) {
+      kenderFilter._id = user.kender;
     } else {
-      // Role-based fallback if no query filter
-      if (user.kender) {
-        kenderFilter._id = user.kender;
-      } else {
-        if (user.zila) kenderFilter.zila = user.zila;
-        if (user.ksheter) kenderFilter.ksheter = user.ksheter;
-      }
+      if (user.zila) kenderFilter.zila = user.zila;
+      if (user.ksheter) kenderFilter.ksheter = user.ksheter;
+      if (user.prant) kenderFilter.prant = user.prant; // 🟢 Also restrict by user's prant if exists
     }
 
     // Set selected values for view rendering
+    const selectedPrant = prantQuery || user.prant?.toString() || "";
     const selectedZila = zilaQuery || user.zila?.toString() || "";
     const selectedKsheter = ksheterQuery || user.ksheter?.toString() || "";
     const selectedKender = kenderQuery || user.kender?.toString() || "";
@@ -770,6 +831,7 @@ exports.viewKenderWiseAttendance = async (req, res) => {
     }
 
     const viewMode = req.query.view || "horizontal";
+
     // 🧠 Render
     res.render("attendance/view-kender", {
       allKenders,
@@ -782,10 +844,12 @@ exports.viewKenderWiseAttendance = async (req, res) => {
       zilaList: res.locals.zilaList,
       ksheterList: res.locals.ksheterList,
       kenderList: res.locals.kenderList,
+      selectedPrant: prantQuery || "",
       selectedZila: zilaQuery || "",
       selectedKsheter: ksheterQuery || "",
       selectedKender: kenderQuery || "",
       viewMode,
+      selectedPrant,
       selectedZila,
       selectedKsheter,
       selectedKender,
@@ -799,29 +863,31 @@ exports.viewKenderWiseAttendance = async (req, res) => {
 exports.viewTop10Attendance = async (req, res) => {
   try {
     const user = req.session.user;
-    const zilaId = user.zila;
+    const prantId = user.prant;
+    const zilaId = user.prant;
 
-    const excludedRoles = [
-      "Zila Pradhan",
-      "Zila Mantri",
-      "Sangathan Mantri",
-      "Cashier",
-      "Ksheter Pradhan",
-      "Ksheter Mantri",
-    ];
+    const includeRoles = [...kenderRoles, ...kenderTeamRoles, ...saadhakRoles];
 
     const today = new Date();
     const selectedMonth = parseInt(req.query.month) || today.getMonth() + 1;
     const selectedYear = parseInt(req.query.year) || today.getFullYear();
-    const selectedScope = req.query.scope || "zila";
+    const selectedScope = req.query.scope || "prant";
 
     const start = new Date(selectedYear, selectedMonth - 1, 1);
     const end = new Date(selectedYear, selectedMonth, 0, 23, 59, 59);
 
+    let prantName = "";
+    try {
+      const prant = await Prant.findById(prantId).lean();
+      if (prant) prantName = prant.name;
+    } catch (err) {
+      console.error("Error fetching Prant:", err.message);
+    }
+
     let zilaName = "";
     try {
       const zila = await Zila.findById(zilaId).lean();
-      if (zila) zilaName = zila.name;
+      if (zila) prantName = zila.name;
     } catch (err) {
       console.error("Error fetching Zila:", err.message);
     }
@@ -829,6 +895,9 @@ exports.viewTop10Attendance = async (req, res) => {
     let attendanceData = [];
     let noData = true;
 
+    const prantQuery = Array.isArray(req.query.prant)
+      ? req.query.prant[0]
+      : req.query.prant;
     const zilaQuery = Array.isArray(req.query.zila)
       ? req.query.zila[0]
       : req.query.zila;
@@ -840,19 +909,22 @@ exports.viewTop10Attendance = async (req, res) => {
       : req.query.kender;
 
     const scopeSelected =
+      (prantQuery && prantQuery.trim() !== "") ||
       (zilaQuery && zilaQuery.trim() !== "") ||
       (ksheterQuery && ksheterQuery.trim() !== "") ||
       (kenderQuery && kenderQuery.trim() !== "");
 
     if (scopeSelected) {
-      let filter = { role: { $nin: excludedRoles } };
+      let filter = { role: { $in: includeRoles } };
 
+      if (prantQuery && prantQuery.trim() !== "") filter.prant = prantQuery;
       if (zilaQuery && zilaQuery.trim() !== "") filter.zila = zilaQuery;
       if (ksheterQuery && ksheterQuery.trim() !== "")
         filter.ksheter = ksheterQuery;
       if (kenderQuery && kenderQuery.trim() !== "") filter.kender = kenderQuery;
 
       const saadhaks = await Saadhak.find(filter)
+        .populate("zila", "zila")
         .populate("ksheter", "name")
         .populate("kender", "name")
         .lean();
@@ -1006,9 +1078,11 @@ exports.viewTop10Attendance = async (req, res) => {
       selectedYear,
       selectedScope,
       topN: parseInt(req.query.top) || 10,
+      prantName,
       zilaName,
       noData,
       reportGenerated: scopeSelected,
+      prantList: res.locals.prantList,
       zilaList: res.locals.zilaList,
       ksheterList: res.locals.ksheterList,
       kenderList: res.locals.kenderList,

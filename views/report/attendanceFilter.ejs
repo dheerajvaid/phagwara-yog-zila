@@ -2,25 +2,19 @@
 <%- include('../partials/navbar') %>
 
 <div class="container mt-4">
-  <h3 class="text-center text-primary fw-bold mb-4">📋 उपस्थिति सारांश रिपोर्ट</h3>
+  <h3 class="text-center text-primary fw-bold mb-4">📋 Attendance Summary Report</h3>
 
   <form method="GET" action="/report/attendance-summary" id="attendanceSummaryForm">
     <div class="row mb-3">
       <div class="col-md-4 mb-2">
-        <label for="date" class="form-label fw-semibold">🔹 दिनांक</label>
+        <label for="date" class="form-label">Date</label>
         <input type="date" name="date" id="date" class="form-control" value="<%= new Date().toISOString().split('T')[0] %>">
       </div>
 
       <!-- Include Scope Dropdowns -->
       <%- include('../partials/scope-dropdowns') %>
-
-      <!-- Hidden inputs to ensure dropdown values submit even if disabled -->
-      <input type="hidden" name="zila">
-      <input type="hidden" name="ksheter">
-      <input type="hidden" name="kender">
-
       <div class="col-md-4 mt-4">
-        <button type="submit" class="btn btn-success w-100 mt-2">📊 रिपोर्ट देखें</button>
+        <button type="submit" class="btn btn-success w-100 mt-2">📊 View Attendance Report</button>
       </div>
     </div>
   </form>
@@ -29,15 +23,5 @@
 <!-- Attach logic for dynamic dropdown loading -->
 <script src="/js/scope-dropdowns.js"></script>
 
-<script>
-  // Ensure dropdown selections populate hidden inputs before submit
-  const form = document.getElementById('attendanceSummaryForm');
-
-  form.addEventListener('submit', function () {
-    document.querySelector('input[name="zila"]').value = document.getElementById('zilaDropdown').value || '';
-    document.querySelector('input[name="ksheter"]').value = document.getElementById('ksheterDropdown').value || '';
-    document.querySelector('input[name="kender"]').value = document.getElementById('kenderDropdown').value || '';
-  });
-</script>
 
 <%- include('../partials/footer') %>

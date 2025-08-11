@@ -80,9 +80,9 @@ const isSaadhakOnly = user?.roles.some(role => saadhakRoles.includes(role));
     </a>
 
     <% if (user) { %>
-      <a href="/calendar/today" class="calendar-icon-mobile d-lg-none text-decoration-none text-warning">
+      <a href="/calendar/today" class="calendar-icon-mobile d-lg-none text-decoration-none text-warning" title="Birthday & Anniversary">
         <div class="position-relative">
-          <i class="bi bi-calendar-event-fill"></i>
+          <i class="bi bi-cake2-fill"></i>
           <% if (typeof eventCount !== 'undefined' && eventCount > 0) { %>
             <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
               <%= eventCount %>
@@ -103,8 +103,8 @@ const isSaadhakOnly = user?.roles.some(role => saadhakRoles.includes(role));
 
         <% if (user) { %>
           <li class="nav-item d-none d-lg-block">
-            <a href="/calendar/today" class="nav-link position-relative px-3 d-flex align-items-center">
-              <i class="bi bi-calendar-event-fill fs-5 text-warning"></i>
+            <a href="/calendar/today" class="nav-link position-relative px-3 d-flex align-items-center" title="Birthday & Anniversary">
+              <i class="bi bi-cake2-fill fs-5 text-warning"></i>
               <% if (typeof eventCount !== 'undefined' && eventCount > 0) { %>
                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                   <%= eventCount %>

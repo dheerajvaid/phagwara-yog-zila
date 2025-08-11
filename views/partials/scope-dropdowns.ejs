@@ -1,8 +1,8 @@
 <!-- PRANT -->
 <div class="col-6 col-md-3">
   <label class="form-label">Prant</label>
-  <select name="prant" id="prantDropdown" class="form-control" <%= user.roleLevel < 120 ? 'disabled' : '' %> required>
-    <% if (user.roleLevel >= 120) { %>
+  <select name="prant" id="prantDropdown" class="form-control" <%= user.roleLevel < 100 ? 'disabled' : '' %> required>
+    <% if (user.roleLevel >= 100) { %>
       <option value="">Select Prant</option>
     <% } %>
     <% prantList.forEach(prant => { %>
@@ -17,8 +17,8 @@
 <!-- ZILA -->
 <div class="col-6 col-md-3">
   <label class="form-label">Zila</label>
-  <select name="zila" id="zilaDropdown" class="form-control" <%= user.roleLevel < 100 ? 'disabled' : '' %> required>
-    <% if (user.roleLevel >= 100) { %>
+  <select name="zila" id="zilaDropdown" class="form-control" <%= user.roleLevel < 80 ? 'disabled' : '' %> required>
+    <% if (user.roleLevel >= 80) { %>
       <option value="">Select Zila</option>
     <% } %>
     <% zilaList
@@ -35,7 +35,7 @@
 <!-- KSHETER -->
 <div class="col-6 col-md-3">
   <label class="form-label">Ksheter</label>
-  <select name="ksheter" id="ksheterDropdown" class="form-control" <%= user.roleLevel < 80 && !user.roles.includes('Admin') ? 'disabled' : '' %>>
+  <select name="ksheter" id="ksheterDropdown" class="form-control" <%= user.roleLevel < 60 && !user.roles.includes('Admin') ? 'disabled' : '' %>>
     <option value="">Select Ksheter</option>
     <% ksheterList
       .filter(k => !selectedZila || String(k.zila) === String(selectedZila))
@@ -51,7 +51,7 @@
 <!-- KENDER -->
 <div class="col-6 col-md-3">
   <label class="form-label">Kender</label>
-  <select name="kender" id="kenderDropdown" class="form-control" <%= user.roleLevel < 60 ? 'disabled' : '' %>>
+  <select name="kender" id="kenderDropdown" class="form-control" <%= user.roleLevel < 40 ? 'disabled' : '' %>>
     <option value="">Select Kender</option>
     <% kenderList
       .filter(k => !selectedKsheter || String(k.ksheter) === String(selectedKsheter))
@@ -63,7 +63,6 @@
   </select>
   <input type="hidden" name="kender" id="kenderHidden" value="<%= selectedKender %>">
 </div>
-
 
 <script>
   const prantDropdown = document.getElementById('prantDropdown');
@@ -94,7 +93,6 @@
       zilaDropdown.appendChild(option);
     });
 
-    // Cascade to ksheter if one is already selected
     if (zilaDropdown.value) {
       populateKsheter(zilaDropdown.value);
     } else {
@@ -108,7 +106,7 @@
   function populateKsheter(zilaId) {
     ksheterDropdown.innerHTML = '<option value="">Select Ksheter</option>';
 
-    if (userRoleLevel >= 40 && userRoleLevel < 60) {
+    if (userRoleLevel >= 40 && userRoleLevel < 60) { // Kender-level users locked to their Ksheter
       const ksheter = ksheterList.find(k => String(k._id) === userKsheter);
       if (ksheter) {
         const option = document.createElement('option');
@@ -130,8 +128,6 @@
     }
 
     kenderDropdown.innerHTML = '<option value="">Select Kender</option>';
-
-    // Cascade to kender if ksheter already selected
     if (ksheterDropdown.value) {
       populateKender(ksheterDropdown.value);
     }
@@ -140,7 +136,7 @@
   function populateKender(ksheterId) {
     kenderDropdown.innerHTML = '<option value="">Select Kender</option>';
 
-    if (userRoleLevel >= 40 && userRoleLevel < 60) {
+    if (userRoleLevel >= 20 && userRoleLevel < 40) { // KenderTeam-level users locked to their Kender
       const kender = kenderList.find(k => String(k._id) === userKender);
       if (kender) {
         const option = document.createElement('option');
@@ -169,7 +165,6 @@
     document.getElementById('kenderHidden').value = kenderDropdown?.value || '';
   }
 
-  // Event bindings
   prantDropdown?.addEventListener('change', function () {
     populateZilas(this.value);
     updateHiddenInputs();
@@ -187,7 +182,6 @@
 
   kenderDropdown?.addEventListener('change', updateHiddenInputs);
 
-  // Initial load logic
   if (prantDropdown && prantDropdown.value) {
     populateZilas(prantDropdown.value);
   } else if (zilaDropdown.value) {

@@ -100,9 +100,18 @@
         </button>
       </div>
       <div class="mb-3 text-end">
-  <a href="?month=<%= selectedMonth %>&year=<%= selectedYear %>&sortBy=<%= sortBy %>&view=<%= viewMode === 'vertical' ? 'horizontal' : 'vertical' %>" class="btn btn-outline-secondary btn-sm">
+  <a href="?month=<%= encodeURIComponent(selectedMonth || '') %>
+&year=<%= encodeURIComponent(selectedYear || '') %>
+&sortBy=<%= encodeURIComponent(sortBy || '') %>
+&prant=<%= encodeURIComponent(selectedPrant || '') %>
+&zila=<%= encodeURIComponent(selectedZila || '') %>
+&ksheter=<%= encodeURIComponent(selectedKsheter || '') %>
+&kender=<%= encodeURIComponent(selectedKender || '') %>
+&view=<%= viewMode === 'vertical' ? 'horizontal' : 'vertical' %>"
+class="btn btn-outline-secondary btn-sm">
     🔄 Switch to <%= viewMode === 'vertical' ? 'Horizontal' : 'Vertical' %> View
-  </a>
+</a>
+
 </div>
 
   <% if (viewMode === 'horizontal') { %>

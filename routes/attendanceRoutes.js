@@ -4,13 +4,14 @@ const attendanceController = require("../controllers/attendanceController");
 const { requireLogin } = require("../middleware/authMiddleware");
 const { canManage } = require("../middleware/roleMiddleware");
 const {
+  prantRoles,
   zilaRoles,
   ksheterRoles,
   kenderRoles,
-  saadhakRoles,
+  kenderTeamRoles,
 } = require("../config/roles");
-const saadhakManagerRoles = [...zilaRoles, ...ksheterRoles, ...kenderRoles];
-const attendanceRoles = [...kenderRoles, ...saadhakRoles];
+const saadhakManagerRoles = [...prantRoles, ...zilaRoles, ...ksheterRoles, ...kenderRoles];
+const attendanceRoles = [...kenderRoles, ...kenderTeamRoles];
 
 // Show form to mark attendance
 router.get(
