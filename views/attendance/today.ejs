@@ -117,7 +117,7 @@
   </thead>
   <tbody>
     <tr>
-      <td>Zila Pradhan</td>
+      <td>Pradhan</td>
       <td class="<%= zilaPradhan && zilaPradhan.name ? 'text-black bg-warning-subtle' : 'text-muted' %>">
         <%= zilaPradhan && zilaPradhan.name || 'N/A' %>
       </td>
@@ -126,7 +126,7 @@
       </td>
     </tr>
     <tr>
-      <td>Zila Mantri</td>
+      <td>Mantri</td>
       <td class="<%= zilaMantri && zilaMantri.name ? 'text-black bg-warning-subtle' : 'text-muted' %>">
         <%= zilaMantri && zilaMantri.name || 'N/A' %>
       </td>
@@ -135,7 +135,7 @@
       </td>
     </tr>
     <tr>
-      <td>Zila Sangathan Mantri</td>
+      <td>Sangathan Mantri</td>
       <td class="<%= zilaSangathanMantri && zilaSangathanMantri.name ? 'text-black bg-warning-subtle' : 'text-muted' %>">
         <%= zilaSangathanMantri && zilaSangathanMantri.name || 'N/A' %>
       </td>
@@ -144,7 +144,7 @@
       </td>
     </tr>
     <tr>
-      <td>Zila Cashier</td>
+      <td>Cashier</td>
       <td class="<%= zilaCashier && zilaCashier.name ? 'text-black bg-warning-subtle' : 'text-muted' %>">
         <%= zilaCashier && zilaCashier.name || 'N/A' %>
       </td>
@@ -165,12 +165,12 @@
       </thead>
       <tbody>
         <tr>
-          <td>Ksheter Pradhan</td>
+          <td>Pradhan</td>
           <td class="<%= ksheterPradhan.name ? 'text-text-black bg-warning-subtle' : 'text-muted' %>"><%= ksheterPradhan.name || 'N/A' %></td>
           <td class="<%= ksheterPradhan.mobile ? 'text-black' : 'text-muted' %>"><%= ksheterPradhan.mobile || 'N/A' %></td>
         </tr>
         <tr>
-          <td>Ksheter Mantri</td>
+          <td>Mantri</td>
           <td class="<%= ksheterMantri.name ? 'text-text-black bg-warning-subtle' : 'text-muted' %>"><%= ksheterMantri.name || 'N/A' %></td>
           <td class="<%= ksheterMantri.mobile ? 'text-black' : 'text-muted' %>"><%= ksheterMantri.mobile || 'N/A' %></td>
         </tr>
@@ -186,21 +186,21 @@
       </thead>
       <tbody>
         <tr>
-          <td>Kender Pramukh</td>
+          <td>Pramukh</td>
           <td class="text-text-black bg-warning-subtle"><%= kenderPramukh.name %></td>
           <td class="text-black"><%= kenderPramukh.mobile %></td>
         </tr>
         <% if (Array.isArray(sehKenderPramukh) && sehKenderPramukh.length > 0) { %>
           <% sehKenderPramukh.forEach((skp) => { %>
             <tr>
-              <td>Seh Kender Pramukh</td>
+              <td>Seh Pramukh</td>
               <td class="text-text-black bg-warning-subtle"><%= skp.name %></td>
               <td class="text-black"><%= skp.mobile %></td>
             </tr>
           <% }) %>
         <% } else { %>
           <tr>
-            <td>SKP</td>
+            <td>Seh Pramukh</td>
             <td class="text-muted">N/A</td>
             <td class="text-muted">N/A</td>
           </tr>
