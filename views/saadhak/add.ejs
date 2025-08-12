@@ -30,11 +30,12 @@
       <input type="text" name="name" class="form-control" required value="<%= formData?.name || '' %>">
     </div>
 
-    <!-- Mobile -->
-    <div class="col-md-4">
-      <label class="form-label">Mobile *</label>
-      <input type="text" name="mobile" id="mobile" class="form-control" required value="<%= formData?.mobile || '' %>">
-    </div>
+ <!-- Mobile -->
+<div class="col-md-4">
+  <label class="form-label">Mobile *  <span id="mobileCount" style="color: red; font-weight: bold; margin-bottom: 4px;">0 digits</span></label>
+ 
+  <input type="text" name="mobile" id="mobile" class="form-control" required value="<%= formData?.mobile || '' %>">
+</div>
 
     <% const selectedPrant = formData?.prant || user.prant; %>
     <% const selectedZila = formData?.zila || user.zila; %>
@@ -161,7 +162,6 @@
   </form>
 </section>
 
-<!-- Data for JS use -->
 <script>
   const allZilas = <%- JSON.stringify(zilas.map(z => ({ _id: z._id.toString(), name: z.name, prant: z.prant?.toString() }))) %>;
   const allKsheters = <%- JSON.stringify(ksheters.map(k => ({ _id: k._id.toString(), name: k.name, zila: k.zila.toString() }))) %>;
@@ -170,7 +170,7 @@
 </script>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function () {
     const roleSelect = document.getElementById('roleSelect');
     const prantField = document.querySelector('.prant-field');
     const zilaField = document.querySelector('.zila-field');
@@ -181,6 +181,9 @@
     const zilaSelect = document.getElementById('zilaSelect');
     const ksheterSelect = document.getElementById('ksheterSelect');
     const kenderSelect = document.getElementById('kenderSelect');
+
+    const mobileInput = document.getElementById('mobile');
+    const mobileCount = document.getElementById('mobileCount');
 
     const roleHierarchyMap = {
       adminRoles: [],
@@ -194,7 +197,7 @@
 
     function getFieldVisibilityForRole(role) {
       for (const [group, roles] of Object.entries(roleConfig)) {
-        if (roles.includes(role)) {
+        if (Array.isArray(roles) && roles.includes(role)) {
           return roleHierarchyMap[group] || [];
         }
       }
@@ -202,7 +205,7 @@
     }
 
     function toggleFields(role) {
-      const visibleFields = getFieldVisibilityForRole(role);
+      const visibleFields = getFieldVisibilityForRole(role || '');
       const allFields = { prant: prantField, zila: zilaField, ksheter: ksheterField, kender: kenderField };
 
       for (const [field, el] of Object.entries(allFields)) {
@@ -210,7 +213,32 @@
       }
     }
 
-    // 🌟 Populate Zila when Prant changes
+    function updateDigitCount() {
+      const digits = mobileInput.value.replace(/\D/g, '').length;
+      mobileCount.textContent = `${digits} digit${digits !== 1 ? 's' : ''}`;
+    }
+
+    function cleanAndLimitTo10Digits(value) {
+      let digitsOnly = value.replace(/\D/g, '');
+      if (digitsOnly.length > 10) {
+        digitsOnly = digitsOnly.slice(-10);
+      }
+      return digitsOnly;
+    }
+
+    mobileInput.addEventListener('input', () => {
+      mobileInput.value = cleanAndLimitTo10Digits(mobileInput.value);
+      updateDigitCount();
+    });
+
+    mobileInput.addEventListener('paste', (e) => {
+      e.preventDefault();
+      const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+      const cleaned = cleanAndLimitTo10Digits(pastedText);
+      mobileInput.value = cleaned;
+      updateDigitCount();
+    });
+
     prantSelect?.addEventListener('change', function () {
       const prantId = this.value;
       const filteredZilas = allZilas.filter(z => z.prant === prantId);
@@ -249,10 +277,18 @@
       });
     });
 
-    // Initial role check
-    toggleFields(roleSelect.value);
+    // Run these AFTER DOM fully ready and after any prefilled value is set
+    mobileInput.value = cleanAndLimitTo10Digits(mobileInput.value);
+    updateDigitCount();
+
+    // Small timeout ensures the select's value is fully loaded from server-rendered HTML
+    setTimeout(() => {
+      toggleFields(roleSelect.value);
+    }, 10);
+
     roleSelect.addEventListener('change', () => toggleFields(roleSelect.value));
   });
 </script>
+
 
 <%- include('../partials/footer') %>
