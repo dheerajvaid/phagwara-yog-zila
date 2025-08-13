@@ -1,0 +1,159 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<style>
+  h1 { text-align: center; color: #b22222; margin-bottom: 10px; }
+  .subtitle { text-align: center; color: #555; margin-bottom: 20px; font-size: 0.9rem; }
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; border-radius: 6px; overflow: hidden; box-shadow: 0 0 8px rgba(0,0,0,0.05); }
+  td, th { border: 1px solid #ccc; padding: 10px; vertical-align: top; }
+  th { background: #f5f5f5; text-align: left; width: 30%; }
+  .badge { display: inline-block; padding: 4px 8px; font-size: 0.85rem; background: #b22222; color: white; border-radius: 4px; margin: 2px; }
+  .back-btn { display: inline-block; margin-top: 20px; padding: 8px 14px; background: #b22222; color: white; text-decoration: none; border-radius: 4px; }
+  .back-btn:hover { background: #8b1a1a; }
+</style>
+
+<h1><%= program.title %></h1>
+<table>
+  <tr>
+    <th>Description</th>
+    <td><%= program.description || '-' %></td>
+  </tr>
+  <tr>
+    <th>Organizer</th>
+    <td>
+      <%= program.organizer?.name || '-' %>
+      <% if (program.organizer?.phone) { %>
+        (<%= program.organizer.phone %>)
+      <% } %>
+    </td>
+  </tr>
+  <tr>
+    <th>Start Date</th>
+    <td><%= new Date(program.startDate).toLocaleString('en-IN') %></td>
+  </tr>
+  <tr>
+    <th>End Date</th>
+    <td><%= new Date(program.endDate).toLocaleString('en-IN') %></td>
+  </tr>
+
+  <% if (program.startTime || program.endTime) { %>
+  <tr>
+    <th>Time</th>
+    <td>
+      <%= program.startTime || '-' %>
+      <% if (program.endTime) { %> - <%= program.endTime %> <% } %>
+    </td>
+  </tr>
+  <% } %>
+
+  <tr>
+    <th>Venue</th>
+    <td><%= program.venue || '-' %></td>
+  </tr>
+
+  <% if (mode === "manage") { %>
+  <% if (program.scope) { %>
+  <tr>
+    <th>Scope</th>
+    <td><%= program.scope %></td>
+  </tr>
+  <% } %>
+
+  <% if (program.allowedRoles && program.allowedRoles.length) { %>
+  <tr>
+    <th>Allowed Roles</th>
+    <td>
+      <% program.allowedRoles.forEach(role => { %>
+        <span class="badge"><%= role %></span>
+      <% }) %>
+    </td>
+  </tr>
+  <% } %>
+
+  <% if (program.allowedLevels && program.allowedLevels.length) { %>
+  <tr>
+    <th>Allowed Levels</th>
+    <td>
+      <% program.allowedLevels.forEach(level => { %>
+        <span class="badge"><%= level %></span>
+      <% }) %>
+    </td>
+  </tr>
+  <% } %>
+
+  <% if (allowedPrants && allowedPrants.length) { %>
+  <tr>
+    <th>Allowed Prants</th>
+    <td>
+      <% allowedPrants.forEach(pr => { %>
+        <span class="badge"><%= pr.name %></span>
+      <% }) %>
+    </td>
+  </tr>
+  <% } %>
+
+  <% if (allowedZilas && allowedZilas.length) { %>
+  <tr>
+    <th>Allowed Zilas</th>
+    <td>
+      <% allowedZilas.forEach(zl => { %>
+        <span class="badge"><%= zl.name %></span>
+      <% }) %>
+    </td>
+  </tr>
+  <% } %>
+
+  <% if (allowedKsheters && allowedKsheters.length) { %>
+  <tr>
+    <th>Allowed Ksheters</th>
+    <td>
+      <% allowedKsheters.forEach(ks => { %>
+        <span class="badge"><%= ks.name %></span>
+      <% }) %>
+    </td>
+  </tr>
+  <% } %>
+
+  <% if (allowedKenders && allowedKenders.length) { %>
+  <tr>
+    <th>Allowed Kenders</th>
+    <td>
+      <% allowedKenders.forEach(kn => { %>
+        <span class="badge"><%= kn.name %></span>
+      <% }) %>
+    </td>
+  </tr>
+  <% } %>
+
+  <% if (program.otherInfo) { %>
+  <tr>
+    <th>Other Info</th>
+    <td><%= program.otherInfo %></td>
+  </tr>
+  <% } %>
+
+  <% if (program.createdAt) { %>
+  <tr>
+    <th>Created At</th>
+    <td><%= new Date(program.createdAt).toLocaleString('en-IN') %></td>
+  </tr>
+  <% } %>
+
+  <% if (program.updatedAt) { %>
+  <tr>
+    <th>Last Updated</th>
+    <td><%= new Date(program.updatedAt).toLocaleString('en-IN') %></td>
+  </tr>
+  <% } %>
+          <% } %>
+
+</table>
+
+
+<a href="javascript:history.back()" class="back-btn">← Back</a>
+   <% if (mode === "manage") { %>
+<a href="/programs/edit/<%= program._id %>" class="back-btn" style="margin-right:10px; background:#006400;">
+  ✏️ Edit
+</a>
+    <% } %>
+<%- include('../partials/footer') %>

@@ -864,6 +864,7 @@ exports.viewKenderWiseAttendance = async (req, res) => {
 exports.viewTop10Attendance = async (req, res) => {
   try {
     const user = req.session.user;
+    
     const prantId = user.prant;
     const zilaId = user.prant;
 

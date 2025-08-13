@@ -1,0 +1,18 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<%- include('form', { 
+  formAction: '/programs/create', 
+  program: {}, 
+  buttonText: 'Create Program',
+  user: user,
+  prants: prants,
+  adminRoles: adminRoles,
+  prantRoles: prantRoles,
+  zilaRoles: zilaRoles,
+  ksheterRoles: ksheterRoles,
+  kenderRoles: kenderRoles, 
+}) %>
+
+
+<%- include('../partials/footer') %>

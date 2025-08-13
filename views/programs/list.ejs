@@ -1,0 +1,189 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="text-danger fw-bold">Programs</h3>
+    <% if (mode === 'manage') { %>
+      <a href="/programs/create" class="btn btn-success">
+        <i class="bi bi-plus-circle"></i> New Program
+      </a>
+    <% } %>
+  </div>
+
+  <% if (programs.length === 0) { %>
+    <div class="alert alert-info text-center">
+      No programs found.
+      <% if (mode === 'manage') { %>
+        Click "New Program" to add one.
+      <% } %>
+    </div>
+  <% } else { %>
+    <div class="row">
+      <% programs.forEach(program => { %>
+        <div class="col-md-4 mb-3">
+          <div class="card shadow-sm h-100">
+            <!-- Registration Count Badge -->
+            <span class="position-absolute top-0 end-0 bg-danger text-white px-2 py-1 rounded-start">
+              <%= program.registeredUsers ? program.registeredUsers.length : 0 %>
+            </span>
+
+            <div class="card-body d-flex flex-column">
+              <h5 class="card-title">
+                <a href="/programs/<%= program._id %>/export"><%= program.title %></a>
+              </h5>
+
+              <p class="mb-1">
+                <strong>Details:</strong>
+                <span class="program-details" id="details-<%= program._id %>">
+                  <% if (program.description && program.description.length > 50) { %>
+                    <span class="snippet"><%= program.description.substring(0, 50) %>...</span>
+                    <span class="full d-none"><%= program.description %></span>
+                    <a href="#" class="toggle-details" data-target="<%= program._id %>">more</a>
+                  <% } else { %>
+                    <%= program.description || '' %>
+                  <% } %>
+                </span>
+              </p>
+
+              <p class="mb-1 text-muted">
+                <strong>Dates:</strong>
+                <%= program.startDate.toLocaleDateString() %> -
+                <%= program.endDate.toLocaleDateString() %>
+              </p>
+              <p class="mb-1"><strong>Time:</strong> <%= program.startTime %> - <%= program.endTime %></p>
+              <p class="mb-1"><strong>Venue:</strong> <%= program.venue %></p>
+              <p class="mb-1"><strong>Status:</strong>
+                <span class="badge <%= program.status === 'Published' ? 'bg-success' : 'bg-secondary' %>">
+                  <%= program.status %>
+                </span>
+              </p>
+              <% if (program.organizer && program.organizer.name) { %>
+                <p class="mb-1"><strong>Organizer:</strong> <%= program.organizer.name %></p>
+              <% } %>
+
+              <div class="mt-auto pt-3 d-flex justify-content-between">
+                <% if (mode === 'manage') { %>
+                  <!-- Edit Button -->
+                  <a href="/programs/edit/<%= program._id %>" class="btn btn-sm btn-primary">
+                    <i class="bi bi-pencil"></i> Edit
+                  </a>
+
+                  <!-- Delete Button triggers modal -->
+                  <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal-<%= program._id %>">
+                    <i class="bi bi-trash"></i> Delete
+                  </button>
+
+                  <!-- Delete Confirmation Modal -->
+                  <div class="modal fade" id="deleteModal-<%= program._id %>" tabindex="-1" aria-labelledby="deleteModalLabel-<%= program._id %>" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <h5 class="modal-title text-danger" id="deleteModalLabel-<%= program._id %>">Confirm Delete</h5>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                          Do you want to delete this program?
+                          <p><strong><%= program.title %></strong></p>
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                          <form action="/programs/delete/<%= program._id %>" method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                <% } else if (mode === 'register') { %>
+                  <% if (program.registeredUsers && program.registeredUsers.some(id => id.toString() === user.id.toString())) { %>
+                    <!-- De-register Button triggers modal -->
+                    <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deregisterModal-<%= program._id %>">
+                      <i class="bi bi-x-circle"></i> De-register
+                    </button>
+
+                    <!-- De-register Modal -->
+                    <div class="modal fade" id="deregisterModal-<%= program._id %>" tabindex="-1" aria-labelledby="deregisterModalLabel-<%= program._id %>" aria-hidden="true">
+                      <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5 class="modal-title text-danger" id="deregisterModalLabel-<%= program._id %>">Confirm De-registration</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                          </div>
+                          <div class="modal-body">
+                            Are you sure you want to de-register from:
+                            <p><strong><%= program.title %></strong></p>
+                          </div>
+                          <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <form action="/programs/<%= program._id %>/deregister" method="POST" class="d-inline">
+                              <button type="submit" class="btn btn-danger">Yes, De-register</button>
+                            </form>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  <% } else { %>
+                    <!-- Register Button triggers modal -->
+                    <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#registerModal-<%= program._id %>">
+                      <i class="bi bi-check-circle"></i> Register
+                    </button>
+
+                    <!-- Register Modal -->
+                    <div class="modal fade" id="registerModal-<%= program._id %>" tabindex="-1" aria-labelledby="registerModalLabel-<%= program._id %>" aria-hidden="true">
+                      <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5 class="modal-title text-success" id="registerModalLabel-<%= program._id %>">Confirm Registration</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                          </div>
+                          <div class="modal-body">
+                            Do you want to register for:
+                            <p><strong><%= program.title %></strong></p>
+                          </div>
+                          <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <form action="/programs/<%= program._id %>/register" method="POST" class="d-inline">
+                              <button type="submit" class="btn btn-success">Yes, Register</button>
+                            </form>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  <% } %>
+                <% } %>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const toggles = document.querySelectorAll('.toggle-details');
+    toggles.forEach(link => {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        const targetId = link.getAttribute('data-target');
+        const details = document.getElementById('details-' + targetId);
+        const snippet = details.querySelector('.snippet');
+        const full = details.querySelector('.full');
+
+        if (full.classList.contains('d-none')) {
+          full.classList.remove('d-none');
+          snippet.classList.add('d-none');
+          link.textContent = 'less';
+        } else {
+          full.classList.add('d-none');
+          snippet.classList.remove('d-none');
+          link.textContent = 'more';
+        }
+      });
+    });
+  });
+</script>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,208 @@
+<div class="container my-4">
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <form action="<%= formAction %>" method="POST" class="needs-validation" novalidate>
+        <!-- Program Name -->
+        <div class="mb-4">
+          <label for="name" class="form-label fw-bold">Program Name</label>
+          <input
+            type="text"
+            class="form-control"
+            id="name"
+            name="name"
+            placeholder="Enter program name"
+            value="<%= program.title || '' %>"
+            required
+          >
+          <div class="invalid-feedback">Please enter a program name.</div>
+        </div>
+
+        <!-- Details / Description -->
+        <div class="mb-4">
+          <label for="details" class="form-label fw-bold">Details</label>
+          <textarea
+            class="form-control"
+            id="details"
+            name="details"
+            rows="4"
+            placeholder="Write details about the program..."
+          ><%= program.description || '' %></textarea>
+        </div>
+
+        <!-- Dates -->
+        <div class="row g-3 mb-4">
+          <div class="col-12 col-md-6">
+            <label for="startDate" class="form-label fw-bold">Start Date</label>
+            <input
+              type="date"
+              class="form-control"
+              id="startDate"
+              name="startDate"
+              value="<%= program.startDate ? new Date(program.startDate).toISOString().split('T')[0] : '' %>"
+              required
+            >
+            <div class="invalid-feedback">Please select a start date.</div>
+          </div>
+          <div class="col-12 col-md-6">
+            <label for="endDate" class="form-label fw-bold">End Date</label>
+            <input
+              type="date"
+              class="form-control"
+              id="endDate"
+              name="endDate"
+              value="<%= program.endDate ? new Date(program.endDate).toISOString().split('T')[0] : '' %>"
+              required
+            >
+            <div class="invalid-feedback">Please select an end date.</div>
+          </div>
+        </div>
+
+        <!-- Time -->
+        <div class="row g-3 mb-4">
+          <div class="col-12 col-md-6">
+            <label for="startTime" class="form-label fw-bold">Start Time</label>
+            <input
+              type="time"
+              class="form-control"
+              id="startTime"
+              name="startTime"
+              value="<%= program.startTime || '' %>"
+              required
+            >
+            <div class="invalid-feedback">Please enter a start time.</div>
+          </div>
+          <div class="col-12 col-md-6">
+            <label for="endTime" class="form-label fw-bold">End Time</label>
+            <input
+              type="time"
+              class="form-control"
+              id="endTime"
+              name="endTime"
+              value="<%= program.endTime || '' %>"
+              required
+            >
+            <div class="invalid-feedback">Please enter an end time.</div>
+          </div>
+        </div>
+
+        <!-- Venue -->
+        <div class="mb-4">
+          <label for="venue" class="form-label fw-bold">Venue / Place</label>
+          <input
+            type="text"
+            class="form-control"
+            id="venue"
+            name="venue"
+            placeholder="e.g., Community Hall, Phagwara"
+            value="<%= program.venue || '' %>"
+            required
+          >
+          <div class="invalid-feedback">Please enter a venue.</div>
+        </div>
+
+        <!-- Status -->
+        <div class="mb-4">
+          <label for="status" class="form-label fw-bold">Status</label>
+          <select class="form-select" id="status" name="status" required>
+            <option value="draft" <%= program.status === 'draft' ? 'selected' : '' %>>Draft</option>
+            <option value="published" <%= program.status === 'published' ? 'selected' : '' %>>Published</option>
+          </select>
+          <div class="invalid-feedback">Please select a status.</div>
+        </div>
+
+        <!-- Allowed Levels -->
+        <div class="mb-4">
+          <label class="form-label fw-bold">Allowed Registration Levels</label>
+          <select name="allowedLevels[]" class="form-select" multiple size="4" required>
+            <% 
+              let levelOptions = allowedLevels;              
+            %>
+            <% levelOptions.forEach(level => { %>
+              <option value="<%= level %>" <%= program.allowedLevels?.includes(level) ? 'selected' : '' %>><%= level.charAt(0).toUpperCase() + level.slice(1) %></option>
+            <% }) %>
+          </select>
+          <small class="text-muted">Select which organizational levels can register for this program.</small>
+        </div>
+
+        <!-- Allowed Registration Scope (existing logic kept) -->
+        <!-- Allowed Registration Scope -->
+<div class="mb-4">
+  <label class="form-label fw-bold">Allowed Registration Scope</label>
+
+  <% if (user.roles.some(r => adminRoles.includes(r))) { %>
+    <!-- Admin can select all Prants -->
+    <select name="allowedPrants[]" class="form-select mb-2" multiple size="5">
+      <% prants.forEach(prant => { %>
+        <option value="<%= prant._id %>" <%= program.allowedPrants?.includes(prant._id.toString()) ? 'selected' : '' %>><%= prant.name %></option>
+      <% }) %>
+    </select>
+
+  <% } else if (user.roles.some(r => prantRoles.includes(r))) { %>
+    <p><strong>Your Prant:</strong> <%= user.prantName %></p>
+    <input type="hidden" name="allowedPrants[]" value="<%= user.prantId %>">
+    <select name="allowedZilas[]" class="form-select mb-2" multiple size="5" required>
+      <% zilas.forEach(zila => { %>
+        <option value="<%= zila._id %>" <%= program.allowedZilas?.includes(zila._id.toString()) ? 'selected' : '' %>><%= zila.name %></option>
+      <% }) %>
+    </select>
+
+  <% } else if (user.roles.some(r => zilaRoles.includes(r))) { %>
+    <p><strong>Your Zila:</strong> <%= user.zilaName %></p>
+    <input type="hidden" name="allowedPrants[]" value="<%= user.prantId %>">
+    <input type="hidden" name="allowedZilas[]" value="<%= user.zilaId %>">
+    <select name="allowedKsheters[]" class="form-select mb-2" multiple size="5" required>
+      <% ksheters.forEach(ksheter => { %>
+        <option value="<%= ksheter._id %>" <%= program.allowedKsheters?.includes(ksheter._id.toString()) ? 'selected' : '' %>><%= ksheter.name %></option>
+      <% }) %>
+    </select>
+
+  <% } else if (user.roles.some(r => ksheterRoles.includes(r))) { %>
+    <p><strong>Your Ksheter:</strong> <%= user.ksheterName %></p>
+    <input type="hidden" name="allowedPrants[]" value="<%= user.prantId %>">
+    <input type="hidden" name="allowedZilas[]" value="<%= user.zilaId %>">
+    <input type="hidden" name="allowedKsheters[]" value="<%= user.ksheterId %>">
+    <select name="allowedKenders[]" class="form-select mb-2" multiple size="5" required>
+      <% kenders.forEach(kender => { %>
+        <option value="<%= kender._id %>" <%= program.allowedKenders?.includes(kender._id.toString()) ? 'selected' : '' %>><%= kender.name %></option>
+      <% }) %>
+    </select>
+
+  <% } else if (user.roles.some(r => kenderRoles.includes(r))) { %>
+    <p><strong>Your Kender:</strong> <%= user.kenderName %></p>
+    <input type="hidden" name="allowedPrants[]" value="<%= user.prantId %>">
+    <input type="hidden" name="allowedZilas[]" value="<%= user.zilaId %>">
+    <input type="hidden" name="allowedKsheters[]" value="<%= user.ksheterId %>">
+    <input type="hidden" name="allowedKenders[]" value="<%= user.kenderId %>">
+  <% } %>
+</div>
+
+        <!-- Buttons -->
+        <div class="d-flex justify-content-between mt-3">
+          <a href="/programs" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Cancel
+          </a>
+          <button type="submit" class="btn btn-success">
+            <i class="bi bi-save"></i> <%= buttonText %>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Bootstrap validation
+  (function () {
+    'use strict';
+    const forms = document.querySelectorAll('.needs-validation');
+    Array.from(forms).forEach(form => {
+      form.addEventListener('submit', event => {
+        if (!form.checkValidity()) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+      }, false);
+    });
+  })();
+</script>
