@@ -131,6 +131,7 @@ const isSaadhakOnly = user?.roles.some(role => saadhakRoles.includes(role));
             <%- include('kender') %>
             <%- include('saadhak') %>
             <%- include('attendance') %>
+             <%- include('program') %>
             <%- include('question') %>
             <%- include('yog-samagri') %>
             <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
@@ -141,6 +142,7 @@ const isSaadhakOnly = user?.roles.some(role => saadhakRoles.includes(role));
               <%- include('kender') %>
               <%- include('saadhak') %>
               <%- include('attendance') %>
+              <%- include('program') %>
               <%- include('question') %>
               <%- include('yog-samagri') %>
               <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
@@ -148,14 +150,17 @@ const isSaadhakOnly = user?.roles.some(role => saadhakRoles.includes(role));
               <%- include('kender') %>
               <%- include('saadhak') %>
               <%- include('attendance') %>
+               <%- include('program') %>
               <%- include('yog-samagri') %>
               <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
             <% } else if (isKenderLevel) { %>
               <%- include('saadhak') %>
               <%- include('attendance') %>
+               <%- include('program') %>
               <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
             <% } else if (isSaadhakOnly) { %>
               <%- include('saadhak') %>
+               <%- include('program') %>
               <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
             <% } %>
           <% } %>

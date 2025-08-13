@@ -1,7 +1,6 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const programController = require('../controllers/programController');
-const registrationController = require('../controllers/registrationController');
+const programController = require("../controllers/programController");
 const { requireLogin } = require("../middleware/authMiddleware");
 const { canManage } = require("../middleware/roleMiddleware");
 const {
@@ -10,14 +9,19 @@ const {
   ksheterRoles,
   kenderRoles,
   kenderTeamRoles,
+  saadhakRoles,
 } = require("../config/roles");
+const { create } = require("connect-mongo");
 
-// -----------------------
-// Public views
-// -----------------------
+CREATE_ROLES = [...prantRoles, ...zilaRoles, ...ksheterRoles, ...kenderRoles];
+ALL_ROLES = [...CREATE_ROLES, ...kenderTeamRoles, ...saadhakRoles];
 
-// List all programs (main page)
-router.get('/', requireLogin, programController.listPrograms);
+router.get(
+  "/",
+  requireLogin,
+  canManage(CREATE_ROLES),
+  programController.listPrograms
+);
 
 // Single program detail (public or logged-in)
 // router.get('/:id', requireLogin, programController.viewProgram);
@@ -25,22 +29,65 @@ router.get('/', requireLogin, programController.listPrograms);
 // -----------------------
 // Admin-only views
 // -----------------------
-router.get('/create', requireLogin, programController.showCreateForm);
-router.post('/create', requireLogin, programController.createProgram);
+router.get(
+  "/create",
+  requireLogin,
+  canManage(CREATE_ROLES),
+  programController.showCreateForm
+);
+router.post(
+  "/create",
+  requireLogin,
+  canManage(CREATE_ROLES),
+  programController.createProgram
+);
 
-router.get('/edit/:id', requireLogin, programController.showEditForm);
-router.post('/edit/:id', requireLogin, programController.updateProgram);
+router.get(
+  "/edit/:id",
+  requireLogin,
+  canManage(CREATE_ROLES),
+  programController.showEditForm
+);
+router.post(
+  "/edit/:id",
+  requireLogin,
+  canManage(CREATE_ROLES),
+  programController.updateProgram
+);
 
 // Delete program
-router.post('/delete/:id', requireLogin, programController.deleteProgram);
+router.post(
+  "/delete/:id",
+  requireLogin,
+  canManage(CREATE_ROLES),
+  programController.deleteProgram
+);
 
+router.get(
+  "/:id/export",
+  requireLogin,
+  canManage(ALL_ROLES),
+  programController.exportProgramDetail
+);
 
-router.get('/:id/export', programController.exportProgramDetail);
+router.get(
+  "/available",
+  requireLogin,
+  canManage(ALL_ROLES),
+  programController.listAvailablePrograms
+);
 
-
-router.get("/available", programController.listAvailablePrograms);
-
-router.post("/:id/register", programController.registerProgram);
-router.post("/:id/deregister", programController.deregisterProgram);
+router.post(
+  "/:id/register",
+  requireLogin,
+  canManage(ALL_ROLES),
+  programController.registerProgram
+);
+router.post(
+  "/:id/deregister",
+  requireLogin,
+  canManage(ALL_ROLES),
+  programController.deregisterProgram
+);
 
 module.exports = router;
