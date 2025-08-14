@@ -26,15 +26,39 @@
 
     <!-- Name -->
     <div class="col-md-4">
-      <label class="form-label">Full Name *</label>
-      <input type="text" name="name" class="form-control" required value="<%= formData?.name || '' %>">
-    </div>
+  <label class="form-label">Full Name *</label>
+  <input 
+    type="text" 
+    name="name" 
+    class="form-control" 
+    required 
+    maxlength="30" 
+    pattern="[A-Za-z\s]{1,30}" 
+    title="Only alphabets and spaces, max 30 characters"
+    value="<%= formData?.name || '' %>"
+    oninput="this.value = this.value.replace(/[^A-Za-z\s]/g, '').slice(0, 30)">
+</div>
 
- <!-- Mobile -->
+
+<!-- Mobile -->
 <div class="col-md-4">
-  <label class="form-label">Mobile *  <span id="mobileCount" style="color: red; font-weight: bold; margin-bottom: 4px;">0 digits</span></label>
- 
-  <input type="text" name="mobile" id="mobile" class="form-control" required value="<%= formData?.mobile || '' %>">
+  <label class="form-label">
+    Mobile *  
+    <span id="mobileCount" style="color: red; font-weight: bold; margin-bottom: 4px;">0 digits</span>
+  </label>
+  <input 
+    type="text" 
+    name="mobile" 
+    id="mobile" 
+    class="form-control" 
+    required
+    maxlength="10"  
+    pattern="^[6-9][0-9]{9}$" 
+    title="Enter a valid 10-digit mobile number starting with 6, 7, 8, or 9"
+    value="<%= formData?.mobile || '' %>"
+    oninput="this.value = this.value.replace(/[^0-9\s-]/g, '').slice(0, 30)"
+    >
+  <div id="mobileMessage" class="mt-1 small"></div>
 </div>
 
     <% const selectedPrant = formData?.prant || user.prant; %>
@@ -112,11 +136,38 @@
       <% } %>
     </div>
 
-    <!-- DOB -->
-    <div class="col-md-4">
-      <label class="form-label">DOB</label>
-      <input type="date" name="dob" class="form-control" value="<%= formData?.dob || '' %>">
-    </div>
+    <% const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]; %>
+<% const currentYear = new Date().getFullYear(); %>
+   <!-- DOB -->
+<div class="col-md-4">
+  <label class="form-label">DOB</label>
+  <div class="d-flex gap-2">
+    <!-- Day -->
+    <select name="dob_day" class="form-select">
+      <option value="">Day</option>
+      <% for(let d=1; d<=31; d++) { %>
+        <option value="<%= d %>" <%= formData?.dob_day == d ? 'selected' : '' %>><%= d %></option>
+      <% } %>
+    </select>
+
+    <!-- Month -->
+    <select name="dob_month" class="form-select">
+      <option value="">Month</option>
+      <% for(let m=1; m<=12; m++) { %>
+        <option value="<%= m %>" <%= formData?.dob_month == m ? 'selected' : '' %>><%= months[m-1] %></option>
+      <% } %>
+    </select>
+
+    <!-- Year -->
+    <select name="dob_year" class="form-select">
+      <option value="">Year</option>
+      <% for(let y=currentYear; y>=1900; y--) { %>
+        <option value="<%= y %>" <%= formData?.dob_year == y ? 'selected' : '' %>><%= y %></option>
+      <% } %>
+    </select>
+  </div>
+</div>
+
 
     <!-- Gender -->
     <div class="col-md-4">
@@ -139,10 +190,43 @@
     </div>
 
     <!-- Marriage Date -->
-    <div class="col-md-4">
-      <label class="form-label">Marriage Date</label>
-      <input type="date" name="marriageDate" class="form-control" value="<%= formData?.marriageDate || '' %>">
-    </div>
+   <div class="col-md-4">
+  <label class="form-label">Marriage Date</label>
+  <div class="d-flex gap-2">
+    <!-- Day -->
+    <select name="dom_day" class="form-select">
+      <option value="">Day</option>
+      <% for(let d=1; d<=31; d++) { %>
+        <option value="<%= d %>" <%= formData?.dob_day == d ? 'selected' : '' %>><%= d %></option>
+      <% } %>
+    </select>
+
+    <!-- Month -->
+    <select name="dom_month" class="form-select">
+      <option value="">Month</option>
+      <% 
+        
+        for(let m=1; m<=12; m++) { 
+      %>
+        <option value="<%= m %>" <%= formData?.dob_month == m ? 'selected' : '' %>><%= months[m-1] %></option>
+      <% } %>
+    </select>
+
+    <!-- Year -->
+    <select name="dom_year" class="form-select">
+      <option value="">Year</option>
+      <% 
+        
+        for(let y=currentYear; y>=1900; y--) { 
+      %>
+        <option value="<%= y %>" <%= formData?.dob_year == y ? 'selected' : '' %>><%= y %></option>
+      <% } %>
+    </select>
+  </div>
+</div>
+
+    <input type="hidden" name="dob" id="dob" value="<%= formData?.dob || '' %>">
+    <input type="hidden" name="dom" id="dom" value="<%= formData?.dom || '' %>">
 
     <!-- Address -->
     <div class="col-md-6">
@@ -157,8 +241,8 @@
     </div>
 
     <div class="col-12 text-end">
-      <button class="btn btn-primary">✅ Register Saadhak</button>
-    </div>
+  <button id="submitBtn" class="btn btn-primary">✅ Register Saadhak</button>
+</div>
   </form>
 </section>
 
@@ -170,125 +254,223 @@
 </script>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-    const roleSelect = document.getElementById('roleSelect');
-    const prantField = document.querySelector('.prant-field');
-    const zilaField = document.querySelector('.zila-field');
-    const ksheterField = document.querySelector('.ksheter-field');
-    const kenderField = document.querySelector('.kender-field');
+document.addEventListener("DOMContentLoaded", function () {
 
-    const prantSelect = document.getElementById('prantSelect');
-    const zilaSelect = document.getElementById('zilaSelect');
-    const ksheterSelect = document.getElementById('ksheterSelect');
-    const kenderSelect = document.getElementById('kenderSelect');
+  /** -----------------------------
+   * 1. ELEMENT REFERENCES
+   * ----------------------------- */
+  const roleSelect = document.getElementById('roleSelect');
+  const prantField = document.querySelector('.prant-field');
+  const zilaField = document.querySelector('.zila-field');
+  const ksheterField = document.querySelector('.ksheter-field');
+  const kenderField = document.querySelector('.kender-field');
 
-    const mobileInput = document.getElementById('mobile');
-    const mobileCount = document.getElementById('mobileCount');
+  const prantSelect = document.getElementById('prantSelect');
+  const zilaSelect = document.getElementById('zilaSelect');
+  const ksheterSelect = document.getElementById('ksheterSelect');
+  const kenderSelect = document.getElementById('kenderSelect');
 
-    const roleHierarchyMap = {
-      adminRoles: [],
-      prantRoles: ['prant'],
-      zilaRoles: ['prant', 'zila'],
-      ksheterRoles: ['prant', 'zila', 'ksheter'],
-      kenderRoles: ['prant', 'zila', 'ksheter', 'kender'],
-      kenderTeamRoles: ['prant', 'zila', 'ksheter', 'kender'],
-      saadhakRoles: ['prant', 'zila', 'ksheter', 'kender'],
-    };
+  const maritalStatusSelect = document.querySelector('select[name="maritalStatus"]');
+  const domDay = document.querySelector('select[name="dom_day"]');
+  const domMonth = document.querySelector('select[name="dom_month"]');
+  const domYear = document.querySelector('select[name="dom_year"]');
 
-    function getFieldVisibilityForRole(role) {
-      for (const [group, roles] of Object.entries(roleConfig)) {
-        if (Array.isArray(roles) && roles.includes(role)) {
-          return roleHierarchyMap[group] || [];
+  const mobileInput = document.getElementById('mobile');
+  const mobileCount = document.getElementById('mobileCount');
+  const form = document.querySelector('form[action="/saadhak/add"]');
+  const submitBtn = document.getElementById('submitBtn');
+  const messageBox = document.getElementById('mobileMessage'); // already exists in HTML
+  messageBox.classList.add('form-text');
+
+  let isChecking = false;
+
+  /** -----------------------------
+   * 2. CONFIGURATION
+   * ----------------------------- */
+  const roleHierarchyMap = {
+    adminRoles: [],
+    prantRoles: ['prant'],
+    zilaRoles: ['prant', 'zila'],
+    ksheterRoles: ['prant', 'zila', 'ksheter'],
+    kenderRoles: ['prant', 'zila', 'ksheter', 'kender'],
+    kenderTeamRoles: ['prant', 'zila', 'ksheter', 'kender'],
+    saadhakRoles: ['prant', 'zila', 'ksheter', 'kender'],
+  };
+
+  /** -----------------------------
+   * 3. UTILITY FUNCTIONS
+   * ----------------------------- */
+  function getFieldVisibilityForRole(role) {
+    for (const [group, roles] of Object.entries(roleConfig)) {
+      if (Array.isArray(roles) && roles.includes(role)) {
+        return roleHierarchyMap[group] || [];
+      }
+    }
+    return [];
+  }
+
+  function toggleFields(role) {
+    const visibleFields = getFieldVisibilityForRole(role || '');
+    const allFields = { prant: prantField, zila: zilaField, ksheter: ksheterField, kender: kenderField };
+    for (const [field, el] of Object.entries(allFields)) {
+      el.classList.toggle('d-none', !visibleFields.includes(field));
+    }
+  }
+
+  function updateDigitCount() {
+    const digits = mobileInput.value.replace(/\D/g, '').length;
+    mobileCount.textContent = `${digits} digit${digits !== 1 ? 's' : ''}`;
+  }
+
+  function updateDobField() {
+    const day = document.querySelector('select[name="dob_day"]').value;
+    const month = document.querySelector('select[name="dob_month"]').value;
+    const year = document.querySelector('select[name="dob_year"]').value;
+    if (day && month && year) {
+      document.getElementById('dob').value = `${day.padStart(2,'0')}/${month.padStart(2,'0')}/${year}`;
+    }
+  }
+
+  function updateDomField() {
+    const day = domDay.value;
+    const month = domMonth.value;
+    const year = domYear.value;
+    if (day && month && year) {
+      document.getElementById('dom').value = `${day.padStart(2,'0')}/${month.padStart(2,'0')}/${year}`;
+    }
+  }
+
+
+
+  function toggleMarriageDateFields() {
+    const isMarried = maritalStatusSelect.value === "Married";
+    domDay.disabled = !isMarried;
+    domMonth.disabled = !isMarried;
+    domYear.disabled = !isMarried;
+    domDay.required = isMarried;
+    domMonth.required = isMarried;
+    domYear.required = isMarried;
+    if (!isMarried) {
+      domDay.value = "";
+      domMonth.value = "";
+      domYear.value = "";
+      document.getElementById('dom').value = "";
+    }
+  }
+
+  function cleanAndLimitTo10Digits(value) { messageBox.innerHTML = ''; let digitsOnly = value.replace(/\D/g, ''); if (digitsOnly.length > 10) { digitsOnly = digitsOnly.slice(-10); } return digitsOnly; }
+
+  // ✅ Improved Mobile number check
+let mobileCheckTimeout;
+
+function checkMobile() {
+  const mobile = mobileInput.value.trim();
+
+  if (mobile.length === 10 && /^[0-9]{10}$/.test(mobile)) {
+    messageBox.innerHTML = '⏳ Checking...';
+    messageBox.className = 'text-info';
+    submitBtn.disabled = true;
+
+    fetch('/saadhak/check-mobile?mobile=' + mobile)
+      .then(res => {
+        console.log("HTTP status:", res.status);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
+      .then(data => {
+        console.log("Response data:", data);
+
+        if (data.exists) {
+          messageBox.innerHTML = '⚠️ This mobile number is already registered.';
+          messageBox.className = 'text-danger';
+          submitBtn.disabled = true;
+        } else {
+          messageBox.innerHTML = '✅ Mobile number available.';
+          messageBox.className = 'text-success';
+          submitBtn.disabled = false;
         }
-      }
-      return [];
-    }
+      })
+      .catch(err => {
+        console.error("Fetch error:", err);
+        messageBox.innerHTML = '❌ Error checking number. Try again.';
+        messageBox.className = 'text-danger';
+        submitBtn.disabled = false;
+      });
+  }
+}
+  
+  mobileInput.addEventListener('blur', function() {
+  
+  checkMobile();
+});
 
-    function toggleFields(role) {
-      const visibleFields = getFieldVisibilityForRole(role || '');
-      const allFields = { prant: prantField, zila: zilaField, ksheter: ksheterField, kender: kenderField };
+mobileInput.addEventListener('input', () => { mobileInput.value = cleanAndLimitTo10Digits(mobileInput.value); updateDigitCount();  messageBox.innerHTML = ''; });
 
-      for (const [field, el] of Object.entries(allFields)) {
-        el.classList.toggle('d-none', !visibleFields.includes(field));
-      }
-    }
+mobileInput.addEventListener('paste', (e) => { e.preventDefault(); const pastedText = (e.clipboardData || window.clipboardData).getData('text'); const cleaned = cleanAndLimitTo10Digits(pastedText); mobileInput.value = cleaned; updateDigitCount(); });
 
-    function updateDigitCount() {
-      const digits = mobileInput.value.replace(/\D/g, '').length;
-      mobileCount.textContent = `${digits} digit${digits !== 1 ? 's' : ''}`;
-    }
-
-    function cleanAndLimitTo10Digits(value) {
-      let digitsOnly = value.replace(/\D/g, '');
-      if (digitsOnly.length > 10) {
-        digitsOnly = digitsOnly.slice(-10);
-      }
-      return digitsOnly;
-    }
-
-    mobileInput.addEventListener('input', () => {
-      mobileInput.value = cleanAndLimitTo10Digits(mobileInput.value);
-      updateDigitCount();
-    });
-
-    mobileInput.addEventListener('paste', (e) => {
+form.addEventListener('submit', function (e) {
+    if (isChecking || mobileInput.classList.contains('is-invalid')) {
       e.preventDefault();
-      const pastedText = (e.clipboardData || window.clipboardData).getData('text');
-      const cleaned = cleanAndLimitTo10Digits(pastedText);
-      mobileInput.value = cleaned;
-      updateDigitCount();
-    });
-
-    prantSelect?.addEventListener('change', function () {
-      const prantId = this.value;
-      const filteredZilas = allZilas.filter(z => z.prant === prantId);
-
-      zilaSelect.removeAttribute('disabled');
-      zilaSelect.innerHTML = '<option value="">-- Select Zila --</option>';
-      filteredZilas.forEach(z => {
-        zilaSelect.innerHTML += `<option value="${z._id}">${z.name}</option>`;
-      });
-
-      ksheterSelect.innerHTML = '<option value="">-- Select Ksheter --</option>';
-      kenderSelect.innerHTML = '<option value="">-- Select Kender --</option>';
-
-      <% if (user.zila) { %>
-        zilaSelect.setAttribute('disabled', 'disabled');
-      <% } %>
-    });
-
-    zilaSelect?.addEventListener('change', function () {
-      const zilaId = this.value;
-      const filteredKsheters = allKsheters.filter(k => k.zila === zilaId);
-      ksheterSelect.innerHTML = '<option value="">-- Select Ksheter --</option>';
-      filteredKsheters.forEach(k => {
-        ksheterSelect.innerHTML += `<option value="${k._id}">${k.name}</option>`;
-      });
-
-      kenderSelect.innerHTML = '<option value="">-- Select Kender --</option>';
-    });
-
-    ksheterSelect?.addEventListener('change', function () {
-      const ksheterId = this.value;
-      const filteredKenders = allKenders.filter(k => k.ksheter === ksheterId);
-      kenderSelect.innerHTML = '<option value="">-- Select Kender --</option>';
-      filteredKenders.forEach(k => {
-        kenderSelect.innerHTML += `<option value="${k._id}">${k.name}</option>`;
-      });
-    });
-
-    // Run these AFTER DOM fully ready and after any prefilled value is set
-    mobileInput.value = cleanAndLimitTo10Digits(mobileInput.value);
-    updateDigitCount();
-
-    // Small timeout ensures the select's value is fully loaded from server-rendered HTML
-    setTimeout(() => {
-      toggleFields(roleSelect.value);
-    }, 10);
-
-    roleSelect.addEventListener('change', () => toggleFields(roleSelect.value));
+      alert('Please fix the mobile number before submitting.');
+      mobileInput.focus();
+    }
   });
+
+  // Dropdown filtering
+  prantSelect?.addEventListener('change', function () {
+    const prantId = this.value;
+    const filteredZilas = allZilas.filter(z => z.prant === prantId);
+    zilaSelect.removeAttribute('disabled');
+    zilaSelect.innerHTML = '<option value="">-- Select Zila --</option>';
+    filteredZilas.forEach(z => {
+      zilaSelect.innerHTML += `<option value="${z._id}">${z.name}</option>`;
+    });
+    ksheterSelect.innerHTML = '<option value="">-- Select Ksheter --</option>';
+    kenderSelect.innerHTML = '<option value="">-- Select Kender --</option>';
+    <% if (user.zila) { %> zilaSelect.setAttribute('disabled', 'disabled'); <% } %>
+  });
+
+  zilaSelect?.addEventListener('change', function () {
+    const zilaId = this.value;
+    const filteredKsheters = allKsheters.filter(k => k.zila === zilaId);
+    ksheterSelect.innerHTML = '<option value="">-- Select Ksheter --</option>';
+    filteredKsheters.forEach(k => {
+      ksheterSelect.innerHTML += `<option value="${k._id}">${k.name}</option>`;
+    });
+    kenderSelect.innerHTML = '<option value="">-- Select Kender --</option>';
+  });
+
+  ksheterSelect?.addEventListener('change', function () {
+    const ksheterId = this.value;
+    const filteredKenders = allKenders.filter(k => k.ksheter === ksheterId);
+    kenderSelect.innerHTML = '<option value="">-- Select Kender --</option>';
+    filteredKenders.forEach(k => {
+      kenderSelect.innerHTML += `<option value="${k._id}">${k.name}</option>`;
+    });
+  });
+
+  
+
+  roleSelect.addEventListener('change', () => toggleFields(roleSelect.value));
+  maritalStatusSelect.addEventListener("change", toggleMarriageDateFields);
+  document.querySelectorAll('select[name^="dob_"]').forEach(el => el.addEventListener('change', updateDobField));
+  document.querySelectorAll('select[name^="dom_"]').forEach(el => el.addEventListener('change', updateDomField));
+
+  /** -----------------------------
+   * 5. INITIAL SETUP
+   * ----------------------------- */
+  mobileInput.value = cleanAndLimitTo10Digits(mobileInput.value);
+  updateDigitCount();
+  toggleFields(roleSelect.value);
+  toggleMarriageDateFields();
+  updateDobField();
+  updateDomField();
+
+});
 </script>
+
+
+
 
 
 <%- include('../partials/footer') %>

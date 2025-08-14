@@ -46,10 +46,10 @@
                 </span>
               </p>
 
-              <p class="mb-1 text-muted">
+              <p class="mb-1 text-muted"> 
                 <strong>Dates:</strong>
-                <%= program.startDate.toLocaleDateString() %> -
-                <%= program.endDate.toLocaleDateString() %>
+                <%= program.startDate.toLocaleDateString('en-GB') %> -
+                <%= program.endDate.toLocaleDateString('en-GB') %>
               </p>
               <p class="mb-1"><strong>Time:</strong> <%= program.startTime %> - <%= program.endTime %></p>
               <p class="mb-1"><strong>Venue:</strong> <%= program.venue %></p>

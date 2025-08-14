@@ -503,11 +503,11 @@ exports.listAvailablePrograms = async (req, res) => {
     if (userRoles.some((r) => adminRoles.includes(r))) {
       allowedLevelsForUser = ["admin", "prant", "zila", "ksheter", "kender"];
     } else if (userRoles.some((r) => prantRoles.includes(r))) {
-      allowedLevelsForUser = ["prant", "zila", "ksheter", "kender"];
+      allowedLevelsForUser = ["prant"];
     } else if (userRoles.some((r) => zilaRoles.includes(r))) {
-      allowedLevelsForUser = ["zila", "ksheter", "kender"];
+      allowedLevelsForUser = ["zila"];
     } else if (userRoles.some((r) => ksheterRoles.includes(r))) {
-      allowedLevelsForUser = ["ksheter", "kender"];
+      allowedLevelsForUser = ["ksheter"];
     } else if (
       userRoles.some(
         (r) => kenderRoles.includes(r) || kenderTeamRoles.includes(r)

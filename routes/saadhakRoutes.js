@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-
+const Saadhak = require("../models/Saadhak");
 const saadhakController = require("../controllers/saadhakController");
 const { requireLogin } = require("../middleware/authMiddleware");
 const { canManage } = require("../middleware/roleMiddleware");
@@ -59,5 +59,19 @@ router.get(
   checkSaadhakOwnership,
   saadhakController.deleteSaadhak
 );
+
+router.get('/saadhak/check-mobile', async (req, res) => {
+  try {
+    const mobile = req.query.mobile;
+    if (!mobile) return res.status(400).json({ error: 'Mobile number is required' });
+    
+    const saadhak = await Saadhak.findOne({ mobile });
+    res.json({ exists: !!saadhak });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 
 module.exports = router;
