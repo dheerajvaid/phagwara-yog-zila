@@ -39,8 +39,14 @@ exports.generateGreeting = async (req, res) => {
     const normalizedType = type?.toLowerCase();
 
     const backgroundImage = await loadImage(
-      path.join(__dirname, "../public/images/bg.png")
+      path.join(
+        __dirname,
+        type == "anniversary"
+          ? "../public/images/bg1.png"
+          : "../public/images/bg.png"
+      )
     );
+
     const logoImage = await loadImage(
       path.join(__dirname, "../public/images/logo-nbg.png")
     );
@@ -103,11 +109,11 @@ exports.generateGreeting = async (req, res) => {
     drawCenteredText(ctx, name, width / 2, 300);
 
     // 📅 Date
-    let yStartMessage = 390;
+    let yStartMessage = 360;
     if (date) {
       const formattedDate = formatDateReadable(date);
       ctx.fillStyle = "#d32f2f";
-      ctx.font = "bold 32px Arial";
+      ctx.font = "bold 38px Arial";
       drawCenteredText(ctx, formattedDate, width / 2, 350);
     }
 
@@ -143,7 +149,7 @@ exports.generateGreeting = async (req, res) => {
     });
 
     // 🟡 From Info
-    const fromLabel = "-From-";  //From Label
+    const fromLabel = "- Best Wishes -"; //From Label
     const fromText = `${user.name} (${user.roles.join(", ")})`;
     const hierarchyText = [kenderName, ksheterName, zilaName]
       .filter(Boolean)
@@ -152,19 +158,20 @@ exports.generateGreeting = async (req, res) => {
     ctx.shadowColor = "#00000022";
     ctx.shadowBlur = 2;
 
-    ctx.font = "bold 30px Arial";
-    ctx.fillStyle = "red";
-    drawCenteredText(ctx, fromLabel, width / 2, 670);
-
     ctx.font = "bold 36px Arial";
+    ctx.fillStyle = "red";
+    ctx.textAlign = "center";
+    ctx.fillText(fromLabel, width / 2, 670);
+
+    ctx.font = "bold 42px Arial";
     ctx.fillStyle = "green";
     ctx.textAlign = "center";
     ctx.fillText(fromText, width / 2, 710);
-    ctx.font = "bold 24px Arial";
-    ctx.fillText(hierarchyText, width / 2, 745);
-    ctx.font = "bold 48px Arial"
-    ctx.fillStyle = "red"
-    ctx.fillText("BHARATIYA YOG SANSTHAN (REGD.)", width / 2, 930);
+    ctx.font = "bold 32px Arial";
+    ctx.fillText(hierarchyText, width / 2, 765);
+    ctx.font = "bold 48px Arial";
+    ctx.fillStyle = "red";
+    ctx.fillText("BHARATIYA YOG SANSTHAN (REGD.)", width / 2, 920);
     // Save File
     const safeName = name.replace(/\s+/g, "_");
     const safeMobile = (mobile || "").replace(/\s+/g, "_");
@@ -237,8 +244,18 @@ function formatDateReadable(dateString) {
   const date = new Date(dateString);
   const day = date.getDate().toString().padStart(2, "0");
   const monthNames = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
   ];
   const month = monthNames[date.getMonth()];
   const year = date.getFullYear();
