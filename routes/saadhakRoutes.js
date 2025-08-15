@@ -7,10 +7,11 @@ const { canManage } = require("../middleware/roleMiddleware");
 const { checkSaadhakOwnership } = require("../middleware/ownershipMiddleware");
 
 // ✅ Role groups from config
-const { adminRoles, prantRoles, zilaRoles, ksheterRoles, kenderRoles, kenderTeamRoles } = require("../config/roles");
+const { adminRoles, prantRoles, zilaRoles, ksheterRoles, kenderRoles, kenderTeamRoles, saadhakRoles } = require("../config/roles");
 
 // ✅ Unified allowed roles for Saadhak management
 const allowedRoles = [...adminRoles, ...prantRoles, ...zilaRoles, ...ksheterRoles, ...kenderRoles, ...kenderTeamRoles];
+const ALL_ROLES = [...adminRoles, ...prantRoles, ...zilaRoles, ...ksheterRoles, ...kenderRoles, ...kenderTeamRoles, ...saadhakRoles];
 
 // Manage all Saadhaks
 router.get(
@@ -72,6 +73,10 @@ router.get('/saadhak/check-mobile', async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
+
+// routes/saadhak.js
+router.get('/saadhak/self-update', requireLogin, canManage(ALL_ROLES), saadhakController.getSelfUpdateForm);
+router.post('/saadhak/self-update', requireLogin, canManage(ALL_ROLES), saadhakController.postSelfUpdate);
 
 
 module.exports = router;

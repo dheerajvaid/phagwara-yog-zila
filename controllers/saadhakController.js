@@ -334,7 +334,7 @@ exports.listSaadhaks = async (req, res) => {
       query._id = null;
     } else if (!userRoles.includes("Admin")) {
       // Admin gets all access — skip restrictions
-
+      query._id = { $ne: user.id };
       // Apply Prant-level restrictions
       if (hasRole(prantRoles)) {
         query.prant = user.prant?.$oid || user.prant;
@@ -682,3 +682,85 @@ exports.deleteSaadhak = async (req, res) => {
     res.status(500).send("Delete Failed");
   }
 };
+
+// controllers/saadhakController.js
+
+// Show the self-update form
+exports.getSelfUpdateForm = async (req, res) => {
+  try {
+    const saadhak = await Saadhak.findById(req.session.user.id)
+      .populate('prant zila ksheter kender');
+
+    // Process DOB
+    if (saadhak?.dob) {
+      const dobDate = new Date(saadhak.dob);
+      saadhak.dob_day = dobDate.getDate();
+      saadhak.dob_month = dobDate.getMonth() + 1; // month is 0-based
+      saadhak.dob_year = dobDate.getFullYear();
+    }
+
+    // Process DOM (marriage date)
+    if (saadhak?.marriageDate) { // make sure your schema field is named "dom"
+      const domDate = new Date(saadhak.marriageDate);
+      saadhak.dom_day = domDate.getDate();
+      saadhak.dom_month = domDate.getMonth() + 1;
+      saadhak.dom_year = domDate.getFullYear();
+    }
+
+    res.render('saadhak/self-update', {
+      saadhak,
+      months: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+      currentYear: new Date().getFullYear(),
+      success: req.query.success,
+      error: req.query.error
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.redirect('/?error=Unable to load update form');
+  }
+};
+
+
+// Handle the update
+exports.postSelfUpdate = async (req, res) => {
+  try {
+    // Build DOB from parts
+    let dob = null;
+    if (req.body.dob_day && req.body.dob_month && req.body.dob_year) {
+      dob = new Date(
+        req.body.dob_year,
+        req.body.dob_month - 1, // month is zero-based
+        req.body.dob_day
+      );
+    }
+
+    // Build marriageDate from parts
+    let marriageDate = null;
+    if (req.body.dom_day && req.body.dom_month && req.body.dom_year) {
+      marriageDate = new Date(
+        req.body.dom_year,
+        req.body.dom_month - 1,
+        req.body.dom_day
+      );
+    }
+
+    const updateData = {
+      name: req.body.name,
+      dob,
+      gender: req.body.gender,
+      maritalStatus: req.body.maritalStatus,
+      marriageDate,
+      address: req.body.address,
+      livingArea: req.body.livingArea
+    };
+
+    await Saadhak.findByIdAndUpdate(req.session.user.id, updateData);
+
+    res.redirect('/saadhak/self-update?success=Details updated successfully');
+  } catch (err) {
+    console.error(err);
+    res.redirect('/saadhak/self-update?error=Unable to update details');
+  }
+};
+

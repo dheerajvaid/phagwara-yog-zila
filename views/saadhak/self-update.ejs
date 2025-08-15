@@ -1,0 +1,115 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<section class="container mt-4">
+  <h4 class="mb-3 fw-bold text-primary">✏ Update My Details</h4>
+
+  <% if (error) { %>
+    <div class="alert alert-danger"><%= error %></div>
+  <% } %>
+
+  <% if (success) { %>
+    <div class="alert alert-success"><%= success %></div>
+  <% } %>
+
+  <form action="/saadhak/self-update" method="POST" class="row g-3">
+
+    <!-- Full Name -->
+    <div class="col-md-4">
+      <label class="form-label">Full Name *</label>
+      <input type="text" name="name" class="form-control" required maxlength="30"
+        pattern="[A-Za-z\s]{1,30}"
+        title="Only alphabets and spaces, max 30 characters"
+        value="<%= saadhak?.name || '' %>">
+    </div>
+
+    <!-- DOB -->
+    <div class="col-md-4">
+      <label class="form-label">DOB</label>
+      <div class="d-flex gap-2">
+        <select name="dob_day" class="form-select">
+          <option value="">Day</option>
+          <% for(let d=1; d<=31; d++) { %>
+            <option value="<%= d %>" <%= saadhak?.dob_day == d ? 'selected' : '' %>><%= d %></option>
+          <% } %>
+        </select>
+        <select name="dob_month" class="form-select">
+          <option value="">Month</option>
+          <% for(let m=1; m<=12; m++) { %>
+            <option value="<%= m %>" <%= saadhak?.dob_month == m ? 'selected' : '' %>><%= months[m-1] %></option>
+          <% } %>
+        </select>
+        <select name="dob_year" class="form-select">
+          <option value="">Year</option>
+          <% for(let y=currentYear; y>=1900; y--) { %>
+            <option value="<%= y %>" <%= saadhak?.dob_year == y ? 'selected' : '' %>><%= y %></option>
+          <% } %>
+        </select>
+      </div>
+    </div>
+
+    <!-- Gender -->
+    <div class="col-md-4">
+      <label class="form-label">Gender</label>
+      <select name="gender" class="form-select">
+        <option value="">--</option>
+        <option value="Male" <%= saadhak?.gender === 'Male' ? 'selected' : '' %>>Male</option>
+        <option value="Female" <%= saadhak?.gender === 'Female' ? 'selected' : '' %>>Female</option>
+      </select>
+    </div>
+
+    <!-- Marital Status -->
+    <div class="col-md-4">
+      <label class="form-label">Marital Status</label>
+      <select name="maritalStatus" class="form-select">
+        <option value="">--</option>
+        <option value="Married" <%= saadhak?.maritalStatus === 'Married' ? 'selected' : '' %>>Married</option>
+        <option value="Unmarried" <%= saadhak?.maritalStatus === 'Unmarried' ? 'selected' : '' %>>Unmarried</option>
+      </select>
+    </div>
+
+    <!-- Marriage Date -->
+    <div class="col-md-4">
+      <label class="form-label">Marriage Date</label>
+      <div class="d-flex gap-2">
+        <select name="dom_day" class="form-select">
+          <option value="">Day</option>
+          <% for(let d=1; d<=31; d++) { %>
+            <option value="<%= d %>" <%= saadhak?.dom_day == d ? 'selected' : '' %>><%= d %></option>
+          <% } %>
+        </select>
+        <select name="dom_month" class="form-select">
+          <option value="">Month</option>
+          <% for(let m=1; m<=12; m++) { %>
+            <option value="<%= m %>" <%= saadhak?.dom_month == m ? 'selected' : '' %>><%= months[m-1] %></option>
+          <% } %>
+        </select>
+        <select name="dom_year" class="form-select">
+          <option value="">Year</option>
+          <% for(let y=currentYear; y>=1900; y--) { %>
+            <option value="<%= y %>" <%= saadhak?.dom_year == y ? 'selected' : '' %>><%= y %></option>
+          <% } %>
+        </select>
+      </div>
+    </div>
+
+    <!-- Address -->
+    <div class="col-md-6">
+      <label class="form-label">Address</label>
+      <input type="text" name="address" class="form-control" value="<%= saadhak?.address || '' %>">
+    </div>
+
+    <!-- Living Area -->
+    <div class="col-md-6">
+      <label class="form-label">Living Area</label>
+      <input type="text" name="livingArea" class="form-control" value="<%= saadhak?.livingArea || '' %>">
+    </div>
+
+    <div class="col-12 text-end">
+      <button class="btn btn-success">💾 Save Changes</button>
+    </div>
+
+  </form>
+</section>
+
+<%- include('../partials/footer') %>

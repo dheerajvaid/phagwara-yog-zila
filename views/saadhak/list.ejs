@@ -208,9 +208,12 @@
 
       if (paginated.length === 0) {
         tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No matching records found.</td></tr>';
-        document.getElementById("pagination")?.remove();
+        
+        const pagination = document.getElementById("pagination");
+        if (pagination) pagination.innerHTML = ""; // clear instead of remove
         return;
       }
+
 
       paginated.forEach((s, index) => {
         const primaryRole = Array.isArray(s.role) ? s.role[0] : null;

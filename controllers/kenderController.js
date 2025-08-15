@@ -13,7 +13,7 @@ const drawCard = require("../helpers/drawCard");
 const messages = require("../data/messages.json");
 const roleConfig = require("../config/roles");
 
-const { adminRoles, prantRoles, zilaRoles, ksheterRoles } = roleConfig;
+const { adminRoles, prantRoles, zilaRoles, ksheterRoles, kenderRoles } = roleConfig;
 
 function getRandomMessage(attendanceCount) {
   let key = "zero";
@@ -548,3 +548,58 @@ module.exports.getSaadhakCardData = async (req, res) => {
 
   res.json({ saadhaks: result });
 };
+
+// Show form with pre-filled values
+exports.showEditAddressTime = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = req.session.user;
+
+    // Must be their own kender
+    if (!user.kender || user.kender.toString() !== id) {
+      return res.status(403).send("You can only edit your own Kender.");
+    }
+
+    const kender = await Kender.findById(id);
+    if (!kender) return res.status(404).send("Kender not found.");
+
+    res.render("kender/editAddressTime", { kender, user, kenderRoles });
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+};
+
+// Update address & time (same as before)
+exports.updateKenderAddressAndTime = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { address, startTime } = req.body;
+    const user = req.session.user;
+
+    // Not their kender → unauthorized page
+    if (!user.kender || user.kender.toString() !== id) {
+      return res.status(403).render("error/unauthorized", {
+        message: "You can only update your own Kender."
+      });
+    }
+
+    const updated = await Kender.findByIdAndUpdate(
+      id,
+      { address, startTime },
+      { new: true, runValidators: true }
+    );
+
+    if (!updated) {
+      return res.status(404).render("error/error", {
+        message: "Kender not found."
+      });
+    }
+
+    res.redirect(`/dashboard?success=Kender+details+updated`);
+  } catch (err) {
+    res.status(500).render("error/error", {
+      message: err.message
+    });
+  }
+};
+

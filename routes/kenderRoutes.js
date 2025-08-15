@@ -6,6 +6,7 @@ const { requireLogin } = require("../middleware/authMiddleware");
 const { canManage } = require("../middleware/roleMiddleware");
 const { adminRoles, prantRoles, zilaRoles, ksheterRoles, kenderRoles } = require('../config/roles'); // ✅ DRY import
 const allowedRoles = [...adminRoles, ...prantRoles, ...zilaRoles, ...ksheterRoles];
+const { showEditAddressTime, updateKenderAddressAndTime } = require("../controllers/kenderController");
 
 // Routes
 router.get(
@@ -81,5 +82,11 @@ router.get('/api/kenders/by-ksheter/:ksheterId', async (req, res) => {
   const kenderList = await Kender.find({ ksheter: req.params.ksheterId }).sort({ name: 1 }).lean();
   res.json(kenderList);
 });
+
+
+// PATCH: Update address and time for own Kender (Kender roles only)
+router.get("/kender/:id/edit-address-time", requireLogin, canManage(kenderRoles), showEditAddressTime);
+router.patch("/kender/:id/address-time", requireLogin, canManage(kenderRoles), updateKenderAddressAndTime);
+
 
 module.exports = router;

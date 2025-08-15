@@ -112,6 +112,63 @@
       }
     </style>
 
+    <style>
+      /* Make all form labels dark and bold */
+label,
+.form-label {
+  color: #000 !important;   /* pure black */
+  font-weight: 600 !important; /* semi-bold */
+}
+/* Apply consistent border styling to all form elements */
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="password"],
+input[type="tel"],
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+input[type="month"],
+input[type="week"],
+input[type="url"],
+textarea,
+select {
+  border: 2px solid #000 !important;  /* Dark black border */
+  border-radius: 6px !important;      /* Slightly rounded corners */
+  padding: 8px !important;            /* Comfortable padding */
+  background-color: #fff !important;  /* Ensure white background */
+}
+
+/* Focus style for better visibility */
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #ff6600 !important;   /* Bright orange border on focus */
+  outline: none !important;
+  box-shadow: 0 0 5px rgba(255, 102, 0, 0.5) !important;
+}
+
+/* For Bootstrap form-control specifically */
+.form-control {
+  border: 2px solid #000 !important;
+  border-radius: 6px !important;
+  background-color: #fff !important;
+}
+
+/* For dropdown menus in navbar */
+.navbar .dropdown-menu {
+  border: 2px solid #000 !important;
+  border-radius: 6px !important;
+}
+
+/* Optional: style checkboxes and radio buttons outline */
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: #ff6600; /* Modern browsers: orange tick/circle */
+}
+</style>
+
+
     <script src="/js/utils.js"></script>
   </head>
   <body>

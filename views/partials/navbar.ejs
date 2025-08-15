@@ -72,6 +72,9 @@ const isSaadhakOnly = user?.roles.some(role => saadhakRoles.includes(role));
   }
 </style>
 
+
+
+
 <nav class="navbar navbar-expand-lg navbar-dark navbar-gradient sticky-top shadow-sm">
   <div class="container-fluid">
     <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="/">
@@ -144,16 +147,23 @@ const isSaadhakOnly = user?.roles.some(role => saadhakRoles.includes(role));
               <%- include('attendance') %>
               <%- include('program') %>
               <%- include('question') %>
-              <%- include('yog-samagri') %>
+              
               <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
             <% } else if (isKsheterLevel) { %>
               <%- include('kender') %>
               <%- include('saadhak') %>
               <%- include('attendance') %>
                <%- include('program') %>
-              <%- include('yog-samagri') %>
+              
               <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
             <% } else if (isKenderLevel) { %>
+              <% if (user.roles.some(role => kenderRoles.includes(role))) { %>
+                  <li class="nav-item">
+                    <a class="nav-link" href="/kender/<%= user.kender %>/edit-address-time">
+                      🏠 Update Kender Details
+                    </a>
+                  </li>
+              <% } %>
               <%- include('saadhak') %>
               <%- include('attendance') %>
                <%- include('program') %>
