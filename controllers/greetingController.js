@@ -37,14 +37,10 @@ exports.generateGreeting = async (req, res) => {
     const ctx = canvas.getContext("2d");
 
     const normalizedType = type?.toLowerCase();
+    const randomNumber = Math.floor(Math.random() * 15) + 1;
 
     const backgroundImage = await loadImage(
-      path.join(
-        __dirname,
-        type == "anniversary"
-          ? "../public/images/bg1.png"
-          : "../public/images/bg.png"
-      )
+      path.join(__dirname, `../public/images/bg${randomNumber}.png`)
     );
 
     const logoImage = await loadImage(
