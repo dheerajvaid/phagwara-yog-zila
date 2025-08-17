@@ -12,6 +12,7 @@ const yatraSchema = new mongoose.Schema({
   returnPNR: String,
   returnCoach: String,
   returnSeat: String,
+  seatType: String, // ← added field
   remarks: String,
   registeredAt: { type: Date, default: Date.now }
 });

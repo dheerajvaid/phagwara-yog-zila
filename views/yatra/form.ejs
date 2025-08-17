@@ -71,6 +71,15 @@
         </div>
       </div>
 
+      <div class="col-md-6 mb-2">
+  <label>💺 Seat Type:</label>
+  <select id="seatType" class="form-select">
+    <option value="">Select Seat Type</option>
+    <option value="Sleeper">Sleeper</option>
+    <option value="3AC">3AC</option>
+  </select>
+</div>
+
      <!-- Travel Info (readonly) - Temporarily Hidden -->
 <div id="travelInfo" style="display:none;">
   <hr>
@@ -164,7 +173,7 @@ function fetchSaadhak() {
     document.getElementById('formFields').style.display = 'block';
     // Reset fields
     ['name','gender','dob_day','dob_month','dob_year','age','remarks',
-     'onwardPNR','onwardCoach','onwardSeat','returnPNR','returnCoach','returnSeat']
+     'onwardPNR','onwardCoach','onwardSeat','returnPNR','returnCoach','returnSeat','seatType']
      .forEach(id => document.getElementById(id).value = '');
 
     if (data.yatraData) {
@@ -173,34 +182,36 @@ function fetchSaadhak() {
       document.getElementById('name').value = y.name || '';
       document.getElementById('gender').value = y.gender || '';
       if (y.dob) {
-        const [year, month, day] = y.dob.split('T')[0].split('-');
-        document.getElementById('dob_year').value = parseInt(year);
-        document.getElementById('dob_month').value = parseInt(month);
-        document.getElementById('dob_day').value = parseInt(day);
+        const dobDate = new Date(y.dob); // Convert UTC to local
+        document.getElementById('dob_year').value = dobDate.getFullYear();
+        document.getElementById('dob_month').value = dobDate.getMonth() + 1;
+        document.getElementById('dob_day').value = dobDate.getDate();
       }
       document.getElementById('age').value = data.age || '';
       document.getElementById('remarks').value = y.remarks || '';
       ['onwardPNR','onwardCoach','onwardSeat','returnPNR','returnCoach','returnSeat']
         .forEach(key => document.getElementById(key).value = y[key] || '');
+      document.getElementById('seatType').value = String(y.seatType || '');
       document.getElementById('submitBtn').innerText = '🔁 Update';
       return;
     }
 
-   if (data.saadhak) {
-  existing = false;
-  const s = data.saadhak;
-  document.getElementById('name').value = s.name || '';
-  document.getElementById('gender').value = s.gender || '';
-  if (s.dob) {
-    const dobDate = new Date(s.dob);
-    document.getElementById('dob_year').value = dobDate.getFullYear();
-    document.getElementById('dob_month').value = dobDate.getMonth() + 1;
-    document.getElementById('dob_day').value = dobDate.getDate();
-  }
-  document.getElementById('age').value = data.age || '';
-  document.getElementById('submitBtn').innerText = '📝 Register';
-  return;
-}
+    if (data.saadhak) {
+      existing = false;
+      const s = data.saadhak;
+      document.getElementById('name').value = s.name || '';
+      document.getElementById('gender').value = s.gender || '';
+      if (s.dob) {
+        const dobDate = new Date(s.dob); // Convert UTC to local
+        document.getElementById('dob_year').value = dobDate.getFullYear();
+        document.getElementById('dob_month').value = dobDate.getMonth() + 1;
+        document.getElementById('dob_day').value = dobDate.getDate();
+      }
+      document.getElementById('age').value = data.age || '';
+      document.getElementById('seatType').value = String(s.seatType || '');
+      document.getElementById('submitBtn').innerText = '📝 Register';
+      return;
+    }
 
     existing = false;
     document.getElementById('submitBtn').innerText = '📝 Register';
@@ -214,14 +225,14 @@ function calculateAge() {
   const year = +document.getElementById('dob_year').value;
   const ageField = document.getElementById('age');
   if (!day || !month || !year) { ageField.value = ''; return; }
-  const birthDate = new Date(year, month-1, day);
-  if (birthDate.getFullYear() !== year || birthDate.getMonth()+1 !== month || birthDate.getDate() !== day) {
+  const birthDate = new Date(Date.UTC(year, month-1, day)); // UTC to avoid timezone issues
+  if (birthDate.getUTCFullYear() !== year || birthDate.getUTCMonth()+1 !== month || birthDate.getUTCDate() !== day) {
     alert('Please select a valid date.'); ageField.value = ''; return;
   }
   const today = new Date();
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const m = today.getMonth() - birthDate.getMonth();
-  if (m<0 || (m===0 && today.getDate()<birthDate.getDate())) age--;
+  let age = today.getFullYear() - birthDate.getUTCFullYear();
+  const m = today.getMonth() - birthDate.getUTCMonth();
+  if (m<0 || (m===0 && today.getDate()<birthDate.getUTCDate())) age--;
   if (age<5 || age>90) { alert('Age must be between 5 and 90.'); ageField.value=''; return; }
   ageField.value = age;
 }
@@ -244,19 +255,21 @@ document.getElementById('submitBtn').addEventListener('click', function() {
   const month = +document.getElementById('dob_month').value;
   const year = +document.getElementById('dob_year').value;
   const age = +document.getElementById('age').value;
+  const seatType = String(document.getElementById('seatType').value || '');
 
   // ✅ Validations
- if (!name || !/^[A-Za-z\s]{1,16}$/.test(name)) {
-  alert('Please enter a valid Name (letters and spaces only, max 16 characters).');
-  return;
-}
+  if (!name || !/^[A-Za-z\s]{1,16}$/.test(name)) {
+    alert('Please enter a valid Name (letters and spaces only, max 16 characters).');
+    return;
+  }
   if (gender !== 'Male' && gender !== 'Female') { alert('Please select a valid Gender.'); return; }
   if (!day || !month || !year) { alert('Please select Day, Month, Year of Birth.'); return; }
-  const birthDate = new Date(year, month-1, day);
-  if (birthDate.getFullYear()!==year || birthDate.getMonth()+1!==month || birthDate.getDate()!==day) {
+  const birthDate = new Date(Date.UTC(year, month-1, day));
+  if (birthDate.getUTCFullYear()!==year || birthDate.getUTCMonth()+1!==month || birthDate.getUTCDate()!==day) {
     alert('Please select a valid date.'); return;
   }
   if (!age || age<5 || age>90) { alert('Age must be between 5 and 90.'); return; }
+  if(!seatType) { alert('Please select a Seat Type.'); return; }
 
   // ✅ All validations passed → trigger hidden submit
   document.getElementById('hiddenSubmit').click();
@@ -274,13 +287,30 @@ document.getElementById('yatraForm').addEventListener('submit', function(e){
   const month = +document.getElementById('dob_month').value;
   const year = +document.getElementById('dob_year').value;
   const age = +document.getElementById('age').value;
+  const seatType = String(document.getElementById('seatType').value || '');
+
+  // Validate DOB
+  if (!day || !month || !year) { 
+    alert('Please select a valid date of birth.'); 
+    if(spinner) spinner.style.display = 'none';
+    return; 
+  }
+  const dobStr = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+  const dobDate = new Date(dobStr);
+  if (isNaN(dobDate.getTime())) {
+    alert('Invalid Date selected.'); 
+    if(spinner) spinner.style.display = 'none';
+    return; 
+  }
 
   const data = {
     mobile: document.getElementById('mobile').value,
-    name, gender,
-    dob: `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`,
+    name, 
+    gender,
+    dob: dobStr, // send as YYYY-MM-DD
     age,
-    remarks: document.getElementById('remarks').value
+    remarks: document.getElementById('remarks').value,
+    seatType
   };
 
   fetch('/vrindavan-trip/register', {
@@ -300,6 +330,7 @@ document.getElementById('yatraForm').addEventListener('submit', function(e){
   });
 });
 </script>
+
 
 
 
