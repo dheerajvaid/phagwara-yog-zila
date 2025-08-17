@@ -201,7 +201,7 @@ router.get("/report/pdf", async (req, res) => {
     const rowSpacing = 60;
 
     const summaryBoxes = [
-      { title: "Booked", value: totalBooked, color: "#198754" }, // green
+      { title: "Register", value: totalBooked, color: "#198754" }, // green
       { title: "Left", value: seatsLeft, color: "#ffc107" }, // yellow
       { title: "Male", value: maleCount, color: "#0d6efd" }, // blue
       { title: "Female", value: femaleCount, color: "#dc3545" }, // red
@@ -277,7 +277,6 @@ router.get("/report/pdf", async (req, res) => {
 
     y += rowHeight;
 
-    
     // Table Rows
     allYatra.forEach((yatra, index) => {
       const age = yatra.dob ? moment().diff(moment(yatra.dob), "years") : "";
@@ -311,14 +310,20 @@ router.get("/report/pdf", async (req, res) => {
 
       y += rowHeight;
 
-      if (y > 750) {
+      if (y > 740) {
         doc.addPage();
+        x = 40;
         y = 50;
       }
     });
 
     // ------------------ INSTRUCTIONS ------------------
-    doc.addPage();
+    if (y > 740) {
+      doc.addPage();
+      y = 50;
+      x = 40;
+    }
+
     doc
       .fontSize(12)
       .fillColor("#dc3545")
@@ -405,7 +410,5 @@ router.get("/report/excel", async (req, res) => {
     res.send("Error generating Excel");
   }
 });
-
-module.exports = router;
 
 module.exports = router;
