@@ -1,0 +1,94 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-4">
+  <h3 class="text-center text-danger">🌸 Vrindavan Yatra Registration Report 🌸</h3>
+
+  <!-- ✅ Summary Section -->
+  <!-- 🔥 Stylish Summary Section -->
+<div class="row text-center mb-4">
+  <div class="col-md-3 col-6 mb-3">
+    <div class="p-3 bg-success text-white rounded shadow">
+      <div class="fs-4 fw-bold">✅ Seats Booked</div>
+      <div class="display-6"><%= summary.totalBooked %></div>
+    </div>
+  </div>
+  <div class="col-md-3 col-6 mb-3">
+    <div class="p-3 bg-warning text-dark rounded shadow">
+      <div class="fs-4 fw-bold">🪑 Seats Left</div>
+      <div class="display-6"><%= summary.seatsLeft %></div>
+    </div>
+  </div>
+  <div class="col-md-3 col-6 mb-3">
+    <div class="p-3 bg-primary text-white rounded shadow">
+      <div class="fs-4 fw-bold">👨 Male</div>
+      <div class="display-6"><%= summary.maleCount %></div>
+    </div>
+  </div>
+  <div class="col-md-3 col-6 mb-3">
+    <div class="p-3 bg-danger text-white rounded shadow">
+      <div class="fs-4 fw-bold">👩 Female</div>
+      <div class="display-6"><%= summary.femaleCount %></div>
+    </div>
+  </div>
+  <div class="col-md-3 col-6 mb-3">
+    <div class="p-3 bg-info text-white rounded shadow">
+      <div class="fs-4 fw-bold">🚆 3AC</div>
+      <div class="display-6"><%= summary.ac3Count %></div>
+    </div>
+  </div>
+  <div class="col-md-3 col-6 mb-3">
+    <div class="p-3 bg-secondary text-white rounded shadow">
+      <div class="fs-4 fw-bold">🛏️ Sleeper</div>
+      <div class="display-6"><%= summary.sleeperCount %></div>
+    </div>
+  </div>
+</div>
+
+
+  <!-- 🔽 Table -->
+  <div class="text-end mb-3">
+    <a href="/vrindavan-trip/report/pdf" class="btn btn-danger">📄 Export PDF</a>
+    <a href="/vrindavan-trip/report/excel" class="btn btn-success">📊 Export Excel</a>
+  </div>
+
+  <table class="table table-bordered table-striped">
+    <thead class="table-danger">
+      <tr>
+        <th>S.No</th>
+        <th>Name</th>
+        <th>Mobile</th>
+        <th>Gender</th>
+        <th>Age</th>
+        <th>Seat Type</th>
+        <th>Registered At</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% yatraList.forEach((y, index) => { %>
+        <tr>
+          <td><%= index + 1 %></td>
+          <td><%= y.name %></td>
+          <td><%= y.mobile %></td>
+          <td><%= y.gender %></td>
+          <td><%= y.dob ? moment().diff(moment(y.dob), 'years') : '' %></td>
+          <td><%= y.seatType || '-' %></td>
+          <td><%= moment(y.registeredAt).format('DD-MM-YYYY HH:mm') %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+
+  <!-- 📝 Instructions Placeholder -->
+  <div class="alert alert-warning mt-5">
+    <h5>📝 Instructions:</h5>
+    <ol>
+      <li>Final travel list will be shared in October.</li>
+      <li>Any corrections can be sent to the team before 30th September.</li>
+      <li>Ensure valid ID proof is carried while travelling.</li>
+      <!-- Add more points later -->
+    </ol>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>
