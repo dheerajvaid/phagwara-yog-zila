@@ -201,8 +201,8 @@ router.get("/report/pdf", async (req, res) => {
     const rowSpacing = 60;
 
     const summaryBoxes = [
-      { title: "Seats Booked", value: totalBooked, color: "#198754" }, // green
-      { title: "Seats Left", value: seatsLeft, color: "#ffc107" }, // yellow
+      { title: "Booked", value: totalBooked, color: "#198754" }, // green
+      { title: "Left", value: seatsLeft, color: "#ffc107" }, // yellow
       { title: "Male", value: maleCount, color: "#0d6efd" }, // blue
       { title: "Female", value: femaleCount, color: "#dc3545" }, // red
       { title: "3AC", value: ac3Count, color: "#0dcaf0" }, // cyan
