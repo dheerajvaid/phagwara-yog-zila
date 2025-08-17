@@ -25,7 +25,8 @@
     <div id="formFields" style="display: none;">
       <div class="row">
         <div class="col-md-6 mb-2">
-          <label>👤 Name:</label>
+          <label>👤 Name: (as per ID Proof)</label>
+          <label>16 characters long maximum</label>
           <input type="text" class="form-control" id="name" maxlength="16">
         </div>
         <div class="col-md-6 mb-2">
@@ -185,21 +186,21 @@ function fetchSaadhak() {
       return;
     }
 
-    if (data.saadhak) {
-      existing = false;
-      const s = data.saadhak;
-      document.getElementById('name').value = s.name || '';
-      document.getElementById('gender').value = s.gender || '';
-      if (s.dob) {
-        const [year, month, day] = s.dob.split('T')[0].split('-');
-        document.getElementById('dob_year').value = parseInt(year);
-        document.getElementById('dob_month').value = parseInt(month);
-        document.getElementById('dob_day').value = parseInt(day);
-      }
-      document.getElementById('age').value = data.age || '';
-      document.getElementById('submitBtn').innerText = '📝 Register';
-      return;
-    }
+   if (data.saadhak) {
+  existing = false;
+  const s = data.saadhak;
+  document.getElementById('name').value = s.name || '';
+  document.getElementById('gender').value = s.gender || '';
+  if (s.dob) {
+    const dobDate = new Date(s.dob);
+    document.getElementById('dob_year').value = dobDate.getFullYear();
+    document.getElementById('dob_month').value = dobDate.getMonth() + 1;
+    document.getElementById('dob_day').value = dobDate.getDate();
+  }
+  document.getElementById('age').value = data.age || '';
+  document.getElementById('submitBtn').innerText = '📝 Register';
+  return;
+}
 
     existing = false;
     document.getElementById('submitBtn').innerText = '📝 Register';

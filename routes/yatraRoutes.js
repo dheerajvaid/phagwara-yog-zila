@@ -69,12 +69,18 @@ router.post('/fetch', async (req, res) => {
 // POST: /vrindavan-trip/register
 // POST: /vrindavan-trip/register
 router.post('/register', async (req, res) => {
-  const data = req.body;
-
   try {
+    const data = req.body;
+
+    // Convert DOB string (YYYY-MM-DD) to local Date
+    if (data.dob) {
+      const [year, month, day] = data.dob.split('-');
+      data.dob = new Date(year, month - 1, day); // JS months are 0-indexed
+    }
+
     await Yatra.findOneAndUpdate(
-      { mobile: data.mobile },  // filter
-      data,                     // data to update
+      { mobile: data.mobile },   // filter
+      data,                      // data to update
       { upsert: true, new: true } // create if not exists, return new doc
     );
 
@@ -84,6 +90,7 @@ router.post('/register', async (req, res) => {
     res.json({ success: false, message: 'Error saving registration' });
   }
 });
+
 
 // GET: /vrindavan-trip/success
 router.get('/success', (req, res) => {
