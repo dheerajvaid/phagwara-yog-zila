@@ -1,0 +1,305 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-4">
+  <h3 class="text-center text-danger">🌸 Vrindavan Yatra Registration 🌸</h3>
+  <p class="text-center text-muted">Yatra Dates: 31 October – 2 November 2025</p>
+
+  <div class="alert alert-info">
+    <strong>Train Details:</strong>
+    <ul>
+      <li>🚆 <strong>Chhattisgarh Express (18238)</strong> — Departure: <strong>31 Oct, 5:30 PM</strong></li>
+      <li>🚆 <strong>Hoshiarpur Express (11905)</strong> — Return: <strong>2 Nov, 8:00 PM</strong></li>
+    </ul>
+  </div>
+
+  <form id="yatraForm">
+    <!-- Mobile Check -->
+    <div class="mb-3">
+      <label>📱 Mobile Number (10 digits):</label>
+      <input type="mobile" class="form-control" id="mobile" required maxlength="10" pattern="\d{10}">
+      <button type="button" class="btn btn-primary mt-2" onclick="fetchSaadhak()">🔍 Fetch Details</button>
+    </div>
+
+    <!-- Hidden section appears after mobile check -->
+    <div id="formFields" style="display: none;">
+      <div class="row">
+        <div class="col-md-6 mb-2">
+          <label>👤 Name:</label>
+          <input type="text" class="form-control" id="name" maxlength="16">
+        </div>
+        <div class="col-md-6 mb-2">
+          <label>⚧️ Gender:</label>
+          <select id="gender" class="form-select">
+            <option value="">Select Gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            </select>
+        </div>
+
+        <!-- DOB as dropdowns -->
+        <div class="col-md-6 mb-2">
+          <label>🎂 Date of Birth:</label>
+          <div class="d-flex gap-2">
+            <select id="dob_day" class="form-select">
+              <option value="">Day</option>
+              <% for(let d=1; d<=31; d++) { %>
+                <option value="<%= d %>"><%= d %></option>
+              <% } %>
+            </select>
+            <select id="dob_month" class="form-select">
+              <option value="">Month</option>
+              <% const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; %>
+              <% for(let m=1; m<=12; m++) { %>
+                <option value="<%= m %>"><%= months[m-1] %></option>
+              <% } %>
+            </select>
+            <select id="dob_year" class="form-select">
+              <option value="">Year</option>
+              <% const currentYear = new Date().getFullYear(); %>
+              <% for(let y=currentYear; y>=1900; y--) { %>
+                <option value="<%= y %>"><%= y %></option>
+              <% } %>
+            </select>
+          </div>
+        </div>
+
+        <div class="col-md-6 mb-2">
+          <label>🧮 Age:</label>
+          <input type="text" class="form-control" id="age" readonly>
+        </div>
+      </div>
+
+     <!-- Travel Info (readonly) - Temporarily Hidden -->
+<div id="travelInfo" style="display:none;">
+  <hr>
+  <h5 class="text-secondary">🚆 Travel Details (View Only)</h5>
+  <div class="row">
+    <div class="col-md-4 mb-2">
+      <label>Onward PNR</label>
+      <input type="text" class="form-control" id="onwardPNR" disabled placeholder="Not displayed">
+    </div>
+    <div class="col-md-4 mb-2">
+      <label>Onward Coach</label>
+      <input type="text" class="form-control" id="onwardCoach" disabled placeholder="Not displayed">
+    </div>
+    <div class="col-md-4 mb-2">
+      <label>Onward Seat</label>
+      <input type="text" class="form-control" id="onwardSeat" disabled placeholder="Not displayed">
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-4 mb-2">
+      <label>Return PNR</label>
+      <input type="text" class="form-control" id="returnPNR" disabled placeholder="Not displayed">
+    </div>
+    <div class="col-md-4 mb-2">
+      <label>Return Coach</label>
+      <input type="text" class="form-control" id="returnCoach" disabled placeholder="Not displayed">
+    </div>
+    <div class="col-md-4 mb-2">
+      <label>Return Seat</label>
+      <input type="text" class="form-control" id="returnSeat" disabled placeholder="Not displayed">
+    </div>
+  </div>
+</div>
+
+      <!-- Remarks -->
+      <div class="mb-3 mt-3">
+        <label>✍️ Any Special Remarks:</label>
+        <textarea class="form-control" id="remarks" rows="3" placeholder="Enter any specific note or request (optional)"></textarea>
+      </div>
+
+      <div class="text-end">
+       <button type="button" class="btn btn-success" id="submitBtn">📝 Register</button>
+
+      </div>
+    </div>
+    <!-- Hidden submit button -->
+    <button type="submit" id="hiddenSubmit" style="display:none;"></button>
+
+  </form>
+</div>
+
+<!-- Modal: Saadhak Not Found (Now unused, but kept in case) -->
+<div class="modal fade" id="notFoundModal" tabindex="-1" aria-labelledby="notFoundModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-danger">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="notFoundModalLabel">❌ Saadhak Not Found</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        The entered mobile number does not match any registered Saadhak.<br>
+        Please ensure the number is correct or contact the administrator for help.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let existing = false;
+const spinner = document.getElementById("loadingSpinner");
+
+// Fetch Saadhak data by mobile
+function fetchSaadhak() {
+  const mobile = document.getElementById('mobile').value.trim();
+  if (!/^[6-9]\d{9}$/.test(mobile)) {
+    alert('Please enter a valid 10-digit mobile number.');
+    return;
+  }
+
+  fetch('/vrindavan-trip/fetch', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mobile })
+  })
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById('formFields').style.display = 'block';
+    // Reset fields
+    ['name','gender','dob_day','dob_month','dob_year','age','remarks',
+     'onwardPNR','onwardCoach','onwardSeat','returnPNR','returnCoach','returnSeat']
+     .forEach(id => document.getElementById(id).value = '');
+
+    if (data.yatraData) {
+      existing = true;
+      const y = data.yatraData;
+      document.getElementById('name').value = y.name || '';
+      document.getElementById('gender').value = y.gender || '';
+      if (y.dob) {
+        const [year, month, day] = y.dob.split('T')[0].split('-');
+        document.getElementById('dob_year').value = parseInt(year);
+        document.getElementById('dob_month').value = parseInt(month);
+        document.getElementById('dob_day').value = parseInt(day);
+      }
+      document.getElementById('age').value = data.age || '';
+      document.getElementById('remarks').value = y.remarks || '';
+      ['onwardPNR','onwardCoach','onwardSeat','returnPNR','returnCoach','returnSeat']
+        .forEach(key => document.getElementById(key).value = y[key] || '');
+      document.getElementById('submitBtn').innerText = '🔁 Update';
+      return;
+    }
+
+    if (data.saadhak) {
+      existing = false;
+      const s = data.saadhak;
+      document.getElementById('name').value = s.name || '';
+      document.getElementById('gender').value = s.gender || '';
+      if (s.dob) {
+        const [year, month, day] = s.dob.split('T')[0].split('-');
+        document.getElementById('dob_year').value = parseInt(year);
+        document.getElementById('dob_month').value = parseInt(month);
+        document.getElementById('dob_day').value = parseInt(day);
+      }
+      document.getElementById('age').value = data.age || '';
+      document.getElementById('submitBtn').innerText = '📝 Register';
+      return;
+    }
+
+    existing = false;
+    document.getElementById('submitBtn').innerText = '📝 Register';
+  });
+}
+
+// Calculate age from DOB dropdowns
+function calculateAge() {
+  const day = +document.getElementById('dob_day').value;
+  const month = +document.getElementById('dob_month').value;
+  const year = +document.getElementById('dob_year').value;
+  const ageField = document.getElementById('age');
+  if (!day || !month || !year) { ageField.value = ''; return; }
+  const birthDate = new Date(year, month-1, day);
+  if (birthDate.getFullYear() !== year || birthDate.getMonth()+1 !== month || birthDate.getDate() !== day) {
+    alert('Please select a valid date.'); ageField.value = ''; return;
+  }
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m<0 || (m===0 && today.getDate()<birthDate.getDate())) age--;
+  if (age<5 || age>90) { alert('Age must be between 5 and 90.'); ageField.value=''; return; }
+  ageField.value = age;
+}
+
+// Attach age calculation listeners
+['dob_day','dob_month','dob_year'].forEach(id => {
+  document.getElementById(id).addEventListener('change', calculateAge);
+});
+
+// Prevent Enter key from submitting on mobile
+document.getElementById('mobile').addEventListener('keydown', function(e){
+  if(e.key==='Enter') e.preventDefault();
+});
+
+// Visible submit button triggers validations
+document.getElementById('submitBtn').addEventListener('click', function() {
+  const name = document.getElementById('name').value.trim();
+  const gender = document.getElementById('gender').value;
+  const day = +document.getElementById('dob_day').value;
+  const month = +document.getElementById('dob_month').value;
+  const year = +document.getElementById('dob_year').value;
+  const age = +document.getElementById('age').value;
+
+  // ✅ Validations
+ if (!name || !/^[A-Za-z\s]{1,16}$/.test(name)) {
+  alert('Please enter a valid Name (letters and spaces only, max 16 characters).');
+  return;
+}
+  if (gender !== 'Male' && gender !== 'Female') { alert('Please select a valid Gender.'); return; }
+  if (!day || !month || !year) { alert('Please select Day, Month, Year of Birth.'); return; }
+  const birthDate = new Date(year, month-1, day);
+  if (birthDate.getFullYear()!==year || birthDate.getMonth()+1!==month || birthDate.getDate()!==day) {
+    alert('Please select a valid date.'); return;
+  }
+  if (!age || age<5 || age>90) { alert('Age must be between 5 and 90.'); return; }
+
+  // ✅ All validations passed → trigger hidden submit
+  document.getElementById('hiddenSubmit').click();
+});
+
+// Hidden submit button actual AJAX submission
+document.getElementById('yatraForm').addEventListener('submit', function(e){
+  e.preventDefault();
+
+  if(spinner) spinner.style.display = 'inline-block';
+
+  const name = document.getElementById('name').value.trim();
+  const gender = document.getElementById('gender').value;
+  const day = +document.getElementById('dob_day').value;
+  const month = +document.getElementById('dob_month').value;
+  const year = +document.getElementById('dob_year').value;
+  const age = +document.getElementById('age').value;
+
+  const data = {
+    mobile: document.getElementById('mobile').value,
+    name, gender,
+    dob: `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`,
+    age,
+    remarks: document.getElementById('remarks').value
+  };
+
+  fetch('/vrindavan-trip/register', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(data)
+  })
+  .then(res => res.json())
+  .then(result => {
+    if(spinner) spinner.style.display = 'none';
+    if(result.success) window.location.href="/vrindavan-trip/success";
+    else alert('❌ Error during registration. Please try again.');
+  })
+  .catch(err => {
+    if(spinner) spinner.style.display = 'none';
+    alert('❌ Network/server error.');
+  });
+});
+</script>
+
+
+
+<%- include('../partials/footer') %>

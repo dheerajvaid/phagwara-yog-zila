@@ -8,6 +8,18 @@
   <!-- Date Filter -->
   <form method="GET" class="text-center mb-3">
     <input type="date" name="date" value="<%= selectedDate %>" onchange="this.form.submit()" class="form-control d-inline w-auto fw-bold" />
+    <!-- Add hidden prant and zila -->
+  <% if (user.prant) { %>
+    <input type="hidden" name="prant" value="<%= user.prant %>">
+  <% } else if (req.query.prant) { %>
+    <input type="hidden" name="prant" value="<%= req.query.prant %>">
+  <% } %>
+
+  <% if (user.zila) { %>
+    <input type="hidden" name="zila" value="<%= user.zila %>">
+  <% } else if (req.query.zila) { %>
+    <input type="hidden" name="zila" value="<%= req.query.zila %>">
+  <% } %>
   </form>
 
   <!-- Export Button -->

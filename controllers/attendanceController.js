@@ -7,6 +7,7 @@ const Attendance = require("../models/Attendance");
 const messages = require("../utils/motivationalMessages");
 const pdfExport = require("../utils/pdfExport");
 const roleConfig = require("../config/roles");
+const roles = roleConfig;
 
 const { kenderRoles, kenderTeamRoles, saadhakRoles } = roleConfig;
 
@@ -1238,7 +1239,8 @@ exports.exportMissingPDF = async (req, res) => {
   const { from, to } = req.query;
   const sortBy = req.query.sortBy;
   const sortDir = req.query.sortDir;
-
+  const user = req.session.user;
+  
   const zilaValue = normalizeScopeValue(req.query.zila);
   const ksheterValue = normalizeScopeValue(req.query.ksheter);
   const kender = normalizeScopeValue(req.query.kender);
@@ -1389,6 +1391,8 @@ exports.exportMissingPDF = async (req, res) => {
     "attendance/pdfMissing",
     {
       missing: filteredResult,
+      roles,
+      user,
       from,
       to,
       total: filteredResult.length,
