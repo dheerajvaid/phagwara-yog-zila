@@ -17,10 +17,10 @@ const getBadgeColor = require("../partials/badgeHelper");
 exports.showExploreHome = async (req, res) => {
   try {
     const prants = await Prant.find().lean();
-    const zilas = await Zila.find().lean();
-    const ksheters = await Ksheter.find().lean();
+    const zilas = (await Zila.find().lean()).sort((a, b) => a.name.localeCompare(b.name));
+    const ksheters = (await Ksheter.find().lean()).sort((a, b) => a.name.localeCompare(b.name));
     const saadhaks = await Saadhak.find().lean();
-    const kenders = await Kender.find().lean();
+    const kenders = (await Kender.find().lean()).sort((a, b) => a.name.localeCompare(b.name));
 
     // 🔹 Enrich Prant with team
     const enrichedPrants = prants.map((prant) => {
@@ -67,7 +67,7 @@ exports.showExploreHome = async (req, res) => {
       };
     });
 
-    // 🔹 Enrich Kenders with team (already working logic)
+    // 🔹 Enrich Kenders with team
     const enrichedKenders = kenders.map((kender) => {
       const team = saadhaks.filter(
         (s) =>
@@ -82,19 +82,12 @@ exports.showExploreHome = async (req, res) => {
       };
     });
 
-    // 🧾 Optional: log for verification
-    // console.dir(enrichedPrants, { depth: null });
-    // console.dir(enrichedZilas, { depth: null });
-    // console.dir(enrichedKsheters, { depth: null });
-    // console.dir(enrichedKenders, { depth: null });
-
-    // 🧠 Render with all enriched data
     res.render("public/explore", {
       prants: enrichedPrants,
       zilas: enrichedZilas,
       ksheters: enrichedKsheters,
       kenders: enrichedKenders,
-      saadhaks, // raw list if still needed
+      saadhaks,
       prantRoles,
       zilaRoles,
       ksheterRoles,
@@ -106,6 +99,7 @@ exports.showExploreHome = async (req, res) => {
     res.status(500).send("Server error");
   }
 };
+
 
 // 🏢 Zila Detail Page
 exports.showZilaDetail = async (req, res) => {

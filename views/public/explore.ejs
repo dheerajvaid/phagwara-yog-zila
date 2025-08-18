@@ -40,7 +40,7 @@
                           <% }) %>
                         <% } %>
                         <hr class="my-2">
-                        <small class="text-muted">📱 <%= member.mobile %></small>
+                        <small class="text-dark">📱 <%= member.mobile %></small>
                       </div>
                     </div>
                   </div>
@@ -79,7 +79,7 @@
                                     <span class="badge bg-<%= getBadgeColor(role) %> me-1"><%= role %></span>
                                   <% }) %>
                                   <hr class="my-2">
-                                  <small class="text-muted">📱 <%= member.mobile %></small>
+                                  <small class="text-dark">📱 <%= member.mobile %></small>
                                 </div>
                               </div>
                             </div>
@@ -109,12 +109,12 @@
                                       <div class="col-md-4 col-sm-6">
                                         <div class="card glossy-card border border-info mb-2">
                                           <div class="card-body">
-                                            <strong class="card-title text-info"><%= member.name %></strong><br>
+                                            <strong class="card-title text-dark"><%= member.name %></strong><br>
                                             <% member.role.forEach(role => { %>
                                               <span class="badge bg-<%= getBadgeColor(role) %> me-1"><%= role %></span>
                                             <% }) %>
                                             <hr class="my-2">
-                                            <small class="text-muted">📱 <%= member.mobile %></small>
+                                            <small class="text-dark">📱 <%= member.mobile %></small>
                                           </div>
                                         </div>
                                       </div>
@@ -122,9 +122,9 @@
                                   </div>
                                 <% } %>
 
-                                <% kenders.filter(k => String(k.ksheter) === String(ksheter._id)).forEach(kender => { %>
+                               <% kenders.filter(k => String(k.ksheter) === String(ksheter._id)).forEach((kender, kIndex) => { %>
                                   <div class="card card-body border mt-3 ms-3 shadow-sm glossy-card bg-light">
-                                    <h6 class="text-info">🏠 <%= kender.name %></h6>
+                                    <h6 class="text-danger">🏠 <%= kIndex + 1 %>. <%= kender.name %></h6>
                                     <% if (kender.startTime) { %>
                                       <p class="mb-1"><strong>🕒 Time:</strong> <%= kender.startTime %></p>
                                     <% } %>
@@ -141,14 +141,14 @@
                                                   <span class="badge bg-<%= getBadgeColor(role) %> me-1"><%= role %></span>
                                                 <% }) %>
                                                 <hr class="my-2">
-                                                <small class="text-muted">📱 <%= member.mobile %></small>
+                                                <small class="text-dark">📱 <%= member.mobile %></small>
                                               </div>
                                             </div>
                                           </div>
                                         <% }) %>
                                       </div>
                                     <% } else { %>
-                                      <p class="text-muted"><em>No Kender team listed.</em></p>
+                                      <p class="text-dark"><em>No Kender team listed.</em></p>
                                     <% } %>
                                   </div>
                                 <% }) %>
