@@ -321,7 +321,10 @@ document.getElementById('yatraForm').addEventListener('submit', function(e){
   .then(res => res.json())
   .then(result => {
     if(spinner) spinner.style.display = 'none';
-    if(result.success) window.location.href="/vrindavan-trip/success";
+   if (result.success) {
+      const name = encodeURIComponent(data.name); // escape special characters
+      window.location.href = `/vrindavan-trip/success?name=${name}`;
+    }
     else alert('❌ Error during registration. Please try again.');
   })
   .catch(err => {

@@ -99,7 +99,8 @@ router.post("/register", async (req, res) => {
 
 // GET: /vrindavan-trip/success
 router.get("/success", (req, res) => {
-  res.render("yatra/success");
+  const { name } = req.query;
+  res.render("yatra/success", { name });
 });
 
 // Catch-all for /vrindavan-trip/*
@@ -175,6 +176,8 @@ router.get("/report/pdf", async (req, res) => {
 
     doc.pipe(res);
 
+    
+
     // ------------------ HEADER ------------------
     doc
       .fontSize(18)
@@ -247,7 +250,21 @@ router.get("/report/pdf", async (req, res) => {
     }
 
     // move cursor below boxes
-    doc.moveDown(2);
+    doc.moveDown(0.5);
+    let y = doc.y;
+
+    // ------------------ INSERT IMAGE ------------------
+    try {
+      doc.image("public/images/krishna-waiting.jpg", 170, y + 10, {
+        width: 200,
+        align: "center",
+      });
+
+      y += 180; // move cursor below the image
+      doc.moveTo(40, y); // position after image
+    } catch (imgErr) {
+      console.error("Image loading error:", imgErr.message);
+    }
 
     // ------------------ TABLE ------------------
     const headers = [
@@ -261,7 +278,7 @@ router.get("/report/pdf", async (req, res) => {
       "Payment",
     ];
     const columnWidth = [40, 100, 90, 50, 40, 60, 70, 60];
-    let y = doc.y;
+    
     const rowHeight = 20;
 
     // Table Header
