@@ -5,7 +5,10 @@ const Yatra = require("../models/Yatra");
 const moment = require("moment");
 const PDFDocument = require("pdfkit");
 const ExcelJS = require("exceljs");
-
+const { requireLogin } = require("../middleware/authMiddleware");
+const { canManage } = require("../middleware/roleMiddleware");
+// ✅ Role groups from config
+const { adminRoles } = require("../config/roles");
 // Root: /vrindavan-trip
 router.get("/", (req, res) => {
   res.render("yatra/password");
@@ -312,7 +315,7 @@ router.get("/report/pdf", async (req, res) => {
 
       if (y > 740) {
         doc.addPage();
-        x = 40;
+
         y = 50;
       }
     });
@@ -321,25 +324,44 @@ router.get("/report/pdf", async (req, res) => {
     if (y > 740) {
       doc.addPage();
       y = 50;
-      x = 40;
     }
+
+    doc.moveDown(2);
 
     doc
       .fontSize(12)
       .fillColor("#dc3545")
-      .text("Important Instructions", { underline: true });
+      .text("Important Instructions", 40, undefined, {
+        underline: true,
+        align: "left",
+        width: 520,
+      });
 
     const instructions = [
-      "1. Final travel list will be shared before 15th October.",
-      "2. For changes or corrections, contact the team before 30th September.",
-      "3. Carry original government ID proof during travel.",
-      "4. Seat confirmation is based on final payment and ID verification.",
+      "1. This Yatra (spiritual journey) will be conducted via train. Seating is arranged in both 3AC (Air-Conditioned) and Sleeper (Non-AC) coaches.",
+      "2. The estimated cost for 3AC travel will be between ₹3,500 to ₹4,000.",
+      "3. The estimated cost for Sleeper (Non-AC) travel will be around ₹2,500.",
+      "4. Please note that this is not a tour package.",
+      "5. We will travel as one group where everyone is a participant and a co-traveler.",
+      "6. We are only arranging train bookings and bus transportation from Mathura to Vrindavan and back.",
+      "7. Food, auto rickshaws, and other personal expenses will be the responsibility of each participant.",
+      "8. Registration is open until 30th August or until 60 participants are registered — whichever comes first.",
+      "9. The ashram has 13 AC rooms (3 people per room) and one large hall (accommodating 20–25 people).",
+      "10. We are in touch with the ashram for providing 2 breakfasts and dinners. If available, the cost will be shared equally among all.",
+      "11. Charges will depend on whether you choose to stay in a room or in the hall.",
+      "12. Please remember this is a yogic and spiritual journey. If time permits, sessions of meditation, Yoga Nidra, and yogic practices may be conducted.",
+      "13. For any questions or help, please reach out to our team.",
     ];
 
     doc.moveDown(0.5);
     doc.fontSize(11).fillColor("black");
+
     instructions.forEach((instruction) => {
-      doc.text(instruction);
+      doc.text(instruction, {
+        align: "left",
+        width: 500, // safely wrapped text within A4 printable width
+        continued: false,
+      });
     });
 
     doc.end();
@@ -410,5 +432,22 @@ router.get("/report/excel", async (req, res) => {
     res.send("Error generating Excel");
   }
 });
+
+// DELETE: /vrindavan-trip/delete/:id
+router.delete(
+  "/delete/:id", // ✅ Path first
+  requireLogin, // ✅ Middleware 1
+  canManage(adminRoles), // ✅ Middleware 2
+  async (req, res) => {
+    // ✅ Handler
+    try {
+      await Yatra.findByIdAndDelete(req.params.id);
+      res.json({ success: true });
+    } catch (err) {
+      console.error("Delete error:", err);
+      res.status(500).json({ success: false, message: "Server Error" });
+    }
+  }
+);
 
 module.exports = router;
