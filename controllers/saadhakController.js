@@ -334,7 +334,7 @@ exports.listSaadhaks = async (req, res) => {
       query._id = null;
     } else if (!userRoles.includes("Admin")) {
       // Admin gets all access — skip restrictions
-      query._id = { $ne: user.id };
+      
       // Apply Prant-level restrictions
       if (hasRole(prantRoles)) {
         query.prant = user.prant?.$oid || user.prant;
@@ -391,6 +391,10 @@ exports.showEditForm = async (req, res) => {
   try {
     const user = req.session.user;
     const saadhak = await Saadhak.findById(req.params.id);
+    
+    if (user.id == saadhak._id) {
+      return res.render("error/unauthorized");
+    }
 
     // Determine allowedRoles based on user's highest role
     let allowedRoles = [];

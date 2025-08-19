@@ -19,4 +19,9 @@ router.get("/kender/:kenderId", exploreController.showKenderDetail);
 // 🔍 Global search page
 router.get("/search", exploreController.handleSearchQuery);
 
+router.get("/excel", exploreController.exportExploreExcel);
+
+router.get("/word", exploreController.exportDirectoryWord);
+
+
 module.exports = router;

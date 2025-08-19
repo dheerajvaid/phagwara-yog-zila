@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Saadhak = require("../models/Saadhak");
 const Yatra = require("../models/Yatra");
-const moment = require("moment");
+const moment = require("moment-timezone");
 const PDFDocument = require("pdfkit");
 const ExcelJS = require("exceljs");
 const { requireLogin } = require("../middleware/authMiddleware");
@@ -176,8 +176,6 @@ router.get("/report/pdf", async (req, res) => {
 
     doc.pipe(res);
 
-    
-
     // ------------------ HEADER ------------------
     doc
       .fontSize(18)
@@ -192,9 +190,12 @@ router.get("/report/pdf", async (req, res) => {
 
     doc
       .fontSize(10)
-      .text(`Generated on: ${moment().format("DD-MM-YYYY HH:mm")}`, {
-        align: "center",
-      });
+      .text(
+        `Generated on: ${moment().tz("Asia/Kolkata").format("DD-MM-YYYY HH:mm")}`,
+        {
+          align: "center",
+        }
+      );
 
     doc.moveDown(2);
 
@@ -278,7 +279,7 @@ router.get("/report/pdf", async (req, res) => {
       "Payment",
     ];
     const columnWidth = [40, 100, 90, 50, 40, 60, 70, 60];
-    
+
     const rowHeight = 20;
 
     // Table Header
