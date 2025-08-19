@@ -9,16 +9,16 @@
   <form method="GET" class="text-center mb-3">
     <input type="date" name="date" value="<%= selectedDate %>" onchange="this.form.submit()" class="form-control d-inline w-auto fw-bold" />
     <!-- Add hidden prant and zila -->
-  <% if (user.prant) { %>
+  <% if (user?.prant) { %>
     <input type="hidden" name="prant" value="<%= user.prant %>">
-  <% } else if (req.query.prant) { %>
-    <input type="hidden" name="prant" value="<%= req.query.prant %>">
+  <% } else if (requestData.query.prant) { %>
+    <input type="hidden" name="prant" value="<%= requestData.query.prant[0] %>">
   <% } %>
 
-  <% if (user.zila) { %>
+  <% if (user?.zila) { %>
     <input type="hidden" name="zila" value="<%= user.zila %>">
-  <% } else if (req.query.zila) { %>
-    <input type="hidden" name="zila" value="<%= req.query.zila %>">
+  <% } else if (requestData.query.zila) { %>
+    <input type="hidden" name="zila" value="<%= requestData.query.zila[0] %>">
   <% } %>
   </form>
 

@@ -96,6 +96,7 @@ exports.attendanceSummary = async (req, res) => {
   const date = new Date(dateStr);
   const nextDate = new Date(date);
   nextDate.setDate(date.getDate() + 1);
+  const requestData = req
 
   const slogans = require("../data/slogans.json");
   const randomMessage = slogans[Math.floor(Math.random() * slogans.length)];
@@ -139,7 +140,11 @@ exports.attendanceSummary = async (req, res) => {
     userRoles.some((role) => kenderTeamRoles.includes(role));
 
   const kenderFilter = {};
+  // console.log(isKender);
+  // console.log(isAdmin);
 
+
+  // console.log("Zila Query: " + zilaQuery)
   // Base filter from role
   if (isAdmin) {
     Object.assign(kenderFilter, {
@@ -149,7 +154,7 @@ exports.attendanceSummary = async (req, res) => {
       ...(kenderQuery && { _id: kenderQuery }),
     });
   }
-
+  
   if (isPrant) {
     Object.assign(kenderFilter, {
       prant: user.prant,
@@ -185,8 +190,12 @@ exports.attendanceSummary = async (req, res) => {
       _id: user.kender, // Always locked for kender role
     });
   }
+  // console.log(isKender);
+  // console.log(kenderFilter);
 
   const relevantKenders = await Kender.find(kenderFilter).select("_id");
+  console.log(relevantKenders);
+
   attendanceQuery.kender = { $in: relevantKenders.map((k) => k._id) };
 
   const attendance = await Attendance.find(attendanceQuery)
@@ -202,6 +211,8 @@ exports.attendanceSummary = async (req, res) => {
         { path: "zila", model: "Zila", select: "name" },
       ],
     });
+
+    
 
   const summary = {};
   const ksheterTotals = {};
@@ -270,6 +281,8 @@ exports.attendanceSummary = async (req, res) => {
       });
     });
 
+    
+
   res.render("report/attendanceSummary", {
     summary: sortedSummary,
     ksheterTotals,
@@ -278,6 +291,7 @@ exports.attendanceSummary = async (req, res) => {
     randomMessage,
     userRole: user.roles[0],
     user,
+    requestData,
   });
 };
 
