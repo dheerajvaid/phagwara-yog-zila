@@ -109,7 +109,7 @@
                                       <div class="col-md-4 col-sm-6">
                                         <div class="card glossy-card border border-info mb-2">
                                           <div class="card-body">
-                                            <strong class="card-title text-dark"><%= member.name %></strong><br>
+                                            <strong class="card-title text-danger"><%= member.name %></strong><br>
                                             <% member.role.forEach(role => { %>
                                               <span class="badge bg-<%= getBadgeColor(role) %> me-1"><%= role %></span>
                                             <% }) %>

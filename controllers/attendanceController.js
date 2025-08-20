@@ -388,7 +388,8 @@ exports.viewTodayAttendance = async (req, res) => {
       zilaTeam.forEach((member) => {
         if (member.role.includes("Zila Pradhan")) zilaPradhan = member;
         if (member.role.includes("Zila Mantri")) zilaMantri = member;
-        if (member.role.includes("Zila Sangathan Mantri")) zilaSangathanMantri = member;
+        if (member.role.includes("Zila Sangathan Mantri"))
+          zilaSangathanMantri = member;
         if (member.role.includes("Zila Cashier")) zilaCashier = member;
       });
     }
@@ -588,14 +589,12 @@ exports.getAttendanceByDate = async (req, res) => {
 exports.viewAttendance = async (req, res) => {
   try {
     const { kender, month, year, sortBy } = req.query;
+    const user = req.session.user;
     // console.log(req.session.user);
     const today = new Date();
     const selectedMonth = parseInt(req.query.month) || today.getMonth() + 1; // 1–12
     const selectedYear = parseInt(req.query.year) || today.getFullYear();
-
-    const allKenders = await Kender.find({ zila: req.session.user.zila }).sort(
-      "name"
-    );
+    const kenderFilter = {};
 
     let attendanceData = [];
     let saadhaks = [];
@@ -606,8 +605,13 @@ exports.viewAttendance = async (req, res) => {
       const start = new Date(`${selectedYear}-${selectedMonth}-01`);
       const end = new Date(selectedYear, selectedMonth, 0, 23, 59, 59); // last day of month
 
-      // Get all Saadhaks under the selected Kender
-      saadhaks = await Saadhak.find({ kender });
+      if (kender) kenderFilter.kender = kender;
+      if (user.prant) kenderFilter.prant = user.prant;
+      if (user.zila) kenderFilter.zila = user.zila;
+      if (user.ksheter) kenderFilter.ksheter = user.ksheter;
+      if (user.kender) kenderFilter.kender = user.kender;
+
+      saadhaks = await Saadhak.find({ ...kenderFilter });
 
       // Attendance records in that period
       const attendanceRecords = await Attendance.find({
@@ -676,7 +680,6 @@ exports.viewAttendance = async (req, res) => {
     // console.log(req.query);
 
     res.render("attendance/view", {
-      allKenders,
       selectedKender: kender || "",
       selectedKenderName,
       selectedMonth,
@@ -865,7 +868,7 @@ exports.viewKenderWiseAttendance = async (req, res) => {
 exports.viewTop10Attendance = async (req, res) => {
   try {
     const user = req.session.user;
-    
+
     const prantId = user.prant;
     const zilaId = user.prant;
 
@@ -1137,11 +1140,11 @@ exports.generateMissingReport = async (req, res) => {
   if (zilaValue.trim() !== "") query.zila = zilaValue;
   if (ksheterValue.trim() !== "") query.ksheter = ksheterValue;
   if (kender.trim() !== "") query.kender = kender;
-  
-  if(user.kender) query.kender = user.kender;
-  if(user.ksheter) query.ksheter = user.ksheter;
-  if(user.zila) query.zila = user.zila;
-  if(user.prant) query.prant = user.prant;
+
+  if (user.kender) query.kender = user.kender;
+  if (user.ksheter) query.ksheter = user.ksheter;
+  if (user.zila) query.zila = user.zila;
+  if (user.prant) query.prant = user.prant;
 
   const saadhaks = await Saadhak.find(query).sort({ name: 1 });
   const saadhakIds = saadhaks.map((s) => s._id);
@@ -1240,7 +1243,7 @@ exports.exportMissingPDF = async (req, res) => {
   const sortBy = req.query.sortBy;
   const sortDir = req.query.sortDir;
   const user = req.session.user;
-  
+
   const zilaValue = normalizeScopeValue(req.query.zila);
   const ksheterValue = normalizeScopeValue(req.query.ksheter);
   const kender = normalizeScopeValue(req.query.kender);

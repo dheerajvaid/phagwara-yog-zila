@@ -7,14 +7,9 @@
 
     <!-- Dropdown Form -->
     <form id="attendanceCapture" method="GET" action="/attendance/view" class="row g-2 mb-4">
-      <div class="col-12 col-md-4">
-        <select name="kender" class="form-control" required>
-          <option value="">Select Kender</option>
-          <% allKenders.forEach(k => { %>
-            <option value="<%= k._id %>" <%= selectedKender == k._id ? 'selected' : '' %>><%= k.name %></option>
-          <% }) %>
-        </select>
-      </div>
+      
+      <%- include('../partials/scope-dropdowns') %>
+      
 
       <div class="col-6 col-md-3">
         <select name="month" class="form-control" required>
@@ -152,6 +147,16 @@
     };
 
     html2pdf().set(opt).from(wrapper).save();
+  });
+</script>
+<script>
+  const requiredFields = ['prant', 'zila', 'ksheter', 'kender'];
+
+  window.addEventListener('DOMContentLoaded', () => {
+    requiredFields.forEach(field => {
+      const dropdown = document.getElementById(`${field}Dropdown`);
+      if (dropdown) dropdown.setAttribute('required', 'required');
+    });
   });
 </script>
 
