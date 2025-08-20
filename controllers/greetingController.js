@@ -147,9 +147,11 @@ exports.generateGreeting = async (req, res) => {
     // 🟡 From Info
     const fromLabel = "- Best Wishes -"; //From Label
     const fromText = `${user.name} (${user.roles.join(", ")})`;
-    const hierarchyText = [kenderName, ksheterName, zilaName]
+    const hierarchyText = [kenderName, ksheterName]
       .filter(Boolean)
       .join(", ");
+    const hierarchyText1 = [zilaName];
+      
 
     ctx.shadowColor = "#00000022";
     ctx.shadowBlur = 2;
@@ -160,11 +162,13 @@ exports.generateGreeting = async (req, res) => {
     ctx.fillText(fromLabel, width / 2, 670);
 
     ctx.font = "bold 42px Arial";
-    ctx.fillStyle = "green";
+    ctx.fillStyle = "blue";
     ctx.textAlign = "center";
     ctx.fillText(fromText, width / 2, 710);
     ctx.font = "bold 32px Arial";
     ctx.fillText(hierarchyText, width / 2, 765);
+    ctx.font = "bold 32px Arial";
+    ctx.fillText(hierarchyText1, width / 2, 795);
     ctx.font = "bold 48px Arial";
     ctx.fillStyle = "red";
     ctx.fillText("BHARATIYA YOG SANSTHAN (REGD.)", width / 2, 920);
