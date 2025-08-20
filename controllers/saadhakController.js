@@ -704,11 +704,19 @@ exports.getSelfUpdateForm = async (req, res) => {
     }
 
     // Process DOM (marriage date)
-    if (saadhak?.marriageDate) { // make sure your schema field is named "dom"
+    if (saadhak?.marriageDate) {
       const domDate = new Date(saadhak.marriageDate);
       saadhak.dom_day = domDate.getDate();
       saadhak.dom_month = domDate.getMonth() + 1;
       saadhak.dom_year = domDate.getFullYear();
+    }
+
+    // Process DOJ (date of joining)
+    if (saadhak?.doj) {
+      const dojDate = new Date(saadhak.doj);
+      saadhak.doj_day = dojDate.getDate();
+      saadhak.doj_month = dojDate.getMonth() + 1;
+      saadhak.doj_year = dojDate.getFullYear();
     }
 
     res.render('saadhak/self-update', {
@@ -724,6 +732,7 @@ exports.getSelfUpdateForm = async (req, res) => {
     res.redirect('/?error=Unable to load update form');
   }
 };
+
 
 
 // Handle the update
@@ -749,6 +758,16 @@ exports.postSelfUpdate = async (req, res) => {
       );
     }
 
+    // Build doj (Date of Joining) from parts
+    let doj = null;
+    if (req.body.doj_day && req.body.doj_month && req.body.doj_year) {
+      doj = new Date(
+        req.body.doj_year,
+        req.body.doj_month - 1,
+        req.body.doj_day
+      );
+    }
+
     const updateData = {
       name: req.body.name,
       dob,
@@ -756,7 +775,9 @@ exports.postSelfUpdate = async (req, res) => {
       maritalStatus: req.body.maritalStatus,
       marriageDate,
       address: req.body.address,
-      livingArea: req.body.livingArea
+      livingArea: req.body.livingArea,
+      doj,
+      email: req.body.email
     };
 
     await Saadhak.findByIdAndUpdate(req.session.user.id, updateData);

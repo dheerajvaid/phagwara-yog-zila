@@ -20,6 +20,10 @@ const saadhakSchema = new mongoose.Schema({
   zila: { type: mongoose.Schema.Types.ObjectId, ref: 'Zila' },
   ksheter: { type: mongoose.Schema.Types.ObjectId, ref: 'Ksheter' },
   kender: { type: mongoose.Schema.Types.ObjectId, ref: 'Kender' },
+
+  // 🔹 Newly added fields
+  doj: Date, // Date of Joining
+  email: String, // Not required
 }, { timestamps: true });
 
 module.exports = mongoose.model('Saadhak', saadhakSchema);

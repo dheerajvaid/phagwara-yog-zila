@@ -93,6 +93,41 @@
       </div>
     </div>
 
+    <!-- Date of Joining -->
+    <div class="col-md-4">
+      <label class="form-label">Date of Joining</label>
+      <div class="d-flex gap-2">
+        <select name="doj_day" class="form-select">
+          <option value="">Day</option>
+          <% for(let d=1; d<=31; d++) { %>
+            <option value="<%= d %>" <%= saadhak?.doj_day == d ? 'selected' : '' %>><%= d %></option>
+          <% } %>
+        </select>
+        <select name="doj_month" class="form-select">
+          <option value="">Month</option>
+          <% for(let m=1; m<=12; m++) { %>
+            <option value="<%= m %>" <%= saadhak?.doj_month == m ? 'selected' : '' %>><%= months[m-1] %></option>
+          <% } %>
+        </select>
+        <select name="doj_year" class="form-select">
+          <option value="">Year</option>
+          <% for(let y=currentYear; y>=1900; y--) { %>
+            <option value="<%= y %>" <%= saadhak?.doj_year == y ? 'selected' : '' %>><%= y %></option>
+          <% } %>
+        </select>
+      </div>
+    </div>
+
+    <!-- Email -->
+    <div class="col-md-6">
+      <label class="form-label">Email</label>
+      <input type="email" name="email" class="form-control"
+        maxlength="100"
+        pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+        title="Enter a valid email address"
+        value="<%= saadhak?.email || '' %>">
+    </div>
+
     <!-- Address -->
     <div class="col-md-6">
       <label class="form-label">Address</label>
