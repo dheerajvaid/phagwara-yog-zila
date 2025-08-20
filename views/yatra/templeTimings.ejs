@@ -1,0 +1,52 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container py-4">
+  <h3 class="text-center text-success mb-4">🌼 Shri Vrindavan Dham Temple Timings 🌼</h3>
+
+  <div class="row row-cols-1 row-cols-md-2 g-4">
+    <% templeList.forEach((temple) => { %>
+      <div class="col">
+        <div class="card h-100 shadow-sm temple-card">
+          <div class="card-header bg-warning-subtle text-center fw-bold fs-5 text-dark">
+            🛕 <%= temple.name %>
+          </div>
+          <div class="card-body bg-light text-center">
+            <p class="mb-1"><span class="fw-bold text-success">❄️ Winter</span></p>
+            <p class="small">
+              <strong>Morning:</strong> <%= temple.winter.morning %><br>
+              <strong>Evening:</strong> <%= temple.winter.evening %>
+            </p>
+            <p class="mb-1"><span class="fw-bold text-danger">☀️ Summer</span></p>
+            <p class="small">
+              <strong>Morning:</strong> <%= temple.summer.morning %><br>
+              <strong>Evening:</strong> <%= temple.summer.evening %>
+            </p>
+          </div>
+        </div>
+      </div>
+    <% }); %>
+  </div>
+</div>
+
+<style>
+  .temple-card {
+    border: 1px solid #f0c36d;
+    border-radius: 12px;
+    background: linear-gradient(to bottom right, #fffef4, #fff7db);
+    transition: transform 0.3s ease;
+  }
+
+  .temple-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(255, 200, 100, 0.3);
+  }
+
+  @media (max-width: 768px) {
+    .temple-card {
+      font-size: 0.9rem;
+    }
+  }
+</style>
+
+<%- include('../partials/footer') %>

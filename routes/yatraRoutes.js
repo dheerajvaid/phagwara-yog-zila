@@ -5,6 +5,8 @@ const Yatra = require("../models/Yatra");
 const moment = require("moment-timezone");
 const PDFDocument = require("pdfkit");
 const ExcelJS = require("exceljs");
+const path = require("path");
+const fs = require("fs");
 const { requireLogin } = require("../middleware/authMiddleware");
 const { canManage } = require("../middleware/roleMiddleware");
 // ✅ Role groups from config
@@ -27,6 +29,19 @@ router.post("/unlock", (req, res) => {
   } else {
     return res.render("yatra/password", { error: "Incorrect Password" });
   }
+});
+
+router.get("/temple-timings", (req, res) => {
+  const filePath = path.join(__dirname, "../data/vrindavan_temple_timings.json");
+
+  fs.readFile(filePath, "utf-8", (err, data) => {
+    if (err) {
+      return res.status(500).send("Error reading temple timings.");
+    }
+
+    const templeList = JSON.parse(data);
+    res.render("yatra/templeTimings", { templeList });
+  });
 });
 
 // POST: /vrindavan-trip/fetch
