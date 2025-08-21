@@ -16,34 +16,36 @@ router.get("/", (req, res) => {
   res.render("yatra/password");
 });
 
-// If someone tries to access /unlock directly via GET, redirect to password page
+router.get("/unlock", (req, res) => {
+  return res.redirect("/vrindavan-trip");
+});
+
 router.post("/unlock", async (req, res) => {
   try {
     const yatraCount = await Yatra.countDocuments();
-
+    
     if (yatraCount >= 60) {
       return res.render("error/error-page", {
         title: "Yatra Registrations Closed",
         message: "Thanks for visiting! Yatra registrations are already closed.",
         backUrl: "/",
-      }); // ✅ return here to stop
+      });
     }
 
-    // Otherwise redirect to registration page
-    return res.redirect("/vrindavan-trip"); // ✅ safe now
+    const { password } = req.body;
+
+    if (password === "krishna") {
+      return res.render("yatra/form");
+    } else {
+      return res.render("yatra/password", { error: "Incorrect Password" });
+    }
   } catch (err) {
     console.error("Error checking Yatra count:", err);
-    res.status(500).send("Internal Server Error");
-  }
-});
-
-// POST: /vrindavan-trip/unlock
-router.post("/unlock", (req, res) => {
-  const { password } = req.body;
-  if (password === "krishna") {
-    return res.render("yatra/form");
-  } else {
-    return res.render("yatra/password", { error: "Incorrect Password" });
+    return res.status(500).render("error/error-page", {
+      title: "Server Error",
+      message: "Something went wrong. Please try again later.",
+      backUrl: "/",
+    });
   }
 });
 
