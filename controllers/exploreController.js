@@ -587,9 +587,9 @@ exports.exportDirectoryWord = async (req, res) => {
       SECRETARY: ["ZILA MANTRI", "KSHETER MANTRI"],
       "ORGANISING SECRETARY": [
         "ZILA SANGATHAN MANTRI",
-        "KSHETER SANGATHAN MANTRI",
+        // "KSHETER SANGATHAN MANTRI",
       ],
-      CASHIER: ["ZILA CASHIER", "KSHETER CASHIER"],
+      // CASHIER: ["ZILA CASHIER", "KSHETER CASHIER"],
     };
 
     for (const zila of sortedZilas) {
@@ -597,7 +597,7 @@ exports.exportDirectoryWord = async (req, res) => {
         "ZILA PRADHAN",
         "ZILA MANTRI",
         "ZILA SANGATHAN MANTRI",
-        "ZILA CASHIER",
+        // "ZILA CASHIER",
       ]);
 
       const relatedKsheters = sortedKsheters.filter(
@@ -626,7 +626,7 @@ exports.exportDirectoryWord = async (req, res) => {
         const ksheterTeam = getTeam(saadhaks, "ksheter", ksheter._id, [
           "KSHETER PRADHAN",
           "KSHETER MANTRI",
-          "KSHETER CASHIER",
+          // "KSHETER CASHIER",
         ]);
 
         const kenders = sortedKenders.filter(
@@ -737,12 +737,20 @@ function createDesignationTable(team, roleMap, levelType) {
     }),
   ];
 
-  const designations = [
-    "PRESIDENT",
-    "SECRETARY",
-    "ORGANISING SECRETARY",
-    "CASHIER",
-  ];
+  let designations;
+
+  if (levelType == "ZILA") {
+    designations = [
+      "PRESIDENT",
+      "SECRETARY",
+      "ORGANISING SECRETARY",
+      // "CASHIER",
+    ];
+  } else {
+    designations = ["PRESIDENT", "SECRETARY"];
+  }
+
+  // ✅ Now you can safely use designations here
 
   for (const designation of designations) {
     const dbRoles = (roleMap[designation] || []).map((r) => r.toUpperCase());
