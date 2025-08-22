@@ -61,6 +61,21 @@
   <div id="mobileMessage" class="mt-1 small"></div>
 </div>
 
+<!-- Email -->
+<div class="col-md-4">
+  <label class="form-label">Email</label>
+  <input 
+    type="email" 
+    name="email" 
+    class="form-control" 
+    maxlength="60"
+    placeholder="example@email.com"
+    value="<%= formData?.email || '' %>"
+    pattern="^[^@\s]+@[^@\s]+\.[^@\s]+$"
+    title="Please enter a valid email address">
+</div>
+
+
     <% const selectedPrant = formData?.prant || user.prant; %>
     <% const selectedZila = formData?.zila || user.zila; %>
     <% const selectedKsheterId = formData?.ksheter || user.ksheter; %>
@@ -138,6 +153,37 @@
 
     <% const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]; %>
 <% const currentYear = new Date().getFullYear(); %>
+
+<!-- DATE OF JOINING -->
+<div class="col-md-4">
+  <label class="form-label">Joining Date</label>
+  <div class="d-flex gap-2">
+    <!-- Day -->
+    <select name="doj_day" class="form-select">
+      <option value="">Day</option>
+      <% for(let d=1; d<=31; d++) { %>
+        <option value="<%= d %>" <%= formData?.doj_day == d ? 'selected' : '' %>><%= d %></option>
+      <% } %>
+    </select>
+
+    <!-- Month -->
+    <select name="doj_month" class="form-select">
+      <option value="">Month</option>
+      <% for(let m=1; m<=12; m++) { %>
+        <option value="<%= m %>" <%= formData?.doj_month == m ? 'selected' : '' %>><%= months[m-1] %></option>
+      <% } %>
+    </select>
+
+    <!-- Year -->
+    <select name="doj_year" class="form-select">
+      <option value="">Year</option>
+      <% for(let y=currentYear; y>=1900; y--) { %>
+        <option value="<%= y %>" <%= formData?.doj_year == y ? 'selected' : '' %>><%= y %></option>
+      <% } %>
+    </select>
+  </div>
+</div>
+
    <!-- DOB -->
 <div class="col-md-4">
   <label class="form-label">DOB</label>
@@ -225,6 +271,7 @@
   </div>
 </div>
 
+    <input type="hidden" name="doj" id="doj" value="<%= formData?.doj || '' %>">
     <input type="hidden" name="dob" id="dob" value="<%= formData?.dob || '' %>">
     <input type="hidden" name="dom" id="dom" value="<%= formData?.dom || '' %>">
 
@@ -320,6 +367,15 @@ document.addEventListener("DOMContentLoaded", function () {
   function updateDigitCount() {
     const digits = mobileInput.value.replace(/\D/g, '').length;
     mobileCount.textContent = `${digits} digit${digits !== 1 ? 's' : ''}`;
+  }
+
+    function updateDojField() {
+    const day = document.querySelector('select[name="doj_day"]').value;
+    const month = document.querySelector('select[name="doj_month"]').value;
+    const year = document.querySelector('select[name="doj_year"]').value;
+    if (day && month && year) {
+      document.getElementById('doj').value = `${day.padStart(2,'0')}/${month.padStart(2,'0')}/${year}`;
+    }
   }
 
   function updateDobField() {
@@ -453,6 +509,7 @@ form.addEventListener('submit', function (e) {
 
   roleSelect.addEventListener('change', () => toggleFields(roleSelect.value));
   maritalStatusSelect.addEventListener("change", toggleMarriageDateFields);
+  document.querySelectorAll('select[name^="doj_"]').forEach(el => el.addEventListener('change', updateDojField));
   document.querySelectorAll('select[name^="dob_"]').forEach(el => el.addEventListener('change', updateDobField));
   document.querySelectorAll('select[name^="dom_"]').forEach(el => el.addEventListener('change', updateDomField));
 
@@ -463,14 +520,11 @@ form.addEventListener('submit', function (e) {
   updateDigitCount();
   toggleFields(roleSelect.value);
   toggleMarriageDateFields();
+  updateDojField();
   updateDobField();
   updateDomField();
 
 });
 </script>
-
-
-
-
 
 <%- include('../partials/footer') %>

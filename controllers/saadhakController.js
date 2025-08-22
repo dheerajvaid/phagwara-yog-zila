@@ -115,6 +115,7 @@ exports.createSaadhak = async (req, res) => {
     const {
       name,
       mobile,
+      email,
       gender,
       maritalStatus,
       address,
@@ -126,11 +127,13 @@ exports.createSaadhak = async (req, res) => {
       kender,
     } = req.body;
 
-    let { dob, dom } = req.body;
+    let { doj, dob, dom } = req.body;
 
     const formData = {
       name,
       mobile,
+      email,
+      doj,
       dob,
       gender,
       maritalStatus,
@@ -184,6 +187,19 @@ exports.createSaadhak = async (req, res) => {
       return await renderWithError("❌ Name, Mobile, and Role are required.");
     }
 
+     if (doj) {
+      const [day, month, year] = doj.split("/");
+      doj = new Date(
+        `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
+      );
+    }
+
+    if (doj && !validateDOB(doj)) {
+      return await renderWithError("❌ Invalid Date of Birth");
+    }
+
+
+
     if (dob) {
       const [day, month, year] = dob.split("/");
       dob = new Date(
@@ -209,6 +225,11 @@ exports.createSaadhak = async (req, res) => {
     const existing = await Saadhak.findOne({ mobile });
     if (existing) {
       return await renderWithError("❌ Mobile number already registered.");
+    }
+
+     const existingEmail = await Saadhak.findOne({ email });
+    if (existingEmail) {
+      return await renderWithError("❌ Email address already registered.");
     }
 
     // Hierarchical association validation
@@ -249,6 +270,8 @@ exports.createSaadhak = async (req, res) => {
     const saadhak = new Saadhak({
       name: formatName(name.trim()),
       mobile,
+      doj,
+      email: email?.trim().toLowerCase(),
       dob,
       gender,
       maritalStatus,
@@ -458,9 +481,35 @@ exports.showEditForm = async (req, res) => {
       kenders = await Kender.find({ _id: kenderId }).sort({ name: 1 });
     }
 
+    // Process DOB
+    if (saadhak?.dob) {
+      const dobDate = new Date(saadhak.dob);
+      saadhak.dob_day = dobDate.getDate();
+      saadhak.dob_month = dobDate.getMonth() + 1; // month is 0-based
+      saadhak.dob_year = dobDate.getFullYear();
+    }
+
+    // Process DOM (marriage date)
+    if (saadhak?.marriageDate) {
+      const domDate = new Date(saadhak.marriageDate);
+      saadhak.dom_day = domDate.getDate();
+      saadhak.dom_month = domDate.getMonth() + 1;
+      saadhak.dom_year = domDate.getFullYear();
+    }
+
+    // Process DOJ (date of joining)
+    if (saadhak?.doj) {
+      const dojDate = new Date(saadhak.doj);
+      saadhak.doj_day = dojDate.getDate();
+      saadhak.doj_month = dojDate.getMonth() + 1;
+      saadhak.doj_year = dojDate.getFullYear();
+    }
+
     res.render("saadhak/edit", {
       roleConfig,
       saadhak,
+      months: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+      currentYear: new Date().getFullYear(),
       prants,
       zilas,
       ksheters,
@@ -477,9 +526,11 @@ exports.showEditForm = async (req, res) => {
 // ✅ Handle Update
 exports.updateSaadhak = async (req, res) => {
   try {
-    const {
+    let {
       name,
       mobile,
+      email,
+      doj,
       dob,
       gender,
       maritalStatus,
@@ -499,6 +550,8 @@ exports.updateSaadhak = async (req, res) => {
     const formData = {
       name,
       mobile,
+      email,
+      doj,
       dob,
       gender,
       maritalStatus,
@@ -555,11 +608,39 @@ exports.updateSaadhak = async (req, res) => {
       allowedRoles = ["Saadhak"];
     }
 
+    // Build DOB from parts
+    dob = null;
+    if (req.body.dob_day && req.body.dob_month && req.body.dob_year) {
+      dob = new Date(
+        req.body.dob_year,
+        req.body.dob_month - 1, // month is zero-based
+        req.body.dob_day
+      );
+    }
+
+    // Build marriageDate from parts
+    marriageDate = null;
+    if (req.body.dom_day && req.body.dom_month && req.body.dom_year) {
+      marriageDate = new Date(
+        req.body.dom_year,
+        req.body.dom_month - 1,
+        req.body.dom_day
+      );
+    }
+
+    // Build doj (Date of Joining) from parts
+    doj = null;
+    if (req.body.doj_day && req.body.doj_month && req.body.doj_year) {
+      doj = new Date(
+        req.body.doj_year,
+        req.body.doj_month - 1,
+        req.body.doj_day
+      );
+    }
+
     // ✅ Validations
     if (!validateName(name)) {
-      return await renderEdit(
-        "❌ Name should contain only alphabets and spaces"
-      );
+      return await renderEdit("❌ Name should contain only alphabets and spaces");
     }
 
     if (!validateMobile(mobile)) {
@@ -568,68 +649,82 @@ exports.updateSaadhak = async (req, res) => {
 
     const existing = await Saadhak.findOne({ mobile });
     if (existing && existing._id.toString() !== saadhakId) {
-      return await renderEdit(
-        "❌ Mobile number already registered with another Saadhak."
-      );
+      return await renderEdit("❌ Mobile number already registered with another Saadhak.");
+    }
+
+    const normalizedEmail = email?.trim().toLowerCase();
+
+    const existingEmail = await Saadhak.findOne({ email: normalizedEmail });
+    if (normalizedEmail && existingEmail && existingEmail._id.toString() !== saadhakId) {
+      return await renderEdit("❌ Email address already registered with another Saadhak.");
     }
 
     if (!name || !mobile || !role) {
       return await renderEdit("❌ Name, Mobile, and Role are required.");
     }
 
+    if (doj && typeof doj === "string") {
+      const [day, month, year] = doj.split("/");
+      doj = new Date(`${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`);
+    }
+
+    if (doj && !validateDOB(doj)) {
+      return await renderEdit("❌ Invalid Date of Joining");
+    }
+
+    if (dob && typeof dob === "string") {
+      const [day, month, year] = dob.split("/");
+      dob = new Date(`${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`);
+    }
+
     if (dob && !validateDOB(dob)) {
       return await renderEdit("❌ Invalid Date of Birth");
     }
 
-    if (
-      marriageDate &&
-      maritalStatus === "Married" &&
-      !validateDOB(marriageDate)
-    ) {
+    if (marriageDate && typeof marriageDate === "string") {
+      const [day, month, year] = marriageDate.split("/");
+      marriageDate = new Date(`${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`);
+    }
+
+    if (marriageDate && maritalStatus === "Married" && !validateDOB(marriageDate)) {
       return await renderEdit("❌ Invalid Marriage Date");
     }
 
     // ✅ Association validations
-    if (prantRoles.includes(role) && !prant) {
-      return await renderEdit(
-        "❌ Prant selection is required for Prant-level roles."
-      );
+    if (Array.isArray(role) && role.some((r) => prantRoles.includes(r)) && !prant) {
+      return await renderEdit("❌ Prant selection is required for Prant-level roles.");
     }
 
-    if (zilaRoles.includes(role) && (!zila || !prant)) {
-      return await renderEdit(
-        "❌ Prant & Zila selection is required for Zila-level roles."
-      );
-    }
-
-    if (ksheterRoles.includes(role) && (!prant || !zila || !ksheter)) {
-      return await renderEdit(
-        "❌ Prant, Zila and Ksheter must be selected for Ksheter-level roles."
-      );
+    if (Array.isArray(role) && role.some((r) => zilaRoles.includes(r)) && (!zila || !prant)) {
+      return await renderEdit("❌ Prant & Zila selection is required for Zila-level roles.");
     }
 
     if (
-      [...kenderRoles, ...kenderTeamRoles, ...saadhakRoles].includes(role) &&
+      Array.isArray(role) &&
+      role.some((r) => ksheterRoles.includes(r)) &&
+      (!prant || !zila || !ksheter)
+    ) {
+      return await renderEdit("❌ Prant, Zila and Ksheter must be selected for Ksheter-level roles.");
+    }
+
+    if (
+      Array.isArray(role) &&
+      role.some((r) => [...kenderRoles, ...kenderTeamRoles, ...saadhakRoles].includes(r)) &&
       (!prant || !zila || !ksheter || !kender)
     ) {
-      return await renderEdit(
-        "❌ Prant, Zila, Ksheter, and Kender must be selected for Kender, Shikshak, Karyakarta & Saadhak level roles."
-      );
+      return await renderEdit("❌ Prant, Zila, Ksheter, and Kender must be selected for Kender, Shikshak, Karyakarta & Saadhak level roles.");
     }
 
     // ✅ Hierarchy clean-up based on role
-    let updatedPrant =
-      prant && prant !== ""
-        ? prant
-        : user?.prant?.$oid || user?.prant || undefined;
+    let updatedPrant = prant && prant !== "" ? prant : user?.prant?.$oid || user?.prant || undefined;
     let updatedZila = zila && zila !== "" ? zila : undefined;
     let updatedKsheter = ksheter && ksheter !== "" ? ksheter : undefined;
     let updatedKender = kender && kender !== "" ? kender : undefined;
 
-    if (zilaRoles.includes(role)) {
+    if (Array.isArray(role) && role.some((r) => zilaRoles.includes(r))) {
       updatedKsheter = undefined;
       updatedKender = undefined;
-    } else if (ksheterRoles.includes(role)) {
+    } else if (Array.isArray(role) && role.some((r) => ksheterRoles.includes(r))) {
       updatedKender = undefined;
     }
 
@@ -637,6 +732,8 @@ exports.updateSaadhak = async (req, res) => {
     await Saadhak.findByIdAndUpdate(saadhakId, {
       name: formatName(name.trim()),
       mobile,
+      doj,
+      email: normalizedEmail,
       dob,
       gender,
       maritalStatus,
@@ -675,6 +772,7 @@ exports.updateSaadhak = async (req, res) => {
     res.status(500).send("Server Error");
   }
 };
+
 
 // ✅ Handle Delete
 exports.deleteSaadhak = async (req, res) => {
@@ -732,8 +830,6 @@ exports.getSelfUpdateForm = async (req, res) => {
     res.redirect('/?error=Unable to load update form');
   }
 };
-
-
 
 // Handle the update
 exports.postSelfUpdate = async (req, res) => {

@@ -24,7 +24,7 @@ router.post("/unlock", async (req, res) => {
   try {
     const yatraCount = await Yatra.countDocuments();
     
-    if (yatraCount >= 60) {
+    if (yatraCount >= 61) {
       return res.render("error/error-page", {
         title: "Yatra Registrations Closed",
         message: "Thanks for visiting! Yatra registrations are already closed.",
