@@ -187,7 +187,7 @@ exports.createSaadhak = async (req, res) => {
       return await renderWithError("❌ Name, Mobile, and Role are required.");
     }
 
-     if (doj) {
+    if (doj) {
       const [day, month, year] = doj.split("/");
       doj = new Date(
         `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
@@ -197,8 +197,6 @@ exports.createSaadhak = async (req, res) => {
     if (doj && !validateDOB(doj)) {
       return await renderWithError("❌ Invalid Date of Birth");
     }
-
-
 
     if (dob) {
       const [day, month, year] = dob.split("/");
@@ -217,7 +215,7 @@ exports.createSaadhak = async (req, res) => {
         `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
       );
     }
-    
+
     if (dom && maritalStatus === "Married" && !validateDOB(dom)) {
       return await renderWithError("❌ Invalid Marriage Date");
     }
@@ -227,9 +225,13 @@ exports.createSaadhak = async (req, res) => {
       return await renderWithError("❌ Mobile number already registered.");
     }
 
-     const existingEmail = await Saadhak.findOne({ email });
-    if (existingEmail) {
-      return await renderWithError("❌ Email address already registered.");
+    const trimmedEmail = email?.trim().toLowerCase();
+    
+    if (trimmedEmail) {
+      const existingEmail = await Saadhak.findOne({ email: trimmedEmail });
+      if (existingEmail) {
+        return await renderWithError("❌ Email address already registered.");
+      }
     }
 
     // Hierarchical association validation
@@ -357,7 +359,7 @@ exports.listSaadhaks = async (req, res) => {
       query._id = null;
     } else if (!userRoles.includes("Admin")) {
       // Admin gets all access — skip restrictions
-      
+
       // Apply Prant-level restrictions
       if (hasRole(prantRoles)) {
         query.prant = user.prant?.$oid || user.prant;
@@ -414,7 +416,7 @@ exports.showEditForm = async (req, res) => {
   try {
     const user = req.session.user;
     const saadhak = await Saadhak.findById(req.params.id);
-    
+
     if (user.id == saadhak._id) {
       return res.render("error/unauthorized");
     }
@@ -508,7 +510,20 @@ exports.showEditForm = async (req, res) => {
     res.render("saadhak/edit", {
       roleConfig,
       saadhak,
-      months: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+      months: [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ],
       currentYear: new Date().getFullYear(),
       prants,
       zilas,
@@ -640,7 +655,9 @@ exports.updateSaadhak = async (req, res) => {
 
     // ✅ Validations
     if (!validateName(name)) {
-      return await renderEdit("❌ Name should contain only alphabets and spaces");
+      return await renderEdit(
+        "❌ Name should contain only alphabets and spaces"
+      );
     }
 
     if (!validateMobile(mobile)) {
@@ -649,14 +666,20 @@ exports.updateSaadhak = async (req, res) => {
 
     const existing = await Saadhak.findOne({ mobile });
     if (existing && existing._id.toString() !== saadhakId) {
-      return await renderEdit("❌ Mobile number already registered with another Saadhak.");
+      return await renderEdit(
+        "❌ Mobile number already registered with another Saadhak."
+      );
     }
 
     const normalizedEmail = email?.trim().toLowerCase();
-
-    const existingEmail = await Saadhak.findOne({ email: normalizedEmail });
-    if (normalizedEmail && existingEmail && existingEmail._id.toString() !== saadhakId) {
-      return await renderEdit("❌ Email address already registered with another Saadhak.");
+  
+    if (normalizedEmail) {
+      const existingEmail = await Saadhak.findOne({ email: normalizedEmail });
+      if (existingEmail && existingEmail._id.toString() !== saadhakId) {
+        return await renderEdit(
+          "❌ Email address already registered with another Saadhak."
+        );
+      }
     }
 
     if (!name || !mobile || !role) {
@@ -665,7 +688,9 @@ exports.updateSaadhak = async (req, res) => {
 
     if (doj && typeof doj === "string") {
       const [day, month, year] = doj.split("/");
-      doj = new Date(`${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`);
+      doj = new Date(
+        `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
+      );
     }
 
     if (doj && !validateDOB(doj)) {
@@ -674,7 +699,9 @@ exports.updateSaadhak = async (req, res) => {
 
     if (dob && typeof dob === "string") {
       const [day, month, year] = dob.split("/");
-      dob = new Date(`${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`);
+      dob = new Date(
+        `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
+      );
     }
 
     if (dob && !validateDOB(dob)) {
@@ -683,20 +710,38 @@ exports.updateSaadhak = async (req, res) => {
 
     if (marriageDate && typeof marriageDate === "string") {
       const [day, month, year] = marriageDate.split("/");
-      marriageDate = new Date(`${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`);
+      marriageDate = new Date(
+        `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
+      );
     }
 
-    if (marriageDate && maritalStatus === "Married" && !validateDOB(marriageDate)) {
+    if (
+      marriageDate &&
+      maritalStatus === "Married" &&
+      !validateDOB(marriageDate)
+    ) {
       return await renderEdit("❌ Invalid Marriage Date");
     }
 
     // ✅ Association validations
-    if (Array.isArray(role) && role.some((r) => prantRoles.includes(r)) && !prant) {
-      return await renderEdit("❌ Prant selection is required for Prant-level roles.");
+    if (
+      Array.isArray(role) &&
+      role.some((r) => prantRoles.includes(r)) &&
+      !prant
+    ) {
+      return await renderEdit(
+        "❌ Prant selection is required for Prant-level roles."
+      );
     }
 
-    if (Array.isArray(role) && role.some((r) => zilaRoles.includes(r)) && (!zila || !prant)) {
-      return await renderEdit("❌ Prant & Zila selection is required for Zila-level roles.");
+    if (
+      Array.isArray(role) &&
+      role.some((r) => zilaRoles.includes(r)) &&
+      (!zila || !prant)
+    ) {
+      return await renderEdit(
+        "❌ Prant & Zila selection is required for Zila-level roles."
+      );
     }
 
     if (
@@ -704,19 +749,28 @@ exports.updateSaadhak = async (req, res) => {
       role.some((r) => ksheterRoles.includes(r)) &&
       (!prant || !zila || !ksheter)
     ) {
-      return await renderEdit("❌ Prant, Zila and Ksheter must be selected for Ksheter-level roles.");
+      return await renderEdit(
+        "❌ Prant, Zila and Ksheter must be selected for Ksheter-level roles."
+      );
     }
 
     if (
       Array.isArray(role) &&
-      role.some((r) => [...kenderRoles, ...kenderTeamRoles, ...saadhakRoles].includes(r)) &&
+      role.some((r) =>
+        [...kenderRoles, ...kenderTeamRoles, ...saadhakRoles].includes(r)
+      ) &&
       (!prant || !zila || !ksheter || !kender)
     ) {
-      return await renderEdit("❌ Prant, Zila, Ksheter, and Kender must be selected for Kender, Shikshak, Karyakarta & Saadhak level roles.");
+      return await renderEdit(
+        "❌ Prant, Zila, Ksheter, and Kender must be selected for Kender, Shikshak, Karyakarta & Saadhak level roles."
+      );
     }
 
     // ✅ Hierarchy clean-up based on role
-    let updatedPrant = prant && prant !== "" ? prant : user?.prant?.$oid || user?.prant || undefined;
+    let updatedPrant =
+      prant && prant !== ""
+        ? prant
+        : user?.prant?.$oid || user?.prant || undefined;
     let updatedZila = zila && zila !== "" ? zila : undefined;
     let updatedKsheter = ksheter && ksheter !== "" ? ksheter : undefined;
     let updatedKender = kender && kender !== "" ? kender : undefined;
@@ -724,7 +778,10 @@ exports.updateSaadhak = async (req, res) => {
     if (Array.isArray(role) && role.some((r) => zilaRoles.includes(r))) {
       updatedKsheter = undefined;
       updatedKender = undefined;
-    } else if (Array.isArray(role) && role.some((r) => ksheterRoles.includes(r))) {
+    } else if (
+      Array.isArray(role) &&
+      role.some((r) => ksheterRoles.includes(r))
+    ) {
       updatedKender = undefined;
     }
 
@@ -773,7 +830,6 @@ exports.updateSaadhak = async (req, res) => {
   }
 };
 
-
 // ✅ Handle Delete
 exports.deleteSaadhak = async (req, res) => {
   try {
@@ -790,8 +846,9 @@ exports.deleteSaadhak = async (req, res) => {
 // Show the self-update form
 exports.getSelfUpdateForm = async (req, res) => {
   try {
-    const saadhak = await Saadhak.findById(req.session.user.id)
-      .populate('prant zila ksheter kender');
+    const saadhak = await Saadhak.findById(req.session.user.id).populate(
+      "prant zila ksheter kender"
+    );
 
     // Process DOB
     if (saadhak?.dob) {
@@ -817,17 +874,29 @@ exports.getSelfUpdateForm = async (req, res) => {
       saadhak.doj_year = dojDate.getFullYear();
     }
 
-    res.render('saadhak/self-update', {
+    res.render("saadhak/self-update", {
       saadhak,
-      months: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+      months: [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ],
       currentYear: new Date().getFullYear(),
       success: req.query.success,
-      error: req.query.error
+      error: req.query.error,
     });
-
   } catch (err) {
     console.error(err);
-    res.redirect('/?error=Unable to load update form');
+    res.redirect("/?error=Unable to load update form");
   }
 };
 
@@ -873,15 +942,14 @@ exports.postSelfUpdate = async (req, res) => {
       address: req.body.address,
       livingArea: req.body.livingArea,
       doj,
-      email: req.body.email
+      email: req.body.email,
     };
 
     await Saadhak.findByIdAndUpdate(req.session.user.id, updateData);
 
-    res.redirect('/saadhak/self-update?success=Details updated successfully');
+    res.redirect("/saadhak/self-update?success=Details updated successfully");
   } catch (err) {
     console.error(err);
-    res.redirect('/saadhak/self-update?error=Unable to update details');
+    res.redirect("/saadhak/self-update?error=Unable to update details");
   }
 };
-
