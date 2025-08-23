@@ -1078,6 +1078,32 @@ exports.viewTop10Attendance = async (req, res) => {
       noData = attendanceData.length === 0;
     }
 
+    // ✅ Prepare Ksheter-wise and Kender-wise summary counts
+    const ksheterSummaryMap = {};
+    const kenderSummaryMap = {};
+
+    for (const saadhak of attendanceData) {
+      const ksheter = saadhak.ksheter || "Unknown Ksheter";
+      const kender = saadhak.kender || "Unknown Kender";
+
+      if (!ksheterSummaryMap[ksheter]) {
+        ksheterSummaryMap[ksheter] = { total: 0, kendras: {} };
+      }
+
+      ksheterSummaryMap[ksheter].total += 1;
+
+      if (!ksheterSummaryMap[ksheter].kendras[kender]) {
+        ksheterSummaryMap[ksheter].kendras[kender] = 0;
+      }
+
+      ksheterSummaryMap[ksheter].kendras[kender] += 1;
+
+      if (!kenderSummaryMap[kender]) {
+        kenderSummaryMap[kender] = 0;
+      }
+      kenderSummaryMap[kender] += 1;
+    }
+
     return res.render("attendance/top10", {
       attendanceData,
       selectedMonth,
@@ -1095,6 +1121,10 @@ exports.viewTop10Attendance = async (req, res) => {
       selectedZila: res.locals.selectedZila,
       selectedKsheter: res.locals.selectedKsheter,
       selectedKender: res.locals.selectedKender,
+
+      // ✅ new summary data
+      ksheterSummaryMap,
+      kenderSummaryMap,
     });
   } catch (err) {
     console.error("Error loading top 10 saadhaks:", err);

@@ -1,6 +1,38 @@
 <%- include('../partials/header') %>
 <%- include('../partials/navbar') %>
 
+<style>
+  .summary-section .section-heading {
+    font-weight: 600;
+    border-left: 5px solid #0d6efd;
+    padding-left: 12px;
+    margin-bottom: 20px;
+  }
+
+  .summary-section .card-header {
+    font-size: 1rem;
+    padding: 10px 15px;
+    background-color: #e9ecef;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  .summary-section .table td, .summary-section .table th {
+    padding: 8px 12px;
+    vertical-align: middle;
+    font-size: 0.95rem;
+  }
+
+  .summary-section .table th {
+    background-color: #f1f1f1;
+    font-weight: 600;
+  }
+
+  .summary-section .card {
+    border-radius: 6px;
+  }
+</style>
+
+
 <div class="container mt-3">
   <h3 class="text-center mb-4 fw-bold text-danger">
     <img src="/images/logo.jpg" alt="BYS Logo" style="height: 40px; vertical-align: middle; margin-right: 10px;" />
@@ -61,12 +93,43 @@
     </div>
   </div>
 
+
   <% if (typeof reportGenerated !== 'undefined' && reportGenerated) { %>
     <% if (attendanceData.length > 0 && !noData) { %>
       <div class="text-end mb-2">
         <button class="btn btn-danger btn-sm" id="exportPdfBtn">📄 Export PDF</button>
         <button class="btn btn-success btn-sm" id="exportImageBtn">🖼️ Export Image</button>
       </div>
+
+      <div class="summary-section mb-4">
+    <h5>📊 Ksheter-wise & Kender-wise Summary</h5>
+    <table class="table table-bordered table-sm">
+      <thead>
+        <tr>
+          <th>Ksheter</th>
+          <th>Kender</th>
+          <th>Saadhak Count</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (let ksheter in ksheterSummaryMap) { %>
+          <% let kendras = ksheterSummaryMap[ksheter].kendras; %>
+          <% let first = true; %>
+          <% for (let kender in kendras) { %>
+            <tr>
+              <% if (first) { %>
+                <td rowspan="<%= Object.keys(kendras).length %>"><%= ksheter %> (<%= ksheterSummaryMap[ksheter].total %>)</td>
+                <% first = false; %>
+              <% } %>
+              <td><%= kender %></td>
+              <td><%= kendras[kender] %></td>
+            </tr>
+          <% } %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+
 
       <div id="reportSection" class="table-responsive">
         <table class="table table-bordered table-striped align-middle text-center shadow-sm">
@@ -82,8 +145,8 @@
             <% attendanceData.forEach((s) => { %>
               <tr>
                 <td class="fw-semibold text-start"><%= s.name %></td>
-                <td><%= getShortName(s.ksheter) %></td>
-                <td><%= getShortName(s.kender) %></td>
+                <td><%= s.ksheter %></td>
+                <td><%= s.kender %></td>
                 <td class="fw-bold text-danger" style="white-space: nowrap;">
                   <%= s.presentCount %> / <%= s.totalOperationalDays %> (<%= ((s.presentCount / s.totalOperationalDays) * 100).toFixed(2) %>%)
                 </td>
@@ -128,7 +191,7 @@
     const zila = document.querySelector('[name="zila"]').value.trim();
     const ksheter = document.querySelector('[name="ksheter"]').value.trim();
     const kender = document.querySelector('[name="kender"]').value.trim();
-
+    
     if (zila === "" && ksheter === "" && kender === "") {
       e.preventDefault();
       const modal = new bootstrap.Modal(document.getElementById('selectScopeModal'));
@@ -142,6 +205,7 @@
   const zilaName = "<%= zilaName %>";
   const selectedMonth = <%= selectedMonth %>;
   const selectedYear = <%= selectedYear %>;
+  const ksheterSummaryMap = <%- JSON.stringify(ksheterSummaryMap) %>;
 
   // Helper function for short names (same as EJS one)
   function getShortName(kenderName) {
@@ -194,18 +258,78 @@ document.getElementById('exportPdfBtn')?.addEventListener('click', function () {
     doc.text(footerText, pageWidth - marginRight - footerTextWidth, pageHeight - 15);
   }
 
+  const monthYearStr = new Date(2000, selectedMonth - 1).toLocaleString('default', { month: 'long' }) + " " + selectedYear;
+
+  const ksheterSummaryMap = <%- JSON.stringify(ksheterSummaryMap) %>;
+
+  // Draw the Ksheter-Kender Summary Table
+  doc.setFontSize(13);
+  doc.setTextColor(0);
+  doc.setFont("helvetica", "bold");
+  doc.text("Ksheter-wise & Kender-wise Summary", 40, 75);
+
+  let summaryStartY = 90;
+  const summaryHead = [['Ksheter', 'Kender', 'Saadhak Count']];
+  const summaryBody = [];
+
+  for (let ksheter in ksheterSummaryMap) {
+    const kendras = ksheterSummaryMap[ksheter].kendras;
+    const total = ksheterSummaryMap[ksheter].total;
+    const kendrasKeys = Object.keys(kendras);
+    let first = true;
+
+    kendrasKeys.forEach(kender => {
+      const row = [];
+      if (first) {
+        row.push(`${ksheter} (${total})`);
+        first = false;
+      } else {
+        row.push('');
+      }
+      row.push(kender);
+      row.push(kendras[kender]);
+      summaryBody.push(row);
+    });
+  }
+
+  doc.autoTable({
+    head: summaryHead,
+    body: summaryBody,
+    startY: summaryStartY,
+    margin: { left: 40, right: 40 },
+    styles: {
+      fontSize: 10,
+      cellPadding: 4,
+      halign: 'center',
+      valign: 'middle',
+      overflow: 'linebreak',
+      minCellHeight: 18,
+    },
+    headStyles: {
+      fillColor: [241, 241, 241],
+      textColor: 0,
+      fontStyle: 'bold',
+    },
+    columnStyles: {
+      0: { halign: 'left', fontStyle: 'bold' },
+    },
+  });
+
+  // Prepare Attendance Table
   const head = [['Saadhak', 'Ksheter', 'Kender', 'Attd%']];
   const body = attendanceData.map(s => [
     s.name,
-    getShortName(s.ksheter),
-    getShortName(s.kender),
+    s.ksheter,
+    s.kender,
     `${s.presentCount} / ${s.totalOperationalDays} (${((s.presentCount / s.totalOperationalDays) * 100).toFixed(2)}%)`
   ]);
+
+  const afterSummaryY = doc.lastAutoTable.finalY + 20;
 
   doc.autoTable({
     head: head,
     body: body,
-    startY: 60,
+    startY: afterSummaryY,
     margin: { top: 60, bottom: 40, left: 40, right: 40 },
     styles: {
       fontSize: 10,
@@ -231,7 +355,6 @@ document.getElementById('exportPdfBtn')?.addEventListener('click', function () {
 
   doc.save(`Top_${topN}_Attendance_${selectedMonth}_${selectedYear}.pdf`);
 });
-
 
   // Image export (kept your existing code)
   document.getElementById('exportImageBtn')?.addEventListener('click', function () {
