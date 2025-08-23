@@ -9,7 +9,15 @@ const pdfExport = require("../utils/pdfExport");
 const roleConfig = require("../config/roles");
 const roles = roleConfig;
 
-const { kenderRoles, kenderTeamRoles, saadhakRoles } = roleConfig;
+const {
+  adminRoles,
+  prantRoles,
+  zilaRoles,
+  ksheterRoles,
+  kenderRoles,
+  kenderTeamRoles,
+  saadhakRoles,
+} = roleConfig;
 
 // Show attendance marking form
 exports.showMarkAttendanceForm = async (req, res) => {
@@ -590,6 +598,7 @@ exports.viewAttendance = async (req, res) => {
   try {
     const { kender, month, year, sortBy } = req.query;
     const user = req.session.user;
+    const userRoles = user.roles;
     // console.log(req.session.user);
     const today = new Date();
     const selectedMonth = parseInt(req.query.month) || today.getMonth() + 1; // 1–12
@@ -600,25 +609,82 @@ exports.viewAttendance = async (req, res) => {
     let saadhaks = [];
     let daysInMonth = 0;
     let activeDaysArray = [];
-
+    let { roleType } = req.query || '';
+    
     if (kender && month && year) {
       const start = new Date(`${selectedYear}-${selectedMonth}-01`);
       const end = new Date(selectedYear, selectedMonth, 0, 23, 59, 59); // last day of month
 
-      if (kender) kenderFilter.kender = kender;
-      if (user.prant) kenderFilter.prant = user.prant;
-      if (user.zila) kenderFilter.zila = user.zila;
-      if (user.ksheter) kenderFilter.ksheter = user.ksheter;
-      if (user.kender) kenderFilter.kender = user.kender;
+      
+      // console.log(user);
+
+      if (
+        roleType == "adhikari" &&
+        userRoles.some((role) => prantRoles.includes(role))
+      ) {
+        delete kenderFilter.kender;
+        delete kenderFilter.ksheter;
+        delete kenderFilter.zila;
+        kenderFilter.prant = user.prant;
+        kenderFilter.role = { $in: [...prantRoles, ...zilaRoles] };
+      } else if (
+        roleType == "adhikari" &&
+        userRoles.some((role) => zilaRoles.includes(role))
+      ) {
+        delete kenderFilter.kender;
+        delete kenderFilter.ksheter;
+        kenderFilter.zila = user.zila;
+        kenderFilter.prant = user.prant;
+        kenderFilter.role = { $in: [...zilaRoles, ...ksheterRoles] };
+      } else if (
+        roleType == "adhikari" &&
+        userRoles.some((role) => ksheterRoles.includes(role))
+      ) {
+        delete kenderFilter.kender;
+        kenderFilter.ksheter = user.ksheter;
+        kenderFilter.zila = user.zila;
+        kenderFilter.prant = user.prant;
+        kenderFilter.role = { $in: [...ksheterRoles, ...kenderRoles] };
+      } else {
+        if (kender) kenderFilter.kender = kender;
+        if (user.prant) kenderFilter.prant = user.prant;
+        if (user.zila) kenderFilter.zila = user.zila;
+        if (user.ksheter) kenderFilter.ksheter = user.ksheter;
+        if (user.kender) kenderFilter.kender = user.kender;
+      }
+      // console.log(kenderFilter);
 
       saadhaks = await Saadhak.find({ ...kenderFilter });
+      // console.log(saadhaks.length);
+      let attendanceRecords;
 
-      // Attendance records in that period
-      const attendanceRecords = await Attendance.find({
-        kender,
-        date: { $gte: start, $lte: end },
-      });
-
+      if (roleType === "adhikari") {
+        attendanceRecords = await Attendance.aggregate([
+          {
+            $match: {
+              date: { $gte: start, $lte: end },
+            },
+          },
+          {
+            $group: {
+              _id: {
+                saadhak: "$saadhak",
+                day: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+              },
+              firstRecord: { $first: "$$ROOT" }, // take first record per saadhak per day
+            },
+          },
+          {
+            $replaceRoot: { newRoot: "$firstRecord" }, // unwrap
+          },
+          { $sort: { date: 1 } },
+        ]);
+      } else {
+        attendanceRecords = await Attendance.find({
+          kender,
+          date: { $gte: start, $lte: end },
+        });
+      }
       // Map attendance by saadhakId
       const attendanceMap = {};
       attendanceRecords.forEach((record) => {
@@ -672,16 +738,21 @@ exports.viewAttendance = async (req, res) => {
       daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
     }
 
-    const selectedKenderData = await Kender.findById(kender);
-    const selectedKenderName = selectedKenderData
-      ? selectedKenderData.name
-      : "Kender";
-    // console.log(activeDaysArray);
-    // console.log(req.query);
+    let selectedKenderData;
+    let selectedKenderName;
+
+    if (roleType !== "adhikari") {
+       selectedKenderData = await Kender.findById(kender);
+       selectedKenderName = selectedKenderData
+        ? selectedKenderData.name
+        : "Kender";
+      // console.log(activeDaysArray);
+      // console.log(req.query);
+    }
 
     res.render("attendance/view", {
       selectedKender: kender || "",
-      selectedKenderName,
+      selectedKenderName: selectedKenderName || "",
       selectedMonth,
       selectedYear,
       attendanceData,

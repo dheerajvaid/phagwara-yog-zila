@@ -1,45 +1,100 @@
 <%- include('../partials/header') %>
 <%- include('../partials/navbar') %>
 
+<style>
+  .big-checkbox {
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 2px solid #000;
+    background-color: #fff;
+  }
+
+  .big-checkbox:checked {
+    background-color: #007bff;
+    border-color: #0056b3;
+  }
+
+  .form-check-label {
+    font-size: 1.2rem;
+    color: #000;
+  }
+</style>
+
+
 <div class="container mt-3">
   <div id="attendanceWrapper">
     <h4 class="text-center mb-3 fw-bold border-bottom pb-2">📊 View Saadhak Attendance (Monthly)</h4>
 
     <!-- Dropdown Form -->
-    <form id="attendanceCapture" method="GET" action="/attendance/view" class="row g-2 mb-4">
-      
+<form id="attendanceCapture" method="GET" action="/attendance/view" class="row g-3 mb-4 p-3 bg-light border rounded shadow-sm">
+  
+  <!-- Adhikari Checkbox -->
+  <div class="col-12">
+    <div class="d-flex align-items-center">
+      <input 
+        class="form-check-input big-checkbox me-2" 
+        type="checkbox" 
+        id="adhikariCheckbox" 
+        name="roleType" 
+        value="adhikari"
+      >
+      <label 
+        class="form-check-label fw-bold fs-5 mb-0" 
+        for="adhikariCheckbox"
+      >
+        📋 Adhikari Attendance
+      </label>
+    </div>
+  </div>
+
+  <!-- Scope Dropdowns -->
+  <div class="col-12">
+    <div id="scopeDropdownsContainer">
       <%- include('../partials/scope-dropdowns') %>
-      
+    </div>
+  </div>
 
-      <div class="col-6 col-md-3">
-        <select name="month" class="form-control" required>
-          <option value="">Month</option>
-          <% for (let m = 1; m <= 12; m++) { %>
-            <option value="<%= m %>" <%= selectedMonth == m ? 'selected' : '' %>><%= new Date(2000, m-1).toLocaleString('default', { month: 'long' }) %></option>
-          <% } %>
-        </select>
-      </div>
+  <!-- Month & Year -->
+  <div class="col-6 col-md-3">
+    <label class="form-label fw-semibold">📅 Month</label>
+    <select name="month" class="form-control" required>
+      <option value="">Select Month</option>
+      <% for (let m = 1; m <= 12; m++) { %>
+        <option value="<%= m %>" <%= selectedMonth == m ? 'selected' : '' %>>
+          <%= new Date(2000, m-1).toLocaleString('default', { month: 'long' }) %>
+        </option>
+      <% } %>
+    </select>
+  </div>
 
-      <div class="col-6 col-md-3">
-        <select name="year" class="form-control" required>
-          <option value="">Year</option>
-          <% for (let y = 2025; y <= 2030; y++) { %>
-            <option value="<%= y %>" <%= selectedYear == y ? 'selected' : '' %>><%= y %></option>
-          <% } %>
-        </select>
-      </div>
+  <div class="col-6 col-md-3">
+    <label class="form-label fw-semibold">📆 Year</label>
+    <select name="year" class="form-control" required>
+      <option value="">Select Year</option>
+      <% for (let y = 2025; y <= 2030; y++) { %>
+        <option value="<%= y %>" <%= selectedYear == y ? 'selected' : '' %>><%= y %></option>
+      <% } %>
+    </select>
+  </div>
 
-      <div class="col-6 col-md-3">
-        <select name="sortBy" class="form-control" onchange="document.getElementById('attendanceForm').submit()">
-          <option value="name" <%= sortBy === 'name' ? 'selected' : '' %>>Sort by Name</option>
-          <option value="count" <%= sortBy === 'count' ? 'selected' : '' %>>Sort by Present Days</option>
-        </select>
-      </div>
+  <!-- Sort Dropdown -->
+  <div class="col-12 col-md-3">
+    <label class="form-label fw-semibold">🔽 Sort By</label>
+    <select name="sortBy" class="form-control" onchange="document.getElementById('attendanceForm').submit()">
+      <option value="name" <%= sortBy === 'name' ? 'selected' : '' %>>Name</option>
+      <option value="count" <%= sortBy === 'count' ? 'selected' : '' %>>Present Days</option>
+    </select>
+  </div>
 
-      <div class="col-12 col-md-2">
-        <button class="btn btn-primary w-100">View</button>
-      </div>
-    </form>
+  <!-- Submit -->
+  <div class="col-12 col-md-3 d-flex align-items-end">
+    <button class="btn btn-primary w-100 fw-semibold">🔍 View</button>
+  </div>
+
+</form>
+
+
+
 
     <% if (attendanceData.length) { %>
       <div class="text-end mb-2">
@@ -150,14 +205,46 @@
   });
 </script>
 <script>
-  const requiredFields = ['prant', 'zila', 'ksheter', 'kender'];
-
   window.addEventListener('DOMContentLoaded', () => {
+    const requiredFields = ['prant', 'zila', 'ksheter', 'kender'];
+    const scopeContainer = document.getElementById('scopeDropdownsContainer');
+    const adhikariCheckbox = document.getElementById('adhikariCheckbox');
+
+    // Initially make dropdowns required
     requiredFields.forEach(field => {
       const dropdown = document.getElementById(`${field}Dropdown`);
       if (dropdown) dropdown.setAttribute('required', 'required');
     });
+
+    // Handle checkbox change
+    if (adhikariCheckbox) {
+      adhikariCheckbox.addEventListener('change', () => {
+        if (adhikariCheckbox.checked) {
+          scopeContainer.style.display = 'none';
+          requiredFields.forEach(field => {
+            const dropdown = document.getElementById(`${field}Dropdown`);
+            if (dropdown) dropdown.removeAttribute('required');
+          });
+        } else {
+          scopeContainer.style.display = 'block';
+          requiredFields.forEach(field => {
+            const dropdown = document.getElementById(`${field}Dropdown`);
+            if (dropdown) dropdown.setAttribute('required', 'required');
+          });
+        }
+      });
+
+      // Optional: handle page load if checkbox is already checked
+      if (adhikariCheckbox.checked) {
+        scopeContainer.style.display = 'none';
+        requiredFields.forEach(field => {
+          const dropdown = document.getElementById(`${field}Dropdown`);
+          if (dropdown) dropdown.removeAttribute('required');
+        });
+      }
+    }
   });
 </script>
+
 
 <%- include('../partials/footer') %>
