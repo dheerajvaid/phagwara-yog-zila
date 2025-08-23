@@ -606,14 +606,38 @@ exports.exportDirectoryWord = async (req, res) => {
 
       const districtChildren = [];
 
+      const {
+        Paragraph,
+        TextRun,
+        TabStopType,
+        AlignmentType,
+      } = require("docx");
+
       districtChildren.push(
         new Paragraph({
-          text: `District: ${zila.name}`,
-          heading: HeadingLevel.HEADING_2,
-        }),
-        new Paragraph({
-          text: `Total Zones: ${relatedKsheters.length}`,
-          heading: HeadingLevel.HEADING_2,
+          tabStops: [
+            {
+              type: TabStopType.LEFT,
+              position: 5000, // Adjust position for spacing as needed
+            },
+          ],
+          children: [
+            new TextRun({
+              text: `District: ${zila.name}`,
+              bold: true,
+              color: "000000",
+              size: 32,
+            }),
+            new TextRun({
+              text: "\t", // Tab space between the two texts
+            }),
+            new TextRun({
+              text: `Total Zones: ${relatedKsheters.length}`,
+              bold: true,
+              color: "000000",
+              size: 32,
+            }),
+          ],
         }),
         new Paragraph({ text: "" }),
         createDesignationTable(zilaTeam, roleMap, "ZILA"),
@@ -635,8 +659,14 @@ exports.exportDirectoryWord = async (req, res) => {
 
         districtChildren.push(
           new Paragraph({
-            text: `ZONE No. ${zoneCounter}: ${ksheter.name}`,
-            heading: HeadingLevel.HEADING_3,
+            children: [
+              new TextRun({
+                text: `ZONE No. ${zoneCounter}: ${ksheter.name}`,
+                bold: true,
+                color: "000000",
+                size: 24,
+              }),
+            ],
           }),
           createDesignationTable(ksheterTeam, roleMap, "KSHETER"),
           new Paragraph({})
@@ -685,8 +715,14 @@ exports.exportDirectoryWord = async (req, res) => {
 
         districtChildren.push(
           new Paragraph({
-            text: "Yog Centers Detail:",
-            heading: HeadingLevel.HEADING_3,
+            children: [
+              new TextRun({
+                text: "Yog Centers Detail:",
+                bold: true,
+                color: "000000",
+                size: 24,
+              }),
+            ],
           }),
           centerTable,
           new Paragraph({ text: "", spacing: { after: 300 } })
