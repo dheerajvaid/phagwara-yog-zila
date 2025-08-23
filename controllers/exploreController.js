@@ -544,6 +544,17 @@ exports.exportExploreExcel = async (req, res) => {
   }
 };
 
+// controllers/exportController.js
+
+exports.showExportForm = async (req, res) => {
+  const prants = await Prant.find().lean();
+  const zilas = await Zila.find().lean();
+  const ksheterList = await Ksheter.find().lean();
+  const kenderList = await Kender.find().lean();
+
+  res.render("export/form", { prants, zilas, ksheterList, kenderList });
+};
+
 const {
   Document,
   Packer,
@@ -559,16 +570,75 @@ const {
 
 exports.exportDirectoryWord = async (req, res) => {
   try {
-    const zilaQuery = req.query.zila;
+    const user = req.session.user;
 
-    const zilaFilter = zilaQuery
-      ? { name: { $regex: zilaQuery, $options: "i" } }
-      : {};
+    // 🟡 Normalize filters
+    const normalizeScopeValue = (value) => {
+      if (!value) return "";
+      if (Array.isArray(value)) return value[0] || "";
+      return String(value);
+    };
+
+    const prantQuery = normalizeScopeValue(req.query.prant).trim();
+    const zilaQuery = normalizeScopeValue(req.query.zila).trim();
+    const ksheterQuery = normalizeScopeValue(req.query.ksheter).trim();
+    const kenderQuery = normalizeScopeValue(req.query.kender).trim();
+
+    const prantDoc = prantQuery
+      ? await Prant.findOne({ _id: prantQuery })
+      : null;
+    const zilaDoc = zilaQuery ? await Zila.findOne({ _id: zilaQuery }) : null;
+    const ksheterDoc = ksheterQuery
+      ? await Ksheter.findOne({ _id: ksheterQuery })
+      : null;
+    const kenderDoc = kenderQuery
+      ? await Kender.findOne({ _id: kenderQuery })
+      : null;
+
+    const prantName = prantDoc?.name || "";
+    const zilaName = zilaDoc?.name || "";
+    const ksheterName = ksheterDoc?.name || "";
+    const kenderName = kenderDoc?.name || "";
+
+    let fileName = "BYS_Directory";
+
+    if (kenderName) {
+      fileName = kenderName;
+    } else if (ksheterName) {
+      fileName = ksheterName;
+    } else if (zilaName) {
+      fileName = zilaName;
+    } else if (prantName) {
+      fileName = prantName;
+    }
+
+    // If no query params, skip validation
+    if (Object.keys(req.query).length > 0) {
+      // 🛡️ Check if both prant & zila are required
+      if (!prantQuery) {
+        const referer = req.get("Referer");
+        const backUrl = referer ? referer.split("?")[0] : "/explore/word/form";
+
+        return res.status(400).render("error/error-page", {
+          title: "Invalid Request",
+          message: "Prant is required to view attendance.",
+          backUrl,
+        });
+      }
+    }
+
+    const prantFilter = prantQuery ? { _id: prantQuery } : {};
+
+    const zilaFilter = zilaQuery ? { _id: zilaQuery } : {};
+
+    const ksheterFilter = ksheterQuery ? { _id: ksheterQuery } : {};
+
+    const kenderFilter = kenderQuery ? { _id: kenderQuery } : {};
 
     const [zilas, ksheterList, kenderList, saadhaks] = await Promise.all([
       Zila.find(zilaFilter).lean(),
-      Ksheter.find().lean(),
-      Kender.find().lean(),
+      Ksheter.find(ksheterFilter).lean(),
+      Kender.find(kenderFilter).lean(),
       Saadhak.find().lean(),
     ]);
 
@@ -744,7 +814,7 @@ exports.exportDirectoryWord = async (req, res) => {
     );
     res.setHeader(
       "Content-Disposition",
-      "attachment; filename=AllIndiaDirectory.docx"
+      "attachment; filename=" + fileName + ".docx"
     );
     res.send(buffer);
   } catch (err) {

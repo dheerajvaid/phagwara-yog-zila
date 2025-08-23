@@ -118,7 +118,7 @@ const isSaadhakOnly = user?.roles.some(role => saadhakRoles.includes(role));
           </li>
         <% } %>
 
-        <li class="nav-item"><a class="nav-link" href="/explore">📂 Explore BYS</a></li>
+       <%- include('explore') %>
         <li class="nav-item"><a class="nav-link" href="/events">🎆 Events</a></li>
         <%- include('sharpMind') %>
 

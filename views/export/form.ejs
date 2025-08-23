@@ -1,0 +1,67 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-12 col-sm-12 col-md-10 col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title mb-3 text-primary text-center">
+            📤 Export BYS Directory (Word)
+          </h5>
+
+          <form action="/explore/word" method="GET">
+            <!-- 👇 Reuse your dynamic dropdowns -->
+            <div class="scope-dropdown-wrapper mb-3">
+              <%- include('../partials/scope-dropdowns') %>
+            </div>
+
+            <div class="d-grid mt-3">
+              <button id="exportBtn" type="submit" class="btn btn-primary btn-lg">
+                ⬇ Export Word Document
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Optional CSS to force dropdowns full-width -->
+<style>
+  .scope-dropdown-wrapper select,
+  .scope-dropdown-wrapper .form-control,
+  .scope-dropdown-wrapper .form-select {
+    width: 100% !important;
+    margin-bottom: 1rem;
+  }
+
+  /* If your scope-dropdowns use col-4/col-md-4, make them full width */
+  .scope-dropdown-wrapper .col-4,
+  .scope-dropdown-wrapper .col-md-4,
+  .scope-dropdown-wrapper .col-sm-4 {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+  }
+</style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const exportBtn = document.getElementById('exportBtn');
+
+     // 👇 Make zila dropdown not required
+      if (zilaDropdown) {
+        zilaDropdown.removeAttribute('required');
+      }
+
+    exportBtn.addEventListener('click', function () {
+      const spinner = document.getElementById('loadingSpinner');
+      setTimeout(() => {
+        if (spinner) spinner.style.display = 'none';
+      }, 2000);
+    });
+  });
+</script>
+
+<%- include('../partials/footer') %>
