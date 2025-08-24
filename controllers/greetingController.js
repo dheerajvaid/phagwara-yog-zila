@@ -176,7 +176,8 @@ exports.generateGreeting = async (req, res) => {
     const safeName = name.replace(/\s+/g, "_");
     const safeMobile = (mobile || "").replace(/\s+/g, "_");
     const safeType = type.replace(/\s+/g, "_");
-    const fileName = `${safeName}-${safeMobile}-${safeType}.png`;
+    const { v4: uuidv4 } = require("uuid");
+    const fileName = `${safeName}-${safeMobile}-${safeType}-${uuidv4()}.png`;
     const greetingsDir = path.join(__dirname, "../public/greetings");
     const filePath = path.join(greetingsDir, fileName);
 

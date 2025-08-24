@@ -135,9 +135,10 @@
 
   function populateKender(ksheterId) {
     kenderDropdown.innerHTML = '<option value="">Select Kender</option>';
-
+   
     if (userRoleLevel > 20 && userRoleLevel <= 40) { // KenderTeam-level users locked to their Kender
       const kender = kenderList.find(k => String(k._id) === userKender);
+      
       if (kender) {
         const option = document.createElement('option');
         option.value = kender._id;
