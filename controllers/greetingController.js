@@ -159,16 +159,16 @@ exports.generateGreeting = async (req, res) => {
     ctx.font = "bold 36px Arial";
     ctx.fillStyle = "red";
     ctx.textAlign = "center";
-    ctx.fillText(fromLabel, width / 2, 670);
+    ctx.fillText(fromLabel, width / 2, 730);
 
     ctx.font = "bold 42px Arial";
     ctx.fillStyle = "blue";
     ctx.textAlign = "center";
-    ctx.fillText(fromText, width / 2, 710);
+    ctx.fillText(fromText, width / 2, 770);
     ctx.font = "bold 32px Arial";
-    ctx.fillText(hierarchyText, width / 2, 765);
+    ctx.fillText(hierarchyText, width / 2, 825);
     ctx.font = "bold 32px Arial";
-    ctx.fillText(hierarchyText1, width / 2, 795);
+    ctx.fillText(hierarchyText1, width / 2, 855);
     ctx.font = "bold 48px Arial";
     ctx.fillStyle = "red";
     ctx.fillText("BHARATIYA YOG SANSTHAN (REGD.)", width / 2, 920);

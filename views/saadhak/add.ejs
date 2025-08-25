@@ -403,9 +403,7 @@ document.addEventListener("DOMContentLoaded", function () {
     domDay.disabled = !isMarried;
     domMonth.disabled = !isMarried;
     domYear.disabled = !isMarried;
-    domDay.required = isMarried;
-    domMonth.required = isMarried;
-    domYear.required = isMarried;
+   
     if (!isMarried) {
       domDay.value = "";
       domMonth.value = "";

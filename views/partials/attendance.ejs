@@ -6,17 +6,23 @@
            
       <% if (user.roles.includes('Kender Pramukh') || user.roles.includes('Seh Kender Pramukh') || user.roles.includes('Shikshak') || user.roles.includes('Karyakarta') || user.roles.includes('Saadhak')) { %>
         <li><a class="dropdown-item" href="/attendance/mark">📋 Mark Attendance</a></li>
+        <hr class="menu-divider">
         <li><a class="dropdown-item" href="/attendance/today">📋 Today's Attendance Report</a></li>
+        <hr class="menu-divider">
       <% } %>
 
       <li><a class="dropdown-item" href="/attendance/view">📋 Saadhak/Adhikari Wise Monthly Attendance</a></li>
+      <hr class="menu-divider">
       <li><a class="dropdown-item" href="/attendance/view-kender">📋 Kender Wise Monthly Attendance</a></li>
+      <hr class="menu-divider">
       <li><a class="dropdown-item" href="/report/attendance-filter">📋 Attendance Summary</a></li>
+      <hr class="menu-divider">
       <li><a class="dropdown-item" href="/attendance/missing">📋 Non-Attendance Report</a></li>
+     <hr class="menu-divider">
       <li><a class="dropdown-item" href="/attendance/top10">📋 TOP 10 Attendance</a></li>
-      
+     <hr class="menu-divider">
       <% if (user.roles.includes('Kender Pramukh') || user.roles.includes('Seh Kender Pramukh')  || user.roles.includes('Karyakarta')  || user.roles.includes('Shikshak')) { %>
-        <li><a class="dropdown-item" href="/kender/print-cards">📋 Print Monthly Attendance Cards</a></li>
+        <li><a class="dropdown-item" href="/kender/print-cards">📋 Print Monthly Attendance Cards</a></li>        
       <% } %>
     </ul>
 </li>

@@ -5,10 +5,13 @@
     <ul class="dropdown-menu">
       <% if (!user.roles.includes('Saadhak')) { %>
         <li><a class="dropdown-item" href="/saadhak/manage">🗂️ Manage Saadhaks</a></li>
+        <hr class="menu-divider">
         <li><a class="dropdown-item" href="/saadhak/add">➕ Add Saadhak</a></li>
+        <hr class="menu-divider">
       <% } %>
       <% if (user) { %>
         <li><a class="dropdown-item" href="/saadhak/self-update">🗂️ Update My Details</a></li>
+        <hr class="menu-divider">
        <% } %>   
       <li><a class="dropdown-item" href="/report/summary">🗒️ Kender Sumamry Report</a></li>
       

@@ -6,7 +6,9 @@
            
       <% if (!user.roles.includes('Shishak') && !user.roles.includes('Karyakarta') && !user.roles.includes('Saadhak')) { %>
         <li><a class="dropdown-item" href="/programs/create">📋 Create Program</a></li>
+       <hr class="menu-divider">
         <li><a class="dropdown-item" href="/programs">📋 View Created Programs</a></li>
+       <hr class="menu-divider">
       <% } %>
 
       <li><a class="dropdown-item" href="/programs/available">📋 Join Program</a></li>

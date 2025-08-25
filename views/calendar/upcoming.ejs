@@ -34,12 +34,12 @@
              data-event-date="<%= e.date.toISOString() %>"
              onclick="openGreetingModal(this)">
           <div class="card-body">
-            <h5 class="card-title fw-semibold"><i class="bi bi-person-circle me-2 event-header-icon"></i><%= e.saadhak.name %></h5>
-            <p class="mb-1"><strong>📱</strong> <%= e.saadhak.mobile %></p>
-            <% if (e.saadhak.kender) { %><p class="mb-1"><strong>Kender:</strong> <%= e.saadhak.kender.name %></p><% } %>
-            <% if (e.saadhak.ksheter) { %><p class="mb-1"><strong>Ksheter:</strong> <%= e.saadhak.ksheter.name %></p><% } %>
-            <% if (e.saadhak.zila) { %><p class="mb-1"><strong>Zila:</strong> <%= e.saadhak.zila.name %></p><% } %>
-            <p class="mb-1"><strong>Role:</strong> <%= e.saadhak.role.join(", ") %></p>
+            <h5 class="card-title fw-semibold text-primary"><i class="bi bi-person-circle me-2 event-header-icon"></i><%= e.saadhak.name %></h5>
+            <p class="mb-1"><strong>📱 <%= e.saadhak.mobile %></p></strong>
+            <% if (e.saadhak.kender) { %><p class="mb-1"><strong class="text-danger">Kender: <span class="text-primary"><%= e.saadhak.kender.name %></span></p></strong><% } %>
+            <% if (e.saadhak.ksheter) { %><p class="mb-1"><strong class="text-danger">Ksheter:</strong> <%= e.saadhak.ksheter.name %></p><% } %>
+            <% if (e.saadhak.zila) { %><p class="mb-1"><strong class="text-danger">Zila:</strong> <%= e.saadhak.zila.name %></p><% } %>
+            <p class="mb-1"><strong class="text-danger">Role:</strong> <%= e.saadhak.role.join(", ") %></p>
             <p class="d-flex justify-content-between align-items-center mt-3">
               <span class="event-type <%= e.type.includes('Birthday') ? 'birthday-badge' : 'anniversary-badge' %>"><%= e.type %></span>
               <span class="event-date"><%= e.date.toDateString() %></span>
@@ -67,12 +67,12 @@
              data-event-date="<%= e.date.toISOString() %>"
              onclick="openGreetingModal(this)">
           <div class="card-body">
-            <h5 class="card-title fw-semibold"><i class="bi bi-person-fill me-2 event-header-icon"></i><%= e.saadhak.name %></h5>
-            <p class="mb-1"><strong>📱</strong> <%= e.saadhak.mobile %></p>
-            <% if (e.saadhak.kender) { %><p class="mb-1"><strong>Kender:</strong> <%= e.saadhak.kender.name %></p><% } %>
-            <% if (e.saadhak.ksheter) { %><p class="mb-1"><strong>Ksheter:</strong> <%= e.saadhak.ksheter.name %></p><% } %>
-            <% if (e.saadhak.zila) { %><p class="mb-1"><strong>Zila:</strong> <%= e.saadhak.zila.name %></p><% } %>
-            <p class="mb-1"><strong>Role:</strong> <%= e.saadhak.role.join(", ") %></p>
+            <h5 class="card-title fw-semibold text-primary"><i class="bi bi-person-fill me-2 event-header-icon"></i><%= e.saadhak.name %></h5>
+            <p class="mb-1"><strong>📱 <%= e.saadhak.mobile %></p></strong>
+            <% if (e.saadhak.kender) { %><p class="mb-1"><strong class="text-danger">Kender: <span class="text-primary"><%= e.saadhak.kender.name %></span></p></strong><% } %>
+            <% if (e.saadhak.ksheter) { %><p class="mb-1"><strong class="text-danger">Ksheter:</strong> <%= e.saadhak.ksheter.name %></p><% } %>
+            <% if (e.saadhak.zila) { %><p class="mb-1"><strong class="text-danger">Zila:</strong> <%= e.saadhak.zila.name %></p><% } %>
+            <p class="mb-1"><strong class="text-danger">Role:</strong> <%= e.saadhak.role.join(", ") %></p>
             <p class="d-flex justify-content-between align-items-center mt-3">
               <span class="event-type <%= e.type.includes('Birthday') ? 'birthday-badge' : 'anniversary-badge' %>"><%= e.type %></span>
               <span class="event-date"><%= e.date.toDateString() %></span>
