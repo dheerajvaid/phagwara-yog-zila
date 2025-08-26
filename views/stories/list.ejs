@@ -12,7 +12,7 @@
       <div class="col-md-6 col-lg-4 mb-4">
         <div class="card h-100 shadow-sm">
           <div class="card-body">
-            <h5 class="card-title"><%= story.title %></h5>
+            <h5 class="card-title text-primary"><%= story.title %></h5>
             <p class="card-text"><%= story.content.substring(0, 100) %>...</p>
             <a href="/stories/view/<%= story._id %>" class="btn btn-primary btn-sm me-1">Read More</a>
             <% if (user && (user.roles.includes('Admin') || user.roles.includes('Zila Team') || user.roles.includes('Ksheter Team'))) { %>

@@ -562,7 +562,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const movesDone = totalCells - totalMovesPlayed;
 
   // ⚡ Fast early moves (first 2 AI moves)
-  if (movesDone <= 2) {
+  if (movesDone <= 5) {
     const centerPref = allEmptyMoves().sort((a, b) => {
       const center = 1.5;
       const distA = Math.abs(a[0] - center) + Math.abs(a[1] - center) + Math.abs(a[2] - center);
@@ -573,13 +573,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   if (!move) {
-    // 🛡️ Step 1: Save First (Prevent Opponent Win)
-    move = detectThreatOrWin("X", 3);  // Block immediate threat
-    if (!move) move = detectThreatOrWin("X", 2);  // Pre-empt opponent setups
-
-    // 🏆 Step 2: Seek Win (If safe)
     if (!move) move = detectThreatOrWin("O", 3);  // Immediate win if possible
-    if (!move) move = detectThreatOrWin("O", 2);  // Setup for own win
+    // 🛡️ Step 1: Save First (Prevent Opponent Win)
+    if (!move) move = detectThreatOrWin("X", 3);  // Block immediate threat
+     if (!move) move = detectThreatOrWin("O", 2);  // Setup for own win
+    if (!move) move = detectThreatOrWin("X", 2);  // Pre-empt opponent setups
+    // 🏆 Step 2: Seek Win (If safe)
+      
 
     // 🧠 Step 3: If nothing clear, go heuristic + deeper minimax
     if (!move) {

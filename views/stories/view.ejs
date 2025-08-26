@@ -1,8 +1,57 @@
 <%- include('../partials/header') %>
 <%- include('../partials/navbar') %>
+
+<style>
+  .story-container {
+    background: #f9f9fb;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .story-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #0d6efd; /* Bootstrap Primary */
+    border-bottom: 3px solid #0d6efd;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.2rem;
+    text-align: center;
+  }
+
+  .story-content {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #333;
+    white-space: pre-wrap;
+    text-align: justify;
+  }
+
+  .back-btn {
+    display: block;
+    margin: 2rem auto 0;
+    width: fit-content;
+  }
+
+  @media (max-width: 576px) {
+    .story-title {
+      font-size: 1.6rem;
+    }
+
+    .story-content {
+      font-size: 1rem;
+    }
+  }
+</style>
+
 <div class="container py-4">
-  <h2><%= story.title %></h2>
-  <p style="white-space: pre-wrap;"><%= story.content %></p>
-  <a href="/stories" class="btn btn-secondary mt-3">← Back to Stories</a>
+  <div class="story-container">
+    <h2 class="story-title"><%= story.title %></h2>
+    <p class="story-content"><%= story.content %></p>
+    <a href="/stories" class="btn btn-outline-primary back-btn">← Back to Stories</a>
+  </div>
 </div>
+
 <%- include('../partials/footer') %>
