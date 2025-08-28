@@ -609,13 +609,12 @@ exports.viewAttendance = async (req, res) => {
     let saadhaks = [];
     let daysInMonth = 0;
     let activeDaysArray = [];
-    let { roleType } = req.query || '';
-    
+    let { roleType } = req.query || "";
+
     if (kender && month && year) {
       const start = new Date(`${selectedYear}-${selectedMonth}-01`);
       const end = new Date(selectedYear, selectedMonth, 0, 23, 59, 59); // last day of month
 
-      
       // console.log(user);
 
       if (
@@ -742,8 +741,8 @@ exports.viewAttendance = async (req, res) => {
     let selectedKenderName;
 
     if (roleType !== "adhikari") {
-       selectedKenderData = await Kender.findById(kender);
-       selectedKenderName = selectedKenderData
+      selectedKenderData = await Kender.findById(kender);
+      selectedKenderName = selectedKenderData
         ? selectedKenderData.name
         : "Kender";
       // console.log(activeDaysArray);
@@ -1755,5 +1754,69 @@ exports.exportKenderTeamRankPDF = async (req, res) => {
   } catch (error) {
     console.error("Error exporting Kender Team Rank PDF:", error);
     res.status(500).send("PDF Export Failed");
+  }
+};
+
+exports.viewIndividualAttendance = async (req, res) => {
+  const { saadhakId } = req.params;
+  const { month, year } = req.query;
+
+  try {
+    const saadhak = await Saadhak.findById(saadhakId).populate("kender");
+    if (!saadhak) return res.status(404).send("Saadhak not found");
+
+    const selectedMonth = parseInt(month);
+    const selectedYear = parseInt(year);
+
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1; // getMonth is 0-based
+    const currentYear = now.getFullYear();
+
+    // If current month/year, set endDate to today. Else end of selected month.
+    const endDate =
+      selectedMonth === currentMonth && selectedYear === currentYear
+        ? new Date(
+            selectedYear,
+            selectedMonth - 1,
+            now.getDate(),
+            23,
+            59,
+            59,
+            999
+          )
+        : new Date(selectedYear, selectedMonth, 0); // end of selected month
+
+    const startDate = new Date(
+      `${selectedYear}-${String(selectedMonth).padStart(2, "0")}-01`
+    );
+
+    const attendanceRecords = await Attendance.find({
+      saadhak: saadhakId,
+      date: { $gte: startDate, $lte: endDate },
+    }).populate("kender");
+
+    // Map day => Kender name
+    const dailyVisits = {};
+    attendanceRecords.forEach((rec) => {
+      const day = rec.date.getDate();
+      dailyVisits[day] = rec.kender?.name || "Unknown";
+    });
+
+    // Determine how many days to show (up to today if current month/year)
+    const lastDayToShow =
+      selectedMonth === currentMonth && selectedYear === currentYear
+        ? now.getDate()
+        : new Date(selectedYear, selectedMonth, 0).getDate(); // last day of selected month
+
+    res.render("attendance/individual-details", {
+      saadhak,
+      month: selectedMonth,
+      year: selectedYear,
+      dailyVisits,
+      lastDayToShow,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server Error");
   }
 };

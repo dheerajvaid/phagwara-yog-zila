@@ -132,7 +132,10 @@
             <% attendanceData.forEach(s => { %>
               <tr style="page-break-inside: avoid;">
                 <td class="fw-bold" style="white-space: nowrap; font-size: 0.85rem; width: 1%;">
-                  <%= s.name %> <span class="text-primary">(<%= s.presentCount %>)</span>
+                  <a href="/attendance/details/<%= s._id %>?month=<%= selectedMonth %>&year=<%= selectedYear %>" class="fw-bold text-primary">
+                    <%= s.name %>
+                  </a>
+                  <span class="text-danger">(<%= s.presentCount %>)</span>
                 </td>
                 <% activeDays.forEach(day => {
                   const dateStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
