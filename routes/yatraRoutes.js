@@ -455,7 +455,7 @@ router.get("/report/excel", async (req, res) => {
         name: yatra.name || "",
         mobile: yatra.mobile || "",
         gender: yatra.gender || "",
-        age,
+        age: yatra.dob,
         seat: yatra.seatType || "",
         status: "Registered",
         payment: "None",

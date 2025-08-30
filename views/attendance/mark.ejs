@@ -81,8 +81,10 @@
 <script>
       const allSaadhaks = <%- JSON.stringify(saadhaks) %>;
       const markedSaadhakIds = <%- JSON.stringify(markedSaadhakIds || []) %>;
-
-      document.addEventListener("DOMContentLoaded", function () {
+      const zilaRoles = <%- JSON.stringify(zilaRoles) %>;
+      const ksheterRoles = <%- JSON.stringify(ksheterRoles) %>;
+      const prantRoles = <%- JSON.stringify(prantRoles) %>;
+      
         const tableBody = document.getElementById("saadhakTableBody");
         const attendanceDateInput = document.getElementById("attendanceDate");
         const checkbox = document.getElementById('toggleDiv');
@@ -106,11 +108,22 @@
 
 
         function renderTable() {
+
+          
           tableBody.innerHTML = "";
 
           if (allSaadhaks.length === 0) {
             tableBody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">No Saadhaks found.</td></tr>';
             return;
+          }
+
+           // 🔹 Helper: Determine role suffix
+          function getRoleSuffix(roles) {
+            if (!Array.isArray(roles)) return '';
+            if (roles.some(r => prantRoles.includes(r))) return '(Prant)';
+            if (roles.some(r => zilaRoles.includes(r))) return '(Zila)';
+            if (roles.some(r => ksheterRoles.includes(r))) return '(Ksheter)';
+            return '';
           }
 
           allSaadhaks.forEach((s, index) => {
@@ -119,7 +132,7 @@
             const year = today.getFullYear();
             const month = today.getMonth();
             const currentDay = today.getDate();
-
+            
             let attendanceStrip = '';
             let day;
             for (day = 1; day <= currentDay; day++) {
@@ -147,6 +160,8 @@
               adhikariClass = 'adhikari';
             }  
             
+            const roleSuffix = getRoleSuffix(s.role);
+
             const row = `
               <tr class="saadhak-row ${adhikariClass}" style="${adhikariClass === 'adhikari' ? 'display: none;' : ''}">
                 <td>${index + 1}</td>
@@ -159,7 +174,7 @@
                     ${isMarked ? 'checked' : ''}
                     style="transform: scale(1.5);"
                   />
-                  <strong class="saadhak-name ${isMarked ? 'text-danger fw-bold' : ''}" data-id="${s._id}">${s.name}</strong>
+                  <strong class="saadhak-name ${isMarked ? 'text-danger fw-bold' : ''}" data-id="${s._id}">${s.name}<span class="text-danger"> ${roleSuffix}<span></strong>
                   <div class="text-muted small">(${s.attendanceDates.length}/${day - 1} days present)</div>
                   <div class="d-flex flex-wrap mt-1 dayBox d-none">${attendanceStrip}</div>
                 </td>
@@ -229,5 +244,5 @@
 
 
         renderTable();
-      });
+      
 </script>

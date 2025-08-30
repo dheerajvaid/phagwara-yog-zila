@@ -20,6 +20,7 @@ const zilaRoles = [
 ];
 
 const ksheterRoles = [
+  "Ksheter Sanrakshak",
   "Ksheter Pradhan",
   "Ksheter Upp Pradhan",
   "Ksheter Mantri",

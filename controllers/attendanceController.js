@@ -43,42 +43,26 @@ exports.showMarkAttendanceForm = async (req, res) => {
     end.setHours(23, 59, 59, 999); // today at 23:59:59.999
 
     let query = {};
-    const ksheterRoles = ["Ksheter Pradhan", "Ksheter Mantri"];
-    const zilaRoles = [
-      "Zila Pradhan",
-      "Zila Mantri",
-      "Zila Sangathan Mantri",
-      "Zila Cashier",
-    ];
 
     if (!user.roles.includes("Admin")) {
-      if (
-        user.roles.includes("Zila Pradhan") ||
-        user.roles.includes("Zila Mantri") ||
-        user.roles.includes("Zila Sangathan Mantri") ||
-        user.roles.includes("Zila Cashier")
-      ) {
+      if (user.roles.some((role) => zilaRoles.includes(role))) {
         query.zila = user.zila;
       }
-      if (
-        user.roles.includes("Ksheter Pradhan") ||
-        user.roles.includes("Ksheter Mantri")
-      ) {
+      if (user.roles.some((role) => ksheterRoles.includes(role))) {
         query.ksheter = user.ksheter;
       }
       if (
-        user.roles.includes("Kender Pramukh") ||
-        user.roles.includes("Seh Kender Pramukh") ||
-        user.roles.includes("Shikshak") ||
-        user.roles.includes("Karyakarta")
+        user.roles.some((role) => kenderRoles.includes(role)) ||
+        user.roles.some((role) => kenderTeamRoles.includes(role))
       ) {
         query.$or = [
           { kender: user.kender }, // Kender team
           { zila: user.zila, role: { $in: ksheterRoles } }, // Ksheter team
           { zila: user.zila, role: { $in: zilaRoles } }, // Zila team
+          { prant: user.prant, role: { $in: prantRoles } }, 
         ];
       }
-      if (user.roles.includes("Saadhak")) {
+      if (user.roles.some((role) => saadhakRoles.includes(role))) {
         query._id = user.id;
       }
     }
@@ -199,6 +183,8 @@ exports.showMarkAttendanceForm = async (req, res) => {
       ...saadhaksWithoutAttendance,
     ];
 
+    // console.log(zilaRoles);
+
     // Now render the view with the sorted list
     res.render("attendance/mark", {
       saadhaks: sortedSaadhaks,
@@ -207,6 +193,9 @@ exports.showMarkAttendanceForm = async (req, res) => {
       kenders,
       user,
       markedSaadhakIds,
+      prantRoles,
+      zilaRoles,
+      ksheterRoles,
       // totalDaysCount: totalDays.length,
     });
   } catch (err) {
@@ -634,7 +623,9 @@ exports.viewAttendance = async (req, res) => {
         delete kenderFilter.ksheter;
         kenderFilter.zila = user.zila;
         kenderFilter.prant = user.prant;
-        kenderFilter.role = { $in: [...zilaRoles, ...ksheterRoles] };
+        kenderFilter.role = {
+          $in: [...zilaRoles, ...ksheterRoles, ...kenderRoles],
+        };
       } else if (
         roleType == "adhikari" &&
         userRoles.some((role) => ksheterRoles.includes(role))
