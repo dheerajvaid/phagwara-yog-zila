@@ -38,6 +38,12 @@ exports.showExploreHome = async (req, res) => {
           s.role.some((r) => prantRoles.includes(r))
       );
 
+      team.sort(
+          (a, b) =>
+            prantRoles.findIndex((role) => a.role.includes(role)) -
+            prantRoles.findIndex((role) => b.role.includes(role))
+        );
+
       return {
         ...prant,
         team,
@@ -52,6 +58,12 @@ exports.showExploreHome = async (req, res) => {
           Array.isArray(s.role) &&
           s.role.some((r) => zilaRoles.includes(r))
       );
+
+      team.sort(
+          (a, b) =>
+            zilaRoles.findIndex((role) => a.role.includes(role)) -
+            zilaRoles.findIndex((role) => b.role.includes(role))
+        );
 
       return {
         ...zila,
@@ -68,6 +80,12 @@ exports.showExploreHome = async (req, res) => {
           s.role.some((r) => ksheterRoles.includes(r))
       );
 
+      team.sort(
+          (a, b) =>
+            ksheterRoles.findIndex((role) => a.role.includes(role)) -
+            ksheterRoles.findIndex((role) => b.role.includes(role))
+        );
+
       return {
         ...ksheter,
         team,
@@ -82,6 +100,12 @@ exports.showExploreHome = async (req, res) => {
           Array.isArray(s.role) &&
           s.role.some((r) => kenderRoles.includes(r))
       );
+
+      team.sort(
+          (a, b) =>
+            kenderRoles.findIndex((role) => a.role.includes(role)) -
+            kenderRoles.findIndex((role) => b.role.includes(role))
+        );
 
       return {
         ...kender,

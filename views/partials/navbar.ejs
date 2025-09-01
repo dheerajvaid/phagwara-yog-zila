@@ -127,7 +127,7 @@ const isSaadhakOnly = user?.roles.some(role => saadhakRoles.includes(role));
         <% } %>
 
        <%- include('explore') %>
-        <li class="nav-item"><a class="nav-link" href="/events">🎆 Events</a></li>
+       <%- include('info-stories') %>
         <%- include('sharpMind') %>
 
         <% if (!user || isAdmin || isZilaLevel || isKsheterLevel || isKenderLevel || isSaadhakOnly) { %>
