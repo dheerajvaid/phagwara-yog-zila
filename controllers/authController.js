@@ -114,6 +114,8 @@ exports.loginWithPassword = async (req, res) => {
   if (isMatch !== true) return isMatch;
 
   setSessionUser(req, saadhak);
+  // ✅ Force cookie maxAge at login time
+  req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000;
   res.redirect("/dashboard");
 };
 

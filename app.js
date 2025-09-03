@@ -8,10 +8,9 @@ const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const methodOverride = require("method-override");
 const flash = require("connect-flash");
-const roles = require('./config/roles');
+const roles = require("./config/roles");
 
-
-const prantRoutes = require('./routes/prantRoutes');
+const prantRoutes = require("./routes/prantRoutes");
 const zilaRoutes = require("./routes/zilaRoutes");
 const ksheterRoutes = require("./routes/ksheterRoutes");
 const kenderRoutes = require("./routes/kenderRoutes");
@@ -30,27 +29,29 @@ const yogSamagriRoutes = require("./routes/yogSamagri");
 const storyRoutes = require("./routes/storyRoutes");
 const shivirRegRoutes = require("./routes/shivirRoutes");
 const eventRoutes = require("./routes/eventRoutes");
-const questionRoutes = require('./routes/questionRoutes');
-const subscriptionRoutes = require('./routes/subscriptionRoutes');
-const quizRoutes = require('./routes/quiz');
+const questionRoutes = require("./routes/questionRoutes");
+const subscriptionRoutes = require("./routes/subscriptionRoutes");
+const quizRoutes = require("./routes/quiz");
 const qubikRoute = require("./routes/qubik");
 const calendarRoutes = require("./routes/calendarRoutes");
-const greetingRoutes = require('./routes/greetingRoutes');
-const { assignRoleLevel } = require('./middleware/roleMiddleware');
-const injectScopeData = require('./middleware/scopeData');
+const greetingRoutes = require("./routes/greetingRoutes");
+const { assignRoleLevel } = require("./middleware/roleMiddleware");
+const injectScopeData = require("./middleware/scopeData");
 const { setEventCount } = require("./middleware/eventNotifier");
-const dashboardController = require('./controllers/dashboardController');
-const programRoutes = require('./routes/programRoutes');
-const yatraRoutes = require('./routes/yatraRoutes');
+const dashboardController = require("./controllers/dashboardController");
+const programRoutes = require("./routes/programRoutes");
+const yatraRoutes = require("./routes/yatraRoutes");
 
 // Load environment variables from .env file
 dotenv.config();
 
 // MongoDB connection
-mongoose.connect(process.env.MONGO_URI, {
+mongoose
+  .connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-}).then(() => console.log("MongoDB connected"))
+  })
+  .then(() => console.log("MongoDB connected"))
   .catch((err) => console.log(err));
 
 // View engine setup
@@ -63,23 +64,30 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(methodOverride("_method"));
 
-app.use(session({
+app.use(
+  session({
     secret: "yog-zila-secret",
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
-        mongoUrl: process.env.MONGO_URI,
-        collectionName: "sessions",
-        ttl: 24 * 60 * 60 * 365,
+      mongoUrl: process.env.MONGO_URI,
+      collectionName: "sessions",
+      ttl: 30 * 24 * 60 * 60, // 30 days in seconds for Mongo
     }),
-}));
+    cookie: {
+      maxAge: 30 * 24 * 60 * 60 * 1000, // ✅ 30 days in milliseconds
+      httpOnly: true,
+      secure: false, // ✅ true only if using HTTPS
+    },
+  })
+);
 
 app.use(flash());
 
 // Inject logged-in user (global for all views)
 app.use((req, res, next) => {
-    res.locals.user = req.session.user || null;
-    next();
+  res.locals.user = req.session.user || null;
+  next();
 });
 
 app.use((req, res, next) => {
@@ -101,7 +109,7 @@ app.use("/", adminRoutes);
 app.use("/", roleRoutes);
 app.use("/auth", authRoutes);
 app.use(dashboardRoutes);
-app.use('/prant', prantRoutes);
+app.use("/prant", prantRoutes);
 app.use("/", zilaRoutes);
 app.use(ksheterRoutes);
 app.use(kenderRoutes);
@@ -117,18 +125,17 @@ app.use("/stories", storyRoutes);
 app.use("/shivirreg", shivirRegRoutes);
 app.use("/events", eventRoutes);
 app.use("/calendar", calendarRoutes);
-app.use('/greeting', greetingRoutes);
-app.use('/api/events', require('./routes/api/events'));
-app.use('/question', questionRoutes);
-app.use('/subscription', subscriptionRoutes);
-app.use('/quiz', quizRoutes);
+app.use("/greeting", greetingRoutes);
+app.use("/api/events", require("./routes/api/events"));
+app.use("/question", questionRoutes);
+app.use("/subscription", subscriptionRoutes);
+app.use("/quiz", quizRoutes);
 app.use("/qubik", qubikRoute);
-app.use('/programs', programRoutes);
-app.use('/vrindavan-trip', yatraRoutes);
-
+app.use("/programs", programRoutes);
+app.use("/vrindavan-trip", yatraRoutes);
 
 // Server Start
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+  console.log(`Server is running on port ${port}`);
 });
