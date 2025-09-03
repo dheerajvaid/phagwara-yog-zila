@@ -59,7 +59,7 @@ exports.showMarkAttendanceForm = async (req, res) => {
           { kender: user.kender }, // Kender team
           { zila: user.zila, role: { $in: ksheterRoles } }, // Ksheter team
           { zila: user.zila, role: { $in: zilaRoles } }, // Zila team
-          { prant: user.prant, role: { $in: prantRoles } }, 
+          { prant: user.prant, role: { $in: prantRoles } },
         ];
       }
       if (user.roles.some((role) => saadhakRoles.includes(role))) {
@@ -316,14 +316,10 @@ exports.viewTodayAttendance = async (req, res) => {
       kender: user.kender,
     }).populate("saadhak");
 
-    // console.log(attendanceRecords);
-
-    // Remove records with missing saadhak or saadhak.name
     attendanceRecords = attendanceRecords.filter((record) => {
       return record.saadhak && record.saadhak.name;
     });
 
-    // Then safely sort
     attendanceRecords.sort((a, b) => {
       const nameA = a.saadhak.name.toLowerCase();
       const nameB = b.saadhak.name.toLowerCase();
@@ -347,7 +343,6 @@ exports.viewTodayAttendance = async (req, res) => {
       }
     });
 
-    // Get Ksheter-level pramukhs (Pradhan & Mantri)
     let ksheterPradhan = null;
     let ksheterMantri = null;
 
@@ -370,7 +365,6 @@ exports.viewTodayAttendance = async (req, res) => {
       if (ksheter) ksheterName = ksheter.name;
     }
 
-    // Get Ksheter-level pramukhs (Pradhan & Mantri)
     let zilaPradhan = null;
     let zilaMantri = null;
     let zilaSangathanMantri = null;
@@ -397,10 +391,51 @@ exports.viewTodayAttendance = async (req, res) => {
       const zila = await Zila.findById(user.zila).select("name");
       if (zila) zilaName = zila.name;
     }
-    // console.log(pramukhs);
 
-    // console.log (kenderPramukh);
-    // console.log(sehKenderPramukh);
+    // ✅ Monthly attendance strip logic (using same concept as viewKenderWiseAttendance)
+    const startOfMonth = new Date(
+      selectedDate.getFullYear(),
+      selectedDate.getMonth(),
+      1
+    );
+    const endOfMonth = new Date(
+      selectedDate.getFullYear(),
+      selectedDate.getMonth() + 1,
+      0,
+      23,
+      59,
+      59
+    );
+
+    // Fetch attendance of this Kender for the full month
+    const kenderMonthlyRecords = await Attendance.find({
+      kender: user.kender,
+      status: "Present",
+      date: { $gte: startOfMonth, $lte: endOfMonth },
+    }).select("date");
+
+    // 📅 Build date → count map
+    const dateCountMap = {};
+
+    kenderMonthlyRecords.forEach((record) => {
+      const day = record.date.getDate(); // 1-31
+      dateCountMap[day] = (dateCountMap[day] || 0) + 1;
+    });
+
+    // 📊 Build monthlyAttendanceStrip for display
+    const totalDaysInMonth = new Date(
+      selectedDate.getFullYear(),
+      selectedDate.getMonth() + 1,
+      0
+    ).getDate();
+    const monthlyAttendanceStrip = [];
+
+    for (let i = 1; i <= totalDaysInMonth; i++) {
+      monthlyAttendanceStrip.push({
+        day: i,
+        count: dateCountMap[i] || 0,
+      });
+    }
 
     res.render("attendance/today", {
       saadhaks: attendanceRecords,
@@ -423,7 +458,8 @@ exports.viewTodayAttendance = async (req, res) => {
       attendanceDateFormatted: selectedDate.toLocaleDateString("en-IN"),
       attendanceDate: selectedDate.toISOString().split("T")[0],
       randomMessage: messages[Math.floor(Math.random() * messages.length)],
-      startTime: kender.startTime || null, // 👈 added this line
+      startTime: kender.startTime || null,
+      monthlyAttendanceStrip, // 👈 NEW line added safely
     });
   } catch (err) {
     console.error("Error fetching attendance:", err);

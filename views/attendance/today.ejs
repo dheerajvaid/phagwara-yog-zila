@@ -1,6 +1,50 @@
 <%- include('../partials/header') %>
 <%- include('../partials/navbar') %>
+<style>
+.attendance-strip .day-box {
+  width: 36px;
+  height: 40px;
+  border: 1px solid black;
+  display: flex;
+  flex-direction: column;
+  font-size: 0.75rem;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+}
 
+.day-box .day-top {
+  background-color: #dc3545; /* 🔴 Red theme */
+  color: white;
+  font-weight: bold;
+  padding: 2px 0;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.day-box .day-bottom {
+  background-color: #f8f9fa; /* ⚪ light background */
+  color: black;
+  font-weight: 600;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+.date-label {
+  font-size: 0.85rem;
+}
+
+.count-label {
+  font-size: 0.7rem;
+  color: #333;
+}
+
+</style>
 <section class="container mt-4">
   <!-- Date Filter and Export -->
   <div class="text-center mb-3">
@@ -108,7 +152,77 @@
       </div>
     <% } %>
 
-    <!-- Zila Team -->
+   <!-- Kender Attendance Strip for Current Month -->
+<div class="text-center">
+  <div class="fw-bold text-danger mb-2">🗓️ Kender Attendance This Month</div>
+  <div class="attendance-strip d-flex justify-content-center flex-wrap gap-1">
+    <% monthlyAttendanceStrip.forEach(day => { %>
+  <% if (day.count > 0) { %>
+    <div class="day-box" title="<%= day.count %> saadhaks present on day <%= day.day %>">
+      <div class="day-top"><%= day.day %></div>
+      <div class="day-bottom"><%= day.count %></div>
+    </div>
+  <% } %>
+<% }) %>
+  </div>
+</div>
+
+
+
+<!-- Kender Team -->
+    <table class="table table-bordered table-sm text-center mt-3" style="font-size: 0.85rem; margin: auto; width: 100%;">
+      <thead>
+        <tr class="bg-danger text-white">
+          <th colspan="3" class="text-white">Kender Adhikari</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Pramukh</td>
+          <td class="text-text-black bg-warning-subtle"><%= kenderPramukh.name %></td>
+          <td class="text-black"><%= kenderPramukh.mobile %></td>
+        </tr>
+        <% if (Array.isArray(sehKenderPramukh) && sehKenderPramukh.length > 0) { %>
+          <% sehKenderPramukh.forEach((skp) => { %>
+            <tr>
+              <td>Seh Pramukh</td>
+              <td class="text-text-black bg-warning-subtle"><%= skp.name %></td>
+              <td class="text-black"><%= skp.mobile %></td>
+            </tr>
+          <% }) %>
+        <% } else { %>
+          <tr>
+            <td>Seh Pramukh</td>
+            <td class="text-muted">N/A</td>
+            <td class="text-muted">N/A</td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+
+
+    <!-- Ksheter Team
+    <table class="table table-bordered table-sm text-center mt-3" style="font-size: 0.85rem; margin: auto; width: 100%;">
+      <thead>
+        <tr class="bg-danger text-white">
+          <th colspan="3" class="text-white"><%= ksheterName ? ksheterName + " - Ksheter Adhikari" : "Ksheter Team" %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Pradhan</td>
+          <td class="<%= ksheterPradhan.name ? 'text-text-black bg-warning-subtle' : 'text-muted' %>"><%= ksheterPradhan.name || 'N/A' %></td>
+          <td class="<%= ksheterPradhan.mobile ? 'text-black' : 'text-muted' %>"><%= ksheterPradhan.mobile || 'N/A' %></td>
+        </tr>
+        <tr>
+          <td>Mantri</td>
+          <td class="<%= ksheterMantri.name ? 'text-text-black bg-warning-subtle' : 'text-muted' %>"><%= ksheterMantri.name || 'N/A' %></td>
+          <td class="<%= ksheterMantri.mobile ? 'text-black' : 'text-muted' %>"><%= ksheterMantri.mobile || 'N/A' %></td>
+        </tr>
+      </tbody>
+    </table>
+
+     Zila Team
 <table class="table table-bordered table-sm text-center mt-3" style="font-size: 0.85rem; margin: auto; width: 100%;">
   <thead>
     <tr class="bg-danger text-white">
@@ -153,61 +267,7 @@
       </td>
     </tr>
   </tbody>
-</table>
-
-
-    <!-- Ksheter Team -->
-    <table class="table table-bordered table-sm text-center mt-3" style="font-size: 0.85rem; margin: auto; width: 100%;">
-      <thead>
-        <tr class="bg-danger text-white">
-          <th colspan="3" class="text-white"><%= ksheterName ? ksheterName + " - Ksheter Adhikari" : "Ksheter Team" %></th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Pradhan</td>
-          <td class="<%= ksheterPradhan.name ? 'text-text-black bg-warning-subtle' : 'text-muted' %>"><%= ksheterPradhan.name || 'N/A' %></td>
-          <td class="<%= ksheterPradhan.mobile ? 'text-black' : 'text-muted' %>"><%= ksheterPradhan.mobile || 'N/A' %></td>
-        </tr>
-        <tr>
-          <td>Mantri</td>
-          <td class="<%= ksheterMantri.name ? 'text-text-black bg-warning-subtle' : 'text-muted' %>"><%= ksheterMantri.name || 'N/A' %></td>
-          <td class="<%= ksheterMantri.mobile ? 'text-black' : 'text-muted' %>"><%= ksheterMantri.mobile || 'N/A' %></td>
-        </tr>
-      </tbody>
-    </table>
-
-    <!-- Kender Team -->
-    <table class="table table-bordered table-sm text-center mt-3" style="font-size: 0.85rem; margin: auto; width: 100%;">
-      <thead>
-        <tr class="bg-danger text-white">
-          <th colspan="3" class="text-white">Kender Adhikari</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Pramukh</td>
-          <td class="text-text-black bg-warning-subtle"><%= kenderPramukh.name %></td>
-          <td class="text-black"><%= kenderPramukh.mobile %></td>
-        </tr>
-        <% if (Array.isArray(sehKenderPramukh) && sehKenderPramukh.length > 0) { %>
-          <% sehKenderPramukh.forEach((skp) => { %>
-            <tr>
-              <td>Seh Pramukh</td>
-              <td class="text-text-black bg-warning-subtle"><%= skp.name %></td>
-              <td class="text-black"><%= skp.mobile %></td>
-            </tr>
-          <% }) %>
-        <% } else { %>
-          <tr>
-            <td>Seh Pramukh</td>
-            <td class="text-muted">N/A</td>
-            <td class="text-muted">N/A</td>
-          </tr>
-        <% } %>
-      </tbody>
-    </table>
-
+</table> -->
    
   </div>
 </section>
