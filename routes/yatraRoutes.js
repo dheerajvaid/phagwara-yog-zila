@@ -24,17 +24,17 @@ router.post("/unlock", async (req, res) => {
   try {
     const yatraCount = await Yatra.countDocuments();
     
-    if (yatraCount >= 61) {
-      return res.render("error/error-page", {
-        title: "Yatra Registrations Closed",
-        message: "Thanks for visiting! Yatra registrations are already closed.",
-        backUrl: "/",
-      });
-    }
+    // if (yatraCount >= 62) {
+    //   return res.render("error/error-page", {
+    //     title: "Yatra Registrations Closed",
+    //     message: "Thanks for visiting! Yatra registrations are already closed.",
+    //     backUrl: "/",
+    //   });
+    // }
 
     const { password } = req.body;
 
-    if (password === "krishna") {
+    if (password === "takeiteasy") {
       return res.render("yatra/form");
     } else {
       return res.render("yatra/password", { error: "Incorrect Password" });
@@ -113,6 +113,7 @@ router.post("/fetch", async (req, res) => {
 router.post("/register", async (req, res) => {
   try {
     const data = req.body;
+    // console.log(data);
 
     // Convert DOB string (YYYY-MM-DD) to local Date
     if (data.dob) {
@@ -150,11 +151,11 @@ router.get("/success", (req, res) => {
 // GET /vrindavan-trip/report
 router.get("/report", async (req, res) => {
   try {
-    const allYatra = await Yatra.find().sort({ registeredAt: 1 });
+    const allYatra = await Yatra.find().sort({ name: 1 });
 
     // 🔢 Summary Calculations
     const totalBooked = allYatra.length;
-    const seatCapacity = 60;
+    const seatCapacity = 62;
     const seatsLeft = seatCapacity - totalBooked;
 
     const maleCount = allYatra.filter((y) => y.gender === "Male").length;
@@ -164,6 +165,7 @@ router.get("/report", async (req, res) => {
       (y) => y.seatType === "Sleeper"
     ).length;
     const ac3Count = allYatra.filter((y) => y.seatType === "3AC").length;
+    // console.log(allYatra);
 
     res.render("yatra/report", {
       yatraList: allYatra,
@@ -193,7 +195,7 @@ router.get("/report/pdf", async (req, res) => {
 
     // 📊 Summary values
     const totalBooked = allYatra.length;
-    const seatCapacity = 60;
+    const seatCapacity = 62;
     const seatsLeft = seatCapacity - totalBooked;
     const maleCount = allYatra.filter((y) => y.gender === "Male").length;
     const femaleCount = allYatra.filter((y) => y.gender === "Female").length;
@@ -399,7 +401,7 @@ router.get("/report/pdf", async (req, res) => {
       "5. We will travel as one group where everyone is a participant and a co-traveler.",
       "6. We are only arranging train bookings and bus transportation from Mathura to Vrindavan and back.",
       "7. Food, auto rickshaws, and other personal expenses will be the responsibility of each participant.",
-      "8. Registration is open until 30th August or until 60 participants are registered — whichever comes first.",
+      "8. Registration is open until 30th August or until 62 participants are registered — whichever comes first.",
       "9. The ashram has 13 AC rooms (3 people per room) and one large hall (accommodating 20–25 people).",
       "10. We are in touch with the ashram for providing 2 breakfasts and dinners. If available, the cost will be shared equally among all.",
       "11. Charges will depend on whether you choose to stay in a room or in the hall.",
@@ -503,5 +505,11 @@ router.delete(
     }
   }
 );
+
+router.get('/ticket/:pnr', (req, res) => {
+  const pnr = req.params.pnr;
+  res.render('yatra/ticket', { pnr });
+});
+
 
 module.exports = router;

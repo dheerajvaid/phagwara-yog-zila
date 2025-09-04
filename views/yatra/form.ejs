@@ -305,14 +305,25 @@ document.getElementById('yatraForm').addEventListener('submit', function(e){
   }
 
   const data = {
-    mobile: document.getElementById('mobile').value,
-    name, 
-    gender,
-    dob: dobStr, // send as YYYY-MM-DD
-    age,
-    remarks: document.getElementById('remarks').value,
-    seatType
-  };
+  mobile: document.getElementById('mobile').value,
+  name,
+  gender,
+  dob: dobStr, // YYYY-MM-DD
+  age,
+  seatType,
+  remarks: document.getElementById('remarks').value || '',
+
+  // Onward Travel Info
+  onwardPNR: document.getElementById('onwardPNR').value || '',
+  onwardCoach: document.getElementById('onwardCoach').value || '',
+  onwardSeat: document.getElementById('onwardSeat').value || '',
+
+  // Return Travel Info
+  returnPNR: document.getElementById('returnPNR').value || '',
+  returnCoach: document.getElementById('returnCoach').value || '',
+  returnSeat: document.getElementById('returnSeat').value || ''
+};
+
 
   fetch('/vrindavan-trip/register', {
     method: 'POST',

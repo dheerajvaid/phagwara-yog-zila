@@ -1,0 +1,17 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-4 text-center">
+  <h4 class="text-success">🎫 Ticket for PNR: <%= pnr %></h4>
+
+  <div class="my-4">
+    <img src="/tickets/<%= pnr %>.jpg" alt="Ticket for <%= pnr %>" class="img-fluid rounded shadow" style="max-width: 100%; border: 1px solid #ccc;">
+  </div>
+
+  <div class="mb-4">
+    <button onclick="window.print()" class="btn btn-outline-dark me-3">🖨️ Print Ticket</button>
+    <a href="javascript:history.back()" class="btn btn-secondary">← Go Back</a>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

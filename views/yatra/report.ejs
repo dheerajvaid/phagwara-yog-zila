@@ -1,5 +1,6 @@
 <%- include('../partials/header') %>
 <%- include('../partials/navbar') %>
+
 <style>
   .glow-button {
     background: linear-gradient(45deg, #ffe57f, #ffd54f);
@@ -17,154 +18,242 @@
     text-decoration: none;
     transform: scale(1.05);
   }
+
+
+  .participant-card:hover {
+    transform: scale(1.01);
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  }
+
 </style>
 
 <div class="container mt-4">
   <h3 class="text-center text-danger">🌸 Vrindavan Yatra Registration Report</h3>
 
-  <!-- ✅ Summary Section -->
-  <!-- 🔥 Stylish Summary Section -->
-<div class="row text-center mb-4">
-  <div class="col-md-3 col-6 mb-3">
-    <div class="p-3 bg-success text-white rounded shadow">
-      <div class="fs-4 fw-bold">✅ Register</div>
-      <div class="display-6"><%= summary.totalBooked %></div>
+  <!-- 🔢 Summary Section -->
+  <div class="row text-center mb-4">
+    <div class="col-md-3 col-6 mb-3">
+      <div class="p-3 bg-success text-white rounded shadow">
+        <div class="fs-4 fw-bold">✅ Register</div>
+        <div class="display-6"><%= summary.totalBooked %></div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+      <div class="p-3 bg-warning text-dark rounded shadow">
+        <div class="fs-4 fw-bold">🪑 Left</div>
+        <div class="display-6"><%= summary.seatsLeft %></div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+      <div class="p-3 bg-primary text-white rounded shadow">
+        <div class="fs-4 fw-bold">👨 Male</div>
+        <div class="display-6"><%= summary.maleCount %></div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+      <div class="p-3 bg-danger text-white rounded shadow">
+        <div class="fs-4 fw-bold">👩 Female</div>
+        <div class="display-6"><%= summary.femaleCount %></div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+      <div class="p-3 bg-info text-white rounded shadow">
+        <div class="fs-4 fw-bold">🚆 3AC</div>
+        <div class="display-6"><%= summary.ac3Count %></div>
+      </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+      <div class="p-3 bg-secondary text-white rounded shadow">
+        <div class="fs-4 fw-bold">🛏️ Sleeper</div>
+        <div class="display-6"><%= summary.sleeperCount %></div>
+      </div>
     </div>
   </div>
-  <div class="col-md-3 col-6 mb-3">
-    <div class="p-3 bg-warning text-dark rounded shadow">
-      <div class="fs-4 fw-bold">🪑 Left</div>
-      <div class="display-6"><%= summary.seatsLeft %></div>
-    </div>
+
+  <!-- 🛕 Krishna Image -->
+  <div class="text-center my-4">
+    <img src="/images/krishna-waiting.jpg" alt="Shri Krishna waiting" class="img-fluid" style="max-width: 250px;">
+    <p class="mt-3 text-primary fs-5">💫 I am waiting for you!</p>
   </div>
-  <div class="col-md-3 col-6 mb-3">
-    <div class="p-3 bg-primary text-white rounded shadow">
-      <div class="fs-4 fw-bold">👨 Male</div>
-      <div class="display-6"><%= summary.maleCount %></div>
-    </div>
+
+  <!-- 🛕 Temple Timing Button -->
+  <div class="text-center mb-4">
+    <a href="/vrindavan-trip/temple-timings" class="btn btn-lg btn-warning fw-bold shadow-sm glow-button">
+      🛕 My Temple Timings
+    </a>
   </div>
-  <div class="col-md-3 col-6 mb-3">
-    <div class="p-3 bg-danger text-white rounded shadow">
-      <div class="fs-4 fw-bold">👩 Female</div>
-      <div class="display-6"><%= summary.femaleCount %></div>
-    </div>
+
+  <!-- 📤 Export Buttons -->
+  <div class="text-end mb-4">
+    <a href="/vrindavan-trip/report/pdf" class="btn btn-danger me-2">📄 Export PDF</a>
+    <a href="/vrindavan-trip/report/excel" class="btn btn-success">📊 Export Excel</a>
   </div>
-  <div class="col-md-3 col-6 mb-3">
-    <div class="p-3 bg-info text-white rounded shadow">
-      <div class="fs-4 fw-bold">🚆 3AC</div>
-      <div class="display-6"><%= summary.ac3Count %></div>
-    </div>
+
+  <!-- 🔍 Search -->
+  <div class="mb-4">
+    <input type="text" id="searchInput" class="form-control" placeholder="🔍 Search by name, mobile or pnr...">
+    <button onclick="clearSearch()" class="btn btn-sm btn-outline-secondary mt-2">❌ Clear</button>
   </div>
-  <div class="col-md-3 col-6 mb-3">
-    <div class="p-3 bg-secondary text-white rounded shadow">
-      <div class="fs-4 fw-bold">🛏️ Sleeper</div>
-      <div class="display-6"><%= summary.sleeperCount %></div>
+
+<!-- 📱 Mobile Card View (Compact + Stylish) -->
+<div id="yatraCards" class="d-block d-md-none">
+  <% yatraList.forEach((y, index) => { %>
+    <div class="card mb-3 participant-card border-2 rounded-4 shadow-sm bg-white" style="box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; border-radius: 16px;">
+      
+      <!-- 🌼 Header Section -->
+      <div class="p-3" style="background: linear-gradient(to right, #fff3cd, #ffecb3); border-bottom: 1px solid #f1c40f;">
+        <h5 class="mb-1 fw-bold text-danger">
+          <%= index + 1 %>. <%= y.name %>
+        </h5>
+        <div class="d-flex flex-wrap justify-content-between small text-muted">
+          <span>📱 <%= y.mobile %></span>
+          <span>👤 <%= y.gender === 'Male' ? 'M' : y.gender === 'Female' ? 'F' : '-' %> | 🎂 <%= y.dob ? moment().diff(moment(y.dob), 'years') : '-' %> yrs</span>
+        </div>
+      </div>
+
+      <!-- 🌿 Onward Journey -->
+      <div class="px-3 py-2" style="background: linear-gradient(to right, #e8f5e9, #c8e6c9);">
+        <h6 class="fw-semibold text-danger mb-2">Phagwara → Mathura</h6>
+        <p class="mb-0 text-dark">
+          <strong>PNR:</strong> <%= y.onwardPNR || '-' %> |
+          <strong>Coach:</strong> <%= y.onwardCoach || '-' %> |
+          <strong>Seat:</strong> <%= y.onwardSeat || '-' %>
+          <a href="/vrindavan-trip/ticket/<%= y.onwardPNR.trim() %>" class="btn btn-sm btn-outline-success me-2">🎫 Show Ticket</a>
+        </p>
+      </div>
+
+      <!-- 🔁 Return Journey -->
+      <div class="px-3 py-2" style="background: linear-gradient(to right, #e3f2fd, #bbdefb);">
+        <h6 class="fw-semibold text-danger mb-2">Mathura → Phagwara</h6>
+        <p class="mb-0 text-dark">
+          <strong>PNR:</strong> <%= y.returnPNR || '-' %> |
+          <strong>Coach:</strong> <%= y.returnCoach || '-' %> |
+          <strong>Seat:</strong> <%= y.returnSeat || '-' %>
+          <a href="/vrindavan-trip/ticket/<%= y.returnPNR.trim() %>" class="btn btn-sm btn-outline-primary me-2">🎫 Show Ticket</a>
+        </p>
+        
+      </div>
+
+      <!-- 📝 Remarks
+      <% if (y.remarks && y.remarks.trim() !== '') { %>
+        <div class="px-3 py-2" style="background-color: #fafafa;">
+          <p class="mb-0"><strong>📝 Remarks:</strong> <%= y.remarks %></p>
+        </div>
+      <% } %> -->
+
     </div>
-  </div>
+  <% }) %>
 </div>
 
-<!-- 🛕 Krishna Waiting Image Section -->
-<div class="text-center my-4">
-  <img src="/images/krishna-waiting.jpg" alt="Shri Krishna waiting" class="img-fluid" style="max-width: 250px;">
-  <p class="mt-3 text-primary fs-5">💫 I am waiting for you!</p>
-</div>
 
-<!-- 🛕 Temple Timings Button -->
-<div class="text-center mb-4">
-  <a href="/vrindavan-trip/temple-timings" class="btn btn-lg btn-warning fw-bold shadow-sm glow-button">
-    🛕 My Temple Timings
-  </a>
-</div>
-
-<!-- 📤 Export Buttons -->
-<div class="text-end mb-4">
-  <a href="/vrindavan-trip/report/pdf" class="btn btn-danger me-2">
-    📄 Export PDF
-  </a>
-  <a href="/vrindavan-trip/report/excel" class="btn btn-success">
-    📊 Export Excel
-  </a>
-</div>
-
-  <table class="table table-bordered table-striped">
-    <thead class="table-danger text-center">
-      <tr>
-        <th>S.No</th>
-        <th>Name</th>
-        <th>Mobile</th>
-        <th>Gender</th>
-        <th>Age</th>
-        <th>Seat Type</th>
-        <th>Registered At</th>
-        <th>Delete</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% yatraList.forEach((y, index) => { %>
+  <!-- 🖥️ Desktop Table View -->
+  <div class="table-responsive d-none d-md-block">
+    <table class="table table-bordered table-striped">
+      <thead class="table-danger text-center">
         <tr>
-          <td><%= index + 1 %></td>
-          <td><%= y.name %></td>
-          <td><%= y.mobile %></td>
-          <td><%= y.gender %></td>
-          <td><%= y.dob ? moment().diff(moment(y.dob), 'years') : '' %></td>
-          <td><%= y.seatType || '-' %></td>
-          <td><%= moment(y.registeredAt).utcOffset(330).format('DD-MM-YYYY HH:mm') %></td>
-          <td>
-            <button class="btn btn-sm btn-outline-danger" onclick="confirmDelete('<%= y._id %>')">🗑️ Delete</button>
-          </td>
-
+          <th>S.No</th>
+          <th>Name</th>
+          <th>Mobile</th>
+          <th>M/F</th>
+          <th>Age</th>
+          <th>PGW PNR</th>
+          <th>Coach#</th>
+          <th>Seat#</th>
+          <th>MTJ PNR</th>
+          <th>Coach#</th>
+          <th>Seat#</th>
         </tr>
-      <% }) %>
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        <% yatraList.forEach((y, index) => { %>
+          <tr class="text-center">
+            <td><%= index + 1 %></td>
+            <td class="text-start"><%= y.name %></td>
+            <td><%= y.mobile %></td>
+            <td><%= y.gender === 'Male' ? 'M' : y.gender === 'Female' ? 'F' : '-' %></td>
+            <td><%= y.dob ? moment().diff(moment(y.dob), 'years') : '' %></td>
+            <td><%= y.onwardPNR || '-' %></td>
+            <td><%= y.onwardCoach || '-' %></td>
+            <td><%= y.onwardSeat || '-' %></td>
+            <td><%= y.returnPNR || '-' %></td>
+            <td><%= y.returnCoach || '-' %></td>
+            <td><%= y.returnSeat || '-' %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
 
-  <!-- 📝 Instructions Placeholder -->
+  <!-- 📝 Instructions -->
   <div class="alert alert-warning mt-5">
     <h5>📝 Instructions:</h5>
     <ol>
-  <li>यह यात्रा ट्रेन के माध्यम से की जाएगी — कोच की व्यवस्था 3AC (एसी) और स्लीपर (नॉन-एसी) में है।</li>
-  <li>3AC यात्रा का अनुमानित खर्च ₹3,500 से ₹4,000 तक रहेगा।</li>
-  <li>स्लीपर (नॉन-एसी) का अनुमानित खर्च लगभग ₹2,500 रहेगा।</li>
-  <li>यह कोई टूर पैकेज नहीं है।</li>
-  <li>हम एक समूह के रूप में मिलकर यात्रा कर रहे हैं — यह एक सहभागी यात्रा है।</li>
-  <li>हमारी जिम्मेदारी केवल ट्रेन टिकट और मथुरा से वृंदावन तथा वापसी के लिए बस की व्यवस्था तक सीमित है।</li>
-  <li>भोजन, ऑटो या अन्य व्यक्तिगत खर्चों की जिम्मेदारी यात्रियों की स्वयं की होगी।</li>
-  <li>पंजीकरण 30 अगस्त तक या अधिकतम 60 यात्रियों के पूरा होते ही बंद कर दिया जाएगा।</li>
-  <li>आश्रम में 13 एसी कमरे (प्रति कमरा 3 व्यक्ति) और एक बड़ा हॉल (20–25 व्यक्तियों के लिए) उपलब्ध है।</li>
-  <li>हम आश्रम से 2 नाश्ते और रात के भोजन की व्यवस्था पर बातचीत कर रहे हैं — खर्च साझा किया जाएगा।</li>
-  <li>कमरे या हॉल में रहने के अनुसार राशि निर्धारित की जाएगी।</li>
-  <li>यह एक योगिक एवं आध्यात्मिक यात्रा है — समय मिलने पर ध्यान, योगनिद्रा या योग सत्र आयोजित किए जा सकते हैं।</li>
-  <li>किसी भी प्रश्न या सहायता हेतु कृपया हमारी टीम से संपर्क करें।</li>
-</ol>
-
+      <li>यह यात्रा ट्रेन के माध्यम से की जाएगी — कोच की व्यवस्था 3AC (एसी) और स्लीपर (नॉन-एसी) में है।</li>
+      <li>3AC यात्रा का अनुमानित खर्च ₹3,500 से ₹4,000 तक रहेगा।</li>
+      <li>स्लीपर (नॉन-एसी) का अनुमानित खर्च लगभग ₹2,500 रहेगा।</li>
+      <li>यह कोई टूर पैकेज नहीं है।</li>
+      <li>हम एक समूह के रूप में मिलकर यात्रा कर रहे हैं — यह एक सहभागी यात्रा है।</li>
+      <li>हमारी जिम्मेदारी केवल ट्रेन टिकट और मथुरा से वृंदावन तथा वापसी के लिए Bus/Auto की व्यवस्था तक सीमित है।</li>
+      <li>भोजन, ऑटो या अन्य व्यक्तिगत खर्चों की जिम्मेदारी यात्रियों की स्वयं की होगी।</li>
+      <li>पंजीकरण 30 अगस्त तक या अधिकतम 62 यात्रियों के पूरा होते ही बंद कर दिया जाएगा।</li>
+      <li>आश्रम में 19 कमरे (प्रति कमरा 3-4 व्यक्ति) 62 व्यक्तियों के लिए उपलब्ध है।</li>
+      <li>हम आश्रम से 2 नाश्ते और रात के भोजन की व्यवस्था पर बातचीत कर रहे हैं — खर्च साझा किया जाएगा।</li>
+      <li>कमरे या हॉल में रहने के अनुसार राशि निर्धारित की जाएगी।</li>
+      <li>यह एक योगिक एवं आध्यात्मिक यात्रा है — समय मिलने पर ध्यान, योगनिद्रा या योग सत्र आयोजित किए जा सकते हैं।</li>
+      <li>किसी भी प्रश्न या सहायता हेतु कृपया हमारी टीम से संपर्क करें।</li>
+    </ol>
   </div>
 </div>
 
 <script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const searchInput = document.getElementById("searchInput");
+
+    // All cards inside the mobile container
+    const cardContainer = document.getElementById("yatraCards");
+
+    searchInput.addEventListener("input", () => {
+      const query = searchInput.value.toLowerCase();
+      const cards = cardContainer.querySelectorAll(".participant-card");
+
+      cards.forEach((card) => {
+        const text = card.textContent.toLowerCase();
+        card.style.display = text.includes(query) ? "block" : "none";
+      });
+    });
+
+    // Clear search
+    window.clearSearch = function () {
+      searchInput.value = "";
+      const cards = cardContainer.querySelectorAll(".participant-card");
+      cards.forEach((card) => (card.style.display = "block"));
+    };
+  });
+
   function confirmDelete(id) {
     if (!confirm("Are you sure you want to delete this record?")) return;
 
-    // Show spinner
-    const spinner = document.getElementById('loadingSpinner');
-    if (spinner) spinner.style.display = 'block';
+    const spinner = document.getElementById("loadingSpinner");
+    if (spinner) spinner.style.display = "block";
 
     fetch(`/vrindavan-trip/delete/${id}`, {
-      method: 'DELETE',
+      method: "DELETE",
     })
-    .then(res => res.json())
-    .then(data => {
-      if (spinner) spinner.style.display = 'none';
-      if (data.success) {
-        alert('✅ Deleted successfully');
-        location.reload();
-      } else {
-        alert('❌ Delete failed');
-      }
-    })
-    .catch(err => {
-      if (spinner) spinner.style.display = 'none';
-      alert('❌ Error deleting record');
-    });
+      .then((res) => res.json())
+      .then((data) => {
+        if (spinner) spinner.style.display = "none";
+        if (data.success) {
+          alert("✅ Deleted successfully");
+          location.reload();
+        } else {
+          alert("❌ Delete failed");
+        }
+      })
+      .catch((err) => {
+        if (spinner) spinner.style.display = "none";
+        alert("❌ Error deleting record");
+      });
   }
 </script>
 
