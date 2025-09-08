@@ -213,6 +213,9 @@ exports.deleteKsheter = async (req, res) => {
         zilas: await Zila.find().sort({ name: 1 }),
         selectedZilaId: zilaId,
         user: req.session.user,
+        adminRoles: roleConfig.adminRoles,
+        zilaRoles: roleConfig.zilaRoles,
+        prantRoles: roleConfig.prantRoles,
         error:
           "⚠️ Cannot delete this Ksheter because some Saadhaks are linked to it.",
       });
