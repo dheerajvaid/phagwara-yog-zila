@@ -4,6 +4,8 @@ const Zila = require("../models/Zila");
 const Ksheter = require("../models/Ksheter");
 const Kender = require("../models/Kender");
 const Saadhak = require("../models/Saadhak");
+const PDFDocument = require("pdfkit");
+const moment = require("moment-timezone");
 const ExcelJS = require("exceljs");
 const {
   prantRoles,
@@ -39,10 +41,10 @@ exports.showExploreHome = async (req, res) => {
       );
 
       team.sort(
-          (a, b) =>
-            prantRoles.findIndex((role) => a.role.includes(role)) -
-            prantRoles.findIndex((role) => b.role.includes(role))
-        );
+        (a, b) =>
+          prantRoles.findIndex((role) => a.role.includes(role)) -
+          prantRoles.findIndex((role) => b.role.includes(role))
+      );
 
       return {
         ...prant,
@@ -60,10 +62,10 @@ exports.showExploreHome = async (req, res) => {
       );
 
       team.sort(
-          (a, b) =>
-            zilaRoles.findIndex((role) => a.role.includes(role)) -
-            zilaRoles.findIndex((role) => b.role.includes(role))
-        );
+        (a, b) =>
+          zilaRoles.findIndex((role) => a.role.includes(role)) -
+          zilaRoles.findIndex((role) => b.role.includes(role))
+      );
 
       return {
         ...zila,
@@ -81,10 +83,10 @@ exports.showExploreHome = async (req, res) => {
       );
 
       team.sort(
-          (a, b) =>
-            ksheterRoles.findIndex((role) => a.role.includes(role)) -
-            ksheterRoles.findIndex((role) => b.role.includes(role))
-        );
+        (a, b) =>
+          ksheterRoles.findIndex((role) => a.role.includes(role)) -
+          ksheterRoles.findIndex((role) => b.role.includes(role))
+      );
 
       return {
         ...ksheter,
@@ -102,10 +104,10 @@ exports.showExploreHome = async (req, res) => {
       );
 
       team.sort(
-          (a, b) =>
-            kenderRoles.findIndex((role) => a.role.includes(role)) -
-            kenderRoles.findIndex((role) => b.role.includes(role))
-        );
+        (a, b) =>
+          kenderRoles.findIndex((role) => a.role.includes(role)) -
+          kenderRoles.findIndex((role) => b.role.includes(role))
+      );
 
       return {
         ...kender,
@@ -846,6 +848,421 @@ exports.exportDirectoryWord = async (req, res) => {
     res.status(500).send("Failed to export Word file");
   }
 };
+
+exports.showExploreSummaryView = async (req, res) => {
+  try {
+    const user = req.session.user;
+
+    const roles = user.roles || [];
+
+    let summary = [];
+    let headers = [];
+    let level = "";
+
+    if (roles.some((r) => prantRoles.includes(r))) {
+      level = "PRANT";
+      headers = ["Zones", "Kenders"];
+      const prant = await Prant.findById(user.prant).lean(); // 👈 Add this line
+      var levelLabel = `${prant?.name || "Your"}`; // 👈 And this
+      const zilas = await Zila.find({ prant: user.prant })
+        .lean()
+        .sort({ name: 1 });
+      for (const zila of zilas) {
+        const zones = await Ksheter.countDocuments({ zila: zila._id });
+        const kenders = await Kender.countDocuments({ zila: zila._id });
+        summary.push({ name: zila.name, Zones: zones, Kenders: kenders });
+      }
+    } else if (roles.some((r) => zilaRoles.includes(r))) {
+      level = "ZILA";
+      headers = ["Kenders"];
+      const zila = await Zila.findById(user.zila).lean(); // 👈 Add this
+      var levelLabel = `${zila?.name || "Your"}`; // 👈 And this
+      const ksheters = await Ksheter.find({ zila: user.zila }).lean();
+      for (const ksheter of ksheters) {
+        const kenders = await Kender.countDocuments({ ksheter: ksheter._id });
+        summary.push({ name: ksheter.name, Kenders: kenders });
+      }
+    } else if (roles.some((r) => ksheterRoles.includes(r))) {
+      level = "KSHETER";
+      headers = ["Kenders"];
+      const kenders = await Kender.countDocuments({ ksheter: user.ksheter });
+      const ksheter = await Ksheter.findById(user.ksheter).lean();
+      var levelLabel = `${ksheter?.name || "Your"}`; // 👈 Add this
+      summary.push({
+        name: ksheter?.name || "Your Ksheter",
+        Kenders: kenders,
+      });
+    } else {
+      return res.render("export/summary", {
+        level: "",
+        headers: [],
+        summary: [],
+        message: "Summary not available for your role.",
+      });
+    }
+
+    res.render("export/summary", {
+      level,
+      levelLabel, // 👈 add this
+      headers,
+      summary,
+      message: null,
+    });
+  } catch (err) {
+    console.error("❌ Error in showExploreSummaryView:", err);
+    res.status(500).send("Internal error");
+  }
+};
+
+exports.exportSummaryExcel = async (req, res) => {
+  try {
+    const user = req.session.user;
+    const roles = user.roles || [];
+
+    let summary = [];
+    let headers = [];
+    let level = "";
+    let levelLabel = "";
+
+    if (roles.some((r) => prantRoles.includes(r))) {
+      level = "PRANT";
+      headers = ["Zones", "Kenders"];
+      const prant = await Prant.findById(user.prant).lean();
+      levelLabel = `${prant?.name || "Your"}`;
+
+      const zilas = await Zila.find({ prant: user.prant }).lean().sort({ name: 1 });
+
+      for (const zila of zilas) {
+        const zones = await Ksheter.countDocuments({ zila: zila._id });
+        const kenders = await Kender.countDocuments({ zila: zila._id });
+        summary.push({ name: zila.name, Zones: zones, Kenders: kenders });
+      }
+    } else if (roles.some((r) => zilaRoles.includes(r))) {
+      level = "ZILA";
+      headers = ["Kenders"];
+      const zila = await Zila.findById(user.zila).lean();
+      levelLabel = `${zila?.name || "Your"}`;
+
+      const ksheters = await Ksheter.find({ zila: user.zila }).lean().sort({ name: 1 });
+
+      for (const ksheter of ksheters) {
+        const kenders = await Kender.countDocuments({ ksheter: ksheter._id });
+        summary.push({ name: ksheter.name, Kenders: kenders });
+      }
+    } else if (roles.some((r) => ksheterRoles.includes(r))) {
+      level = "KSHETER";
+      headers = ["Kenders"];
+      const ksheter = await Ksheter.findById(user.ksheter).lean();
+      levelLabel = `${ksheter?.name || "Your"}`;
+
+      const kenders = await Kender.countDocuments({ ksheter: user.ksheter });
+
+      summary.push({
+        name: ksheter?.name || "Your Ksheter",
+        Kenders: kenders,
+      });
+    } else {
+      return res.status(403).send("Summary not available for your role.");
+    }
+
+    // 🧾 Create Excel sheet
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet(`Summary-${levelLabel}`);
+
+    // 🧾 Define columns
+    const columns = [
+      { header: "#", key: "sno", width: 5 },
+      {
+        header: level === "PRANT" ? "Zila" : "Ksheter",
+        key: "name",
+        width: 30,
+      },
+      ...headers.map((h) => ({ header: h, key: h, width: 20 })),
+    ];
+
+    worksheet.columns = columns;
+
+    // 🧾 Add data rows and calculate totals
+    const totals = {};
+    headers.forEach((h) => (totals[h] = 0));
+
+    summary.forEach((row, i) => {
+      const dataRow = {
+        sno: i + 1,
+        name: row.name,
+      };
+
+      headers.forEach((h) => {
+        const value = Number(row[h] || 0);
+        dataRow[h] = value;
+        totals[h] += value;
+      });
+
+      worksheet.addRow(dataRow);
+    });
+
+    // 🟡 Add totals row
+    const totalRowData = {
+      sno: "",
+      name: "Total",
+    };
+    headers.forEach((h) => {
+      totalRowData[h] = totals[h];
+    });
+
+    const totalRow = worksheet.addRow(totalRowData);
+    totalRow.font = { bold: true };
+    totalRow.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFFCE4D6" }, // Light peach
+    };
+
+    // ✅ Download
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=BYS_${levelLabel.replace(/\s+/g, "_")}_Summary.xlsx`
+    );
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    console.error("❌ Error in exportSummaryExcel:", err);
+    res.status(500).send("Failed to export Excel summary.");
+  }
+};
+
+
+exports.exportSummaryPDF = async (req, res) => {
+  try {
+    const user = req.session.user;
+    const roles = user.roles || [];
+
+    let summary = [];
+    let headers = [];
+    let level = "";
+    let levelLabel = "";
+
+    if (roles.some((r) => prantRoles.includes(r))) {
+      level = "PRANT";
+      headers = ["Zones", "Kenders"];
+      const prant = await Prant.findById(user.prant).lean();
+      levelLabel = `${prant?.name || "Your"}`;
+
+      const zilas = await Zila.find({ prant: user.prant })
+        .lean()
+        .sort({ name: 1 });
+
+      for (const zila of zilas) {
+        const zones = await Ksheter.countDocuments({ zila: zila._id });
+        const kenders = await Kender.countDocuments({ zila: zila._id });
+        summary.push({ name: zila.name, Zones: zones, Kenders: kenders });
+      }
+    } else if (roles.some((r) => zilaRoles.includes(r))) {
+      level = "ZILA";
+      headers = ["Zones", "Kenders"];
+      const zila = await Zila.findById(user.zila).lean();
+      levelLabel = `${zila?.name || "Your"}`;
+
+      const ksheters = await Ksheter.find({ zila: user.zila })
+        .lean()
+        .sort({ name: 1 });
+      for (const ksheter of ksheters) {
+        const kenders = await Kender.countDocuments({ ksheter: ksheter._id });
+        summary.push({ name: ksheter.name, Zones: 1, Kenders: kenders });
+      }
+    } else if (roles.some((r) => ksheterRoles.includes(r))) {
+      level = "KSHETER";
+      headers = ["Kenders"];
+      const ksheter = await Ksheter.findById(user.ksheter).lean();
+      levelLabel = `${ksheter?.name || "Your"}`;
+
+      const kenders = await Kender.countDocuments({ ksheter: user.ksheter });
+      summary.push({
+        name: ksheter?.name || "Your Ksheter",
+        Kenders: kenders,
+      });
+    } else {
+      return res.status(403).send("Summary not available for your role.");
+    }
+
+    // 🔢 Calculate totals
+    const totals = {};
+    headers.forEach((h) => (totals[h] = 0));
+    summary.forEach((row) => {
+      headers.forEach((h) => {
+        totals[h] += Number(row[h] || 0);
+      });
+    });
+
+    // 🧾 PDF Setup
+    const doc = new PDFDocument({ margin: 40, size: "A4" });
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=${levelLabel.replace(/\s+/g, "_")}_Summary.pdf`
+    );
+
+    doc.pipe(res);
+
+    // ------------------ HEADER ------------------
+    doc
+      .fontSize(18)
+      .fillColor("#dc3545")
+      .text("BHARTIYA YOG SANSTHAN (Regd.)", { align: "center" });
+
+    doc
+      .moveDown()
+      .fontSize(14)
+      .fillColor("black")
+      .text(`Explore Summary Report (${levelLabel})`, { align: "center" });
+
+    doc
+      .fontSize(10)
+      .text(
+        `Generated on: ${moment().tz("Asia/Kolkata").format("DD-MM-YYYY HH:mm")}`,
+        { align: "center" }
+      );
+
+    doc.moveDown(2);
+
+    // ------------------ BOXED TOTALS ------------------
+    const boxStartX = 40;
+    const boxStartY = doc.y;
+    const boxWidth = 240;
+    const boxHeight = 50;
+    const spacing = 20;
+    const rowSpacing = 60;
+
+    const summaryBoxes = headers.map((h) => ({
+      title: h,
+      value: totals[h],
+      color: h === "Kenders" ? "#0d6efd" : "#198754",
+    }));
+
+    for (let i = 0; i < summaryBoxes.length; i++) {
+      const col = i % 2;
+      const row = Math.floor(i / 2);
+      const x = boxStartX + col * (boxWidth + spacing);
+      const y = boxStartY + row * rowSpacing;
+
+      doc
+        .lineWidth(1)
+        .rect(x, y, boxWidth, boxHeight)
+        .strokeColor(summaryBoxes[i].color)
+        .stroke();
+
+      doc
+        .font("Helvetica-Bold")
+        .fontSize(12)
+        .fillColor(summaryBoxes[i].color)
+        .text(summaryBoxes[i].title, x, y + 10, {
+          width: boxWidth,
+          align: "center",
+        });
+
+      doc
+        .font("Helvetica-Bold")
+        .fontSize(18)
+        .fillColor("black")
+        .text(summaryBoxes[i].value.toString(), x, y + 30, {
+          width: boxWidth,
+          align: "center",
+        });
+    }
+
+    doc.moveDown(3);
+
+    // ------------------ TABLE ------------------
+    doc.font("Helvetica-Bold").fontSize(11).fillColor("black");
+
+    const tableHeaders = ["#", level === "PRANT" ? "Zila" : "Ksheter", ...headers];
+    const columnWidth = [40, 200, ...headers.map(() => 100)];
+    const rowHeight = 20;
+    let y = doc.y;
+    let x = 40;
+
+    // Header Row Background
+    doc
+      .rect(
+        x,
+        y,
+        columnWidth.reduce((a, b) => a + b),
+        rowHeight
+      )
+      .fill("#dc3545");
+    doc.fillColor("white").font("Helvetica-Bold");
+
+    tableHeaders.forEach((header, i) => {
+      doc.text(header, x + 2, y + 5, {
+        width: columnWidth[i],
+        align: "center",
+      });
+      x += columnWidth[i];
+    });
+
+    y += rowHeight;
+
+    // Table Rows
+    doc.font("Helvetica").fontSize(10);
+
+    summary.forEach((row, index) => {
+      x = 40;
+
+      const rowValues = [
+        index + 1,
+        row.name,
+        ...headers.map((h) => Number(row[h] || 0)),
+      ];
+
+      const bgColor = index % 2 === 0 ? "#f8f9fa" : "#ffffff";
+      doc.save();
+      doc.fillColor(bgColor).rect(x, y, 510, rowHeight).fill();
+      doc.restore();
+
+      rowValues.forEach((val, i) => {
+        doc.fillColor("black").text(val.toString(), x + 2, y + 5, {
+          width: columnWidth[i],
+          align: "center",
+        });
+        x += columnWidth[i];
+      });
+
+      y += rowHeight;
+
+      if (y > 750) {
+        doc.addPage();
+        y = 50;
+      }
+    });
+
+    // ------------------ TOTAL ROW ------------------
+    x = 40;
+    const totalValues = ["", "Total", ...headers.map((h) => totals[h])];
+
+    doc.font("Helvetica-Bold").fillColor("black");
+    doc.fillColor("#fff3cd").rect(x, y, 510, rowHeight).fill();
+    totalValues.forEach((val, i) => {
+      doc.fillColor("black").text(val.toString(), x + 2, y + 5, {
+        width: columnWidth[i],
+        align: "center",
+      });
+      x += columnWidth[i];
+    });
+
+    // ✅ Done
+    doc.end();
+  } catch (err) {
+    console.error("❌ Error in exportSummaryPDF:", err);
+    res.status(500).send("Failed to export PDF summary.");
+  }
+};
+
 
 function getTeam(saadhaks, level, id, roles) {
   const upperRoles = roles.map((r) => r.toUpperCase());

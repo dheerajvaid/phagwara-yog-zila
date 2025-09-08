@@ -1,0 +1,83 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-4">
+  <h4 class="text-center text-primary mb-4">📊 BYS Explore Summary (<%= levelLabel %>)</h4>
+
+  <% if (message) { %>
+    <div class="alert alert-warning text-center"><%= message %></div>
+  <% } else { %>
+    <div class="d-flex justify-content-end mb-3 gap-2">
+      <a href="/explore/summary/pdf" class="btn btn-outline-danger btn-sm" id="exportBtnPDF">📄 Export PDF</a>
+      <a href="/explore/summary/excel" class="btn btn-outline-success btn-sm" id="exportBtnExcel">📊 Export Excel</a>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover text-center">
+        <thead class="table-light">
+          <tr>
+            <th>#</th>
+            <th>
+              <%= level === 'PRANT' ? 'Zila' : level === 'ZILA' ? 'Ksheter' : 'Ksheter' %>
+            </th>
+            <% headers.forEach(h => { %>
+              <th><%= h %></th>
+            <% }) %>
+          </tr>
+        </thead>
+        <tbody>
+          <% 
+            // 🔢 Initialize totals
+            let totals = {};
+            headers.forEach(h => totals[h] = 0);
+          %>
+
+          <% summary.forEach((row, i) => { %>
+            <tr>
+              <td><%= i + 1 %></td>
+              <td><%= row.name %></td>
+              <% headers.forEach(h => {
+                const value = Number(row[h] || 0);
+                totals[h] += value;
+              %>
+                <td><%= value %></td>
+              <% }) %>
+            </tr>
+          <% }) %>
+
+          <!-- ✅ Totals Row -->
+          <tr class="fw-bold table-warning">
+            <td colspan="2">Total</td>
+            <% headers.forEach(h => { %>
+              <td><%= totals[h] %></td>
+            <% }) %>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const exportBtnExcel = document.getElementById('exportBtnExcel');
+    const exportBtnPDF = document.getElementById('exportBtnPDF');
+     
+    exportBtnExcel.addEventListener('click', function () {
+      const spinner = document.getElementById('loadingSpinner');
+      setTimeout(() => {
+        if (spinner) spinner.style.display = 'none';
+      }, 2000);
+    });
+
+    exportBtnPDF.addEventListener('click', (e) => {
+      e.preventDefault;
+      const spinner = document.getElementById('loadingSpinner');
+      setTimeout(() => {
+        if (spinner) spinner.style.display = 'none';
+      }, 2000);
+    });
+  });
+</script>
+
+<%- include('../partials/footer') %>
