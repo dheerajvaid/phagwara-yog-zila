@@ -437,6 +437,40 @@ exports.viewTodayAttendance = async (req, res) => {
       });
     }
 
+    // 🔢 Step: Get attendance count per Saadhak for the current month
+    const saadhakIds = attendanceRecords.map((r) => r.saadhak._id);
+
+    // Count attendance per Saadhak in this month
+    const attendanceCounts = await Attendance.aggregate([
+      {
+        $match: {
+          saadhak: { $in: saadhakIds },
+          status: "Present",
+          date: { $gte: startOfMonth, $lte: endOfMonth },
+        },
+      },
+      {
+        $group: {
+          _id: "$saadhak",
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    // Convert to map for quick lookup
+    const attendanceMap = {};
+    attendanceCounts.forEach((item) => {
+      attendanceMap[item._id.toString()] = item.count;
+    });
+
+    // 🧩 Add monthly count to each saadhak record
+    attendanceRecords = attendanceRecords.map((r) => {
+      return {
+        ...r.toObject(),
+        monthlyCount: attendanceMap[r.saadhak._id.toString()] || 0,
+      };
+    });
+
     res.render("attendance/today", {
       saadhaks: attendanceRecords,
       message:
@@ -764,20 +798,20 @@ exports.viewAttendance = async (req, res) => {
       daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
     }
 
-    let selectedKenderData;
-    let selectedKenderName;
+    let selectedKenderName = "";
 
     if (roleType !== "adhikari") {
-      selectedKenderData = await Kender.findById(kender);
-      selectedKenderName = selectedKenderData
-        ? selectedKenderData.name
-        : "Kender";
-      // console.log(activeDaysArray);
-      // console.log(req.query);
+      if (kender) {
+        const selectedKenderData = await Kender.findById(kender);
+        selectedKenderName = selectedKenderData?.name || "";
+      } else {
+        const selectedKenderData = await Kender.findById(user.kender);
+        selectedKenderName = selectedKenderData?.name || "";
+      }
     }
 
     res.render("attendance/view", {
-      selectedKender: kender || "",
+      selectedKender: kender || user.kender,
       selectedKenderName: selectedKenderName || "",
       selectedMonth,
       selectedYear,
