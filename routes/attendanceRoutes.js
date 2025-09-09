@@ -9,6 +9,7 @@ const {
   ksheterRoles,
   kenderRoles,
   kenderTeamRoles,
+  adminRoles,
 } = require("../config/roles");
 const saadhakManagerRoles = [
   ...prantRoles,
@@ -367,5 +368,7 @@ router.get("/report/pdf/:saadhakId", async (req, res) => {
     res.status(500).send("Error generating PDF");
   }
 });
+
+router.get('/ksheterwise', requireLogin, canManage([...adminRoles, ...prantRoles, ...zilaRoles, ...ksheterRoles]), attendanceController.viewKsheterWiseAttendance);
 
 module.exports = router;

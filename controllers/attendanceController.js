@@ -1881,3 +1881,157 @@ exports.viewIndividualAttendance = async (req, res) => {
     res.status(500).send("Server Error");
   }
 };
+
+exports.viewKsheterWiseAttendance = async (req, res) => {
+  try {
+    const user = req.session.user;
+    const today = new Date();
+
+    const selectedMonth = parseInt(req.query.month) || today.getMonth() + 1;
+    const selectedYear = parseInt(req.query.year) || today.getFullYear();
+    const sortBy = req.query.sortBy || "name";
+
+    // Normalize scope values (prant, zila)
+    const normalizeScopeValue = (value) => {
+      if (!value) return "";
+      if (Array.isArray(value)) return value[0] || "";
+      return String(value).trim();
+    };
+
+    const prantQuery =
+      normalizeScopeValue(req.query.prant) || user.prant?.toString() || "";
+    const zilaQuery =
+      normalizeScopeValue(req.query.zila) || user.zila?.toString() || "";
+    const ksheterQuery =
+      normalizeScopeValue(req.query.ksheter) || user.ksheter?.toString() || "";
+
+    // Early return if scope missing
+    if (!req.query.month || !req.query.year || !zilaQuery) {
+      return res.render("attendance/ksheter-wise", {
+        attendanceData: [],
+        activeDays: [],
+        selectedMonth,
+        selectedYear,
+        selectedZila: zilaQuery,
+        selectedPrant: prantQuery,
+        selectedKsheter: ksheterQuery,
+        sortBy,
+        ksheterList: [],
+        zilaDailyTotals: {},
+      });
+    }
+
+    const startDate = new Date(selectedYear, selectedMonth - 1, 1);
+    const endDate = new Date(selectedYear, selectedMonth, 0, 23, 59, 59);
+    const totalDays = endDate.getDate();
+
+    let rawDays = [];
+    const isCurrentMonth =
+      selectedMonth === today.getMonth() + 1 &&
+      selectedYear === today.getFullYear();
+
+    rawDays = Array.from(
+      { length: isCurrentMonth ? today.getDate() : totalDays },
+      (_, i) => i + 1
+    );
+
+    let ksheterList = [];
+
+    if (user.ksheter) {
+      // 🔐 Restrict to this Ksheter only if logged in user is from Ksheter level
+      ksheterList = await Ksheter.find({ _id: user.ksheter });
+    } else {
+      // 🟢 Otherwise show all Ksheters under the selected Zila
+      ksheterList = await Ksheter.find({ zila: zilaQuery });
+    }
+
+    const attendanceData = [];
+    const dateTotalsMap = {};
+
+    // Initialize all dates
+    for (let day of rawDays) {
+      const dateKey = `${selectedYear}-${String(selectedMonth).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      dateTotalsMap[dateKey] = 0;
+    }
+
+    for (let ksheter of ksheterList) {
+      const kenders = await Kender.find({ ksheter: ksheter._id });
+      const kenderIds = kenders.map((k) => k._id);
+      const records = await Attendance.find({
+        kender: { $in: kenderIds },
+        date: { $gte: startDate, $lte: endDate },
+      });
+
+      const dailyCountMap = {};
+      rawDays.forEach((day) => {
+        const dateKey = `${selectedYear}-${String(selectedMonth).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+        dailyCountMap[dateKey] = 0;
+      });
+
+      for (let record of records) {
+        const dateKey = record.date.toISOString().slice(0, 10);
+        if (dailyCountMap[dateKey] !== undefined) {
+          dailyCountMap[dateKey]++;
+          dateTotalsMap[dateKey]++;
+        }
+      }
+
+      const totalPresent = Object.values(dailyCountMap).reduce(
+        (a, b) => a + b,
+        0
+      );
+      if (totalPresent > 0) {
+        attendanceData.push({
+          ksheterName: ksheter.name,
+          dailyCounts: dailyCountMap,
+          totalPresent,
+        });
+      }
+    }
+
+    // Only keep dates with actual attendance
+    const activeDays = rawDays.filter((day) => {
+      const dateKey = `${selectedYear}-${String(selectedMonth).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      return dateTotalsMap[dateKey] > 0;
+    });
+
+    // Trim attendanceData to activeDays only
+    attendanceData.forEach((row) => {
+      const filteredCounts = {};
+      activeDays.forEach((day) => {
+        const dateKey = `${selectedYear}-${String(selectedMonth).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+        filteredCounts[dateKey] = row.dailyCounts[dateKey] || 0;
+      });
+      row.dailyCounts = filteredCounts;
+    });
+
+    // Sort
+    if (sortBy === "count") {
+      attendanceData.sort((a, b) => b.totalPresent - a.totalPresent);
+    } else {
+      attendanceData.sort((a, b) => a.ksheterName.localeCompare(b.ksheterName));
+    }
+
+    // Final Zila Daily Totals
+    const zilaDailyTotals = {};
+    activeDays.forEach((day) => {
+      const dateKey = `${selectedYear}-${String(selectedMonth).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      zilaDailyTotals[dateKey] = dateTotalsMap[dateKey];
+    });
+
+    return res.render("attendance/ksheter-wise", {
+      attendanceData,
+      activeDays,
+      selectedMonth,
+      selectedYear,
+      selectedZila: zilaQuery,
+      selectedPrant: prantQuery,
+      sortBy,
+      ksheterList,
+      zilaDailyTotals,
+    });
+  } catch (err) {
+    console.error("❌ Ksheter-wise attendance error:", err);
+    res.status(500).send("Internal server error");
+  }
+};

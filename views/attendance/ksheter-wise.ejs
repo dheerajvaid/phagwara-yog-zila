@@ -1,0 +1,229 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<style>
+  .big-checkbox {
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 2px solid #000;
+    background-color: #fff;
+  }
+
+  .big-checkbox:checked {
+    background-color: #007bff;
+    border-color: #0056b3;
+  }
+
+  .form-check-label {
+    font-size: 1.2rem;
+    color: #000;
+  }
+
+  .table thead th {
+    vertical-align: middle;
+    font-size: 0.85rem;
+    text-align: center;
+  }
+
+  .table td, .table th {
+    padding: 2px;
+    font-size: 0.70rem;
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+
+  .custom-scroll {
+    max-height: 400px;
+    overflow-x: auto;
+    overflow-y: auto;
+  }
+
+  .bg-success {
+    background-color: #28a745 !important;
+  }
+
+  .bg-light {
+    background-color: #f8f9fa !important;
+  }
+
+  .text-black {
+    color: #000 !important;
+  }
+
+  .fw-bold {
+    font-weight: bold !important;
+  }
+</style>
+
+<div class="container mt-3">
+  <div id="attendanceWrapper">
+    <h4 class="text-center mb-3 fw-bold border-bottom pb-2">📊 Ksheter-wise Attendance Report (Monthly)</h4>
+
+    <!-- Filter Form -->
+    <form method="GET" class="row g-3 mb-4 p-3 bg-light border rounded shadow-sm">
+      <%- include('../partials/scope-dropdowns') %>
+
+      <div class="col-6 col-md-3">
+        <label class="form-label fw-semibold">📅 Month</label>
+        <select name="month" class="form-control" required>
+          <option value="">Select Month</option>
+          <% for (let m = 1; m <= 12; m++) { %>
+            <option value="<%= m %>" <%= selectedMonth == m ? 'selected' : '' %>>
+              <%= new Date(2000, m-1).toLocaleString('default', { month: 'long' }) %>
+            </option>
+          <% } %>
+        </select>
+      </div>
+
+      <div class="col-6 col-md-3">
+        <label class="form-label fw-semibold">📆 Year</label>
+        <select name="year" class="form-control" required>
+          <% for (let y = 2024; y <= 2030; y++) { %>
+            <option value="<%= y %>" <%= selectedYear == y ? 'selected' : '' %>><%= y %></option>
+          <% } %>
+        </select>
+      </div>
+
+      <div class="col-12 col-md-3">
+        <label class="form-label fw-semibold">🔽 Sort By</label>
+        <select name="sortBy" class="form-control">
+          <option value="name" <%= sortBy === 'name' ? 'selected' : '' %>>Ksheter Name</option>
+          <option value="count" <%= sortBy === 'count' ? 'selected' : '' %>>Total Present</option>
+        </select>
+      </div>
+
+      <div class="col-12 col-md-3 d-flex align-items-end">
+        <button class="btn btn-primary w-100 fw-semibold">🔍 View</button>
+      </div>
+    </form>
+
+    <% if (attendanceData.length) { %>
+      <div class="text-end mb-2">
+        <button id="exportPdfBtn" class="btn btn-sm btn-danger">📄 Export as PDF</button>
+      </div>
+
+      <div class="custom-scroll table-responsive-sm">
+        <table class="table table-bordered table-sm text-center align-middle" style="border: 1px solid #000;">
+          <thead class="thead-light bg-light border" style="border: 1px solid #000;">
+            <tr>
+              <th class="bg-primary text-white">Ksheter</th>
+              <% activeDays.forEach(day => { %>
+                <th style="width: 32px; font-size: 0.85rem;" class="bg-primary text-white border"><%= day %></th>
+              <% }) %>
+              <th class="bg-primary text-white">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% attendanceData.forEach(row => { %>
+              <tr>
+                <td class="fw-bold text-start" style="font-size: 0.85rem;"><%= row.ksheterName %></td>
+                <% activeDays.forEach(day => {
+                  const dateStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                  const count = row.dailyCounts[dateStr];
+                %>
+                  <td class="<%= count > 0 ? 'bg-success text-white' : 'bg-light text-black' %> fw-bold">
+                    <%= count > 0 ? count : '' %>
+                  </td>
+                <% }) %>
+                <td class="fw-bold text-danger"><%= row.totalPresent %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+          <tfoot>
+            <tr>
+              <th class="text-primary bg-light text-start">Zila Total</th>
+              <% activeDays.forEach(day => {
+                const dateKey = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const count = zilaDailyTotals[dateKey] || 0;
+              %>
+                <th class="text-primary bg-light fw-bold"><%= count %></th>
+              <% }) %>
+              <th class="text-danger bg-light fw-bold">
+                <%= Object.values(zilaDailyTotals).reduce((a, b) => a + b, 0) %>
+              </th>
+            </tr>
+          </tfoot>
+
+        </table>
+      </div>  
+
+      <div id="pdfCloneContainer" style="position: absolute; left: -9999px;"></div>
+    <% } else if (selectedZila) { %>
+      <p class="text-muted text-center">No data found for selected month.</p>
+    <% } %>
+  </div>
+</div>
+
+<div id="pdfCloneContainer" style="position: absolute; left: -9999px; top: -9999px;"></div>
+
+
+<!-- PDF Export Script -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+  document.getElementById("exportPdfBtn")?.addEventListener("click", function () {
+    const originalTable = document.querySelector(".custom-scroll table");
+    const cloneContainer = document.getElementById("pdfCloneContainer");
+
+    // Clear previous clone
+    cloneContainer.innerHTML = '';
+
+    // Clone the table
+    const clone = originalTable.cloneNode(true);
+    clone.style.width = '100%';
+    clone.style.tableLayout = 'auto'; // <-- allow Ksheter name to take needed width
+
+    // Create wrapper and heading
+    const wrapper = document.createElement('div');
+    const heading = document.createElement('h4');
+    heading.innerText = "📊 Ksheter-wise Attendance Report - <%= selectedMonth %>/<%= selectedYear %>";
+    heading.style.textAlign = "center";
+    heading.style.marginBottom = "10px";
+
+    // Add PDF-specific styles
+    const style = document.createElement('style');
+    style.textContent = `
+      table { 
+        border-collapse: collapse; 
+        width: 100%; 
+        table-layout: auto; /* allow Ksheter column to expand */
+      }
+      th, td { 
+        border: 1px solid #888 !important; 
+        padding: 1.5px; /* reduce padding to fit more text */
+        font-size: 0.65rem; 
+        text-align: center; 
+        white-space: nowrap; 
+      }
+      th:first-child, td:first-child { 
+        text-align: left; /* Ksheter name left-aligned */
+        font-weight: bold;        
+      }
+      tr { 
+        page-break-inside: avoid !important; 
+        break-inside: avoid; 
+      }
+      thead { display: table-header-group; }
+      tfoot { display: table-footer-group; }
+    `;
+
+    wrapper.appendChild(style);
+    wrapper.appendChild(heading);
+    wrapper.appendChild(clone);
+    cloneContainer.appendChild(wrapper);
+
+    const opt = {
+      margin: 0.05, // minimal margin
+      filename: 'Ksheter_Attendance_<%= selectedMonth %>_<%= selectedYear %>.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, scrollY: 0, useCORS: true },
+      jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+    };
+
+    html2pdf().set(opt).from(wrapper).save();
+  });
+</script>
+
+
+
+<%- include('../partials/footer') %>
