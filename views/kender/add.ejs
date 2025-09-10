@@ -65,6 +65,32 @@
         >
       </div>
 
+      <!-- ✅ Optional: Kender Creation Date -->
+<div class="col-md-6">
+  <label class="form-label">Kender Creation Date (optional)</label>
+  <div class="d-flex gap-2">
+    <select name="creation_day" class="form-select">
+      <option value="">Day</option>
+      <% for(let d=1; d<=31; d++) { %>
+        <option value="<%= d %>" <%= formData?.creation_day == d ? 'selected' : '' %>><%= d %></option>
+      <% } %>
+    </select>
+    <select name="creation_month" class="form-select">
+      <option value="">Month</option>
+      <% for(let m=1; m<=12; m++) { %>
+        <option value="<%= m %>" <%= formData?.creation_month == m ? 'selected' : '' %>><%= months[m-1] %></option>
+      <% } %>
+    </select>
+    <select name="creation_year" class="form-select">
+      <option value="">Year</option>
+      <% for(let y=currentYear; y>=2000; y--) { %> <!-- limit to 2000 onward -->
+        <option value="<%= y %>" <%= formData?.creation_year == y ? 'selected' : '' %>><%= y %></option>
+      <% } %>
+    </select>
+  </div>
+</div>
+
+
       <div class="text-end mt-3">
         <button class="btn btn-success">💾 Save Kender</button>
       </div>

@@ -30,6 +30,16 @@ const kenderSchema = new mongoose.Schema({
     type: String,
     trim: true, // e.g., "5:00 AM"
   },
+  // ✅ New: Optional manually set creation date
+  creationDate: {
+    type: Date,
+  },
+
+  // ✅ New: Active or inactive status (default: true)
+  isActive: {
+    type: Boolean,
+    default: true,
+  }
 });
 
 module.exports = mongoose.models.Kender || mongoose.model('Kender', kenderSchema);

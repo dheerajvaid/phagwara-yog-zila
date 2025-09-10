@@ -1,3 +1,14 @@
+<%
+const { adminRoles, prantRoles, zilaRoles, ksheterRoles, kenderRoles, kenderTeamRoles, saadhakRoles } = roles;
+
+const isAdmin = user?.roles.some(role => adminRoles.includes(role));
+const isPrantLevel = user?.roles.some(role => prantRoles.includes(role));
+const isZilaLevel = user?.roles.some(role => zilaRoles.includes(role));
+const isKsheterLevel = user?.roles.some(role => ksheterRoles.includes(role));
+const isKenderLevel = user?.roles.some(role => [...kenderRoles, ...kenderTeamRoles].includes(role));
+const isSaadhakOnly = user?.roles.some(role => saadhakRoles.includes(role));
+%>
+
 <li class="nav-item dropdown">
     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
       🏠 Kender
@@ -6,5 +17,9 @@
       <li><a class="dropdown-item" href="/kender/manage">🗂️ Manage Kender</a></li>
      <hr class="menu-divider">
       <li><a class="dropdown-item" href="/kender/add">➕ Add Kender</a></li>
+      <% if (isAdmin || isPrantLevel || isZilaLevel) { %>
+      <hr class="menu-divider">
+      <li><a class="dropdown-item" href="/kender/report/yearly">📋 Kender Report YoY</a></li>
+      <% } %>
     </ul>
   </li>

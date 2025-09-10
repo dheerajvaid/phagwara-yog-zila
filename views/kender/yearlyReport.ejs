@@ -1,0 +1,119 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<section class="container mt-4">
+
+  <h4 class="mb-4 fw-bold text-primary">📊 Kender Yearly Creation Report</h4>
+
+  <!-- 🔽 Last N Years Dropdown & Export Buttons -->
+  <form class="row g-3 mb-3 align-items-end" method="GET" action="/kender/report/yearly">
+    <!-- Last N Years Selection -->
+    <div class="col-md-3">
+      <label class="form-label">📊 Last N Years Separate</label>
+      <select name="recentYears" class="form-select" onchange="this.form.submit()">
+        <% for(let i=1; i<=5; i++){ %>
+          <option value="<%= i %>" <%= recentCount == i ? 'selected':'' %>><%= i %></option>
+        <% } %>
+      </select>
+    </div>
+
+    <!-- Export Buttons -->
+    <div class="col-md-9 text-md-end d-flex gap-2 justify-content-md-end mt-2 mt-md-0">
+      <a href="/kender/report/yearly/pdf?recentYears=<%= recentCount %>" id="exportBtnPDF" class="btn btn-danger shadow-sm">
+        <i class="bi bi-file-earmark-pdf"></i> Export PDF
+      </a>
+      <a href="/kender/report/yearly/excel?recentYears=<%= recentCount %>" id="exportBtnExcel" class="btn btn-success shadow-sm">
+        <i class="bi bi-file-earmark-excel"></i> Export Excel
+      </a>
+    </div>
+  </form>
+
+  <!-- 🔽 Table -->
+  <div class="table-responsive shadow-sm rounded">
+    <table class="table table-bordered table-hover align-middle text-center">
+      <thead class="table-dark text-white">
+        <tr>
+          <th class="fw-bold">Zila / Year</th>
+          <% yearRanges.forEach(r => { %>
+            <th class="fw-bold"><%= r.label %></th>
+          <% }) %>
+          <th class="fw-bold">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% 
+          const zilaYearCount = {};
+          const columnTotals = {};
+          yearRanges.forEach(r => columnTotals[r.label] = 0);
+
+          kenders.forEach(k => {
+            const zName = k.zila?.name || 'Unknown';
+            if (!zilaYearCount[zName]) zilaYearCount[zName] = {};
+            const year = k.creationDate?.getFullYear();
+            if (!year) return;
+
+            yearRanges.forEach(r => {
+              if (year >= r.from && year <= r.to) {
+                zilaYearCount[zName][r.label] = (zilaYearCount[zName][r.label] || 0) + 1;
+                columnTotals[r.label] += 1;
+              }
+            });
+          });
+
+          const zilaNames = Object.keys(zilaYearCount).sort();
+        %>
+
+        <% zilaNames.forEach(zName => { %>
+          <tr>
+            <td class="fw-bold text-start ps-3"><%= zName %></td>
+            <% let rowTotal = 0; %>
+            <% yearRanges.forEach(r => { %>
+              <% const count = zilaYearCount[zName][r.label] || 0; %>
+              <% rowTotal += count; %>
+              <td><%= count === 0 ? '-' : count %></td>
+            <% }) %>
+            <td class="fw-bold bg-light"><%= rowTotal %></td>
+          </tr>
+        <% }) %>
+
+        <!-- Column Totals -->
+        <tr class="table-secondary fw-bold">
+          <td class="ps-3">Total</td>
+          <% yearRanges.forEach(r => { %>
+            <% const count = columnTotals[r.label] || 0; %>
+            <td class="bg-light"><%= count === 0 ? '-' : count %></td>
+          <% }) %>
+          <td class="bg-light"><%= Object.values(columnTotals).reduce((a,b) => a+b, 0) %></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</section>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const exportBtnExcel = document.getElementById('exportBtnExcel');
+    const exportBtnPDF = document.getElementById('exportBtnPDF');
+     
+    exportBtnExcel.addEventListener('click', function () {
+      const spinner = document.getElementById('loadingSpinner');
+      setTimeout(() => {
+        if (spinner) spinner.style.display = 'none';
+      }, 2000);
+    });
+
+    exportBtnPDF.addEventListener('click', (e) => {
+      e.preventDefault;
+      const spinner = document.getElementById('loadingSpinner');
+      setTimeout(() => {
+        if (spinner) spinner.style.display = 'none';
+      }, 2000);
+    });
+  });
+</script>
+
+<%- include('../partials/footer') %>
+
+<!-- Optional: Bootstrap Icons CDN for PDF/Excel icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">

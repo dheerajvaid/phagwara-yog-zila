@@ -51,6 +51,7 @@
             <th>#</th>
             <th>Kender Name</th>
             <th>Start Time</th>
+            <th>Creation Date</th> <!-- ✅ New -->
             <th>Ksheter</th>
             <th>Zila</th>
             <th class="text-end">Actions</th>
@@ -63,6 +64,18 @@
               <td><strong><%= k.name %></strong></td>
               <td>
                 <%= k.startTime ? new Date("1970-01-01T" + k.startTime).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }) : '—' %>
+              </td>
+              <td>
+                <% if (k.creationDate) { 
+                    const cDate = new Date(k.creationDate);
+                    const day = String(cDate.getDate()).padStart(2, '0');
+                    const month = String(cDate.getMonth() + 1).padStart(2, '0');
+                    const year = cDate.getFullYear();
+                %>
+                  <%= `${day}/${month}/${year}` %>
+                <% } else { %>
+                  —
+                <% } %>
               </td>
               <td><span class="badge bg-info text-dark"><%= k.ksheter?.name || '❓' %></span></td>
               <td><span class="badge bg-secondary"><%= k.zila?.name || '❓' %></span></td>

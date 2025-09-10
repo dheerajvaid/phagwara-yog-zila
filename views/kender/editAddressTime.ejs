@@ -15,6 +15,35 @@
       <input type="time" id="startTime" name="startTime" class="form-control" value="<%= kender.startTime %>" placeholder="e.g., 5:30 AM" required>
     </div>
 
+        <!-- Optional Creation Date Dropdowns -->
+    <div class="mb-3">
+      <label class="form-label fw-bold">Kender Creation Date <small class="text-muted">(Optional)</small></label>
+      <div class="d-flex gap-2">
+        <select name="creation_day" class="form-select">
+          <option value="">Day</option>
+          <% for(let d=1; d<=31; d++) { %>
+            <option value="<%= d %>" <%= new Date(kender.creationDate).getDate() === d ? 'selected' : '' %>><%= d %></option>
+          <% } %>
+        </select>
+
+        <select name="creation_month" class="form-select">
+          <option value="">Month</option>
+          <% const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; %>
+          <% for(let m=1; m<=12; m++) { %>
+            <option value="<%= m %>" <%= new Date(kender.creationDate).getMonth() + 1 === m ? 'selected' : '' %>><%= months[m-1] %></option>
+          <% } %>
+        </select>
+
+        <select name="creation_year" class="form-select">
+          <option value="">Year</option>
+          <% const currentYear = new Date().getFullYear(); %>
+          <% for(let y = currentYear; y >= 2000; y--) { %>
+            <option value="<%= y %>" <%= new Date(kender.creationDate).getFullYear() === y ? 'selected' : '' %>><%= y %></option>
+          <% } %>
+        </select>
+      </div>
+    </div>
+
     <button type="submit" class="btn btn-primary">💾 Save Changes</button>
     <a href="/dashboard" class="btn btn-secondary">Cancel</a>
   </form>

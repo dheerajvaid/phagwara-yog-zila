@@ -4,6 +4,7 @@ const Ksheter = require('../models/Ksheter');
 const Kender = require('../models/Kender');
 const Saadhak = require('../models/Saadhak'); // ✅ Saadhak model added
 
+
 exports.getFrontPageData = async (req, res) => {
   try {
     // Fetch all Zilas under this Prant
@@ -65,3 +66,5 @@ exports.getFrontPageData = async (req, res) => {
     res.status(500).send('Error loading dashboard data');
   }
 };
+
+

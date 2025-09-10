@@ -8,6 +8,7 @@ const { adminRoles, prantRoles, zilaRoles, ksheterRoles, kenderRoles } = require
 const allowedRoles = [...adminRoles, ...prantRoles, ...zilaRoles, ...ksheterRoles];
 const { showEditAddressTime, updateKenderAddressAndTime } = require("../controllers/kenderController");
 
+
 // Routes
 router.get(
   "/kender/manage",
@@ -88,5 +89,9 @@ router.get('/api/kenders/by-ksheter/:ksheterId', async (req, res) => {
 router.get("/kender/:id/edit-address-time", requireLogin, canManage(kenderRoles), showEditAddressTime);
 router.patch("/kender/:id/address-time", requireLogin, canManage(kenderRoles), updateKenderAddressAndTime);
 
+// Year-on-Year Kender Creation Report
+router.get('/kender/report/yearly', requireLogin, canManage([...adminRoles, ...prantRoles, ...zilaRoles]), kenderController.kenderYearlyReport);
+router.get('/kender/report/yearly/pdf', requireLogin, canManage([...adminRoles, ...prantRoles, ...zilaRoles]), kenderController.exportKenderYearlyPDF);
+router.get('/kender/report/yearly/excel', requireLogin, canManage([...adminRoles, ...prantRoles, ...zilaRoles]), kenderController.exportKenderYearlyExcel);
 
 module.exports = router;
