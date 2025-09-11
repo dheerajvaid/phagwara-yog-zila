@@ -291,7 +291,9 @@ router.get("/report/pdf/:saadhakId", async (req, res) => {
 
       Object.entries(kenderVisitCount).forEach(([kenderName, count], index) => {
         const rowColor = index % 2 === 0 ? "#f9f9f9" : "#ffffff";
-        doc.rect(tableStartX, y, col1Width + col2Width, rowHeight).fill(rowColor);
+        doc
+          .rect(tableStartX, y, col1Width + col2Width, rowHeight)
+          .fill(rowColor);
 
         doc
           .fillColor("#f00")
@@ -369,6 +371,19 @@ router.get("/report/pdf/:saadhakId", async (req, res) => {
   }
 });
 
-router.get('/ksheterwise', requireLogin, canManage([...adminRoles, ...prantRoles, ...zilaRoles, ...ksheterRoles]), attendanceController.viewKsheterWiseAttendance);
+router.get(
+  "/ksheterwise",
+  requireLogin,
+  canManage([...adminRoles, ...prantRoles, ...zilaRoles, ...ksheterRoles]),
+  attendanceController.viewKsheterWiseAttendance
+);
+
+// Export Excel for missing attendance
+router.get(
+  "/export/excel/missing",
+  requireLogin,
+  canManage(saadhakManagerRoles),
+  attendanceController.exportMissingExcel
+);
 
 module.exports = router;

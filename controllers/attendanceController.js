@@ -8,6 +8,7 @@ const messages = require("../utils/motivationalMessages");
 const pdfExport = require("../utils/pdfExport");
 const roleConfig = require("../config/roles");
 const roles = roleConfig;
+const ExcelJS = require('exceljs');
 
 const {
   adminRoles,
@@ -2035,3 +2036,148 @@ exports.viewKsheterWiseAttendance = async (req, res) => {
     res.status(500).send("Internal server error");
   }
 };
+
+exports.exportMissingExcel = async (req, res) => {
+  try {
+    const { from, to } = req.query;
+    const sortBy = req.query.sortBy;
+    const sortDir = req.query.sortDir;
+    const filter = req.query.filter || "all";
+
+    const zilaValue = normalizeScopeValue(req.query.zila);
+    const ksheterValue = normalizeScopeValue(req.query.ksheter);
+    const kenderValue = normalizeScopeValue(req.query.kender);
+
+    if (!from || !to) {
+      return res.status(400).send("Missing required parameters");
+    }
+
+    const query = {};
+    if (zilaValue.trim() !== "") query.zila = zilaValue;
+    if (ksheterValue.trim() !== "") query.ksheter = ksheterValue;
+    if (kenderValue.trim() !== "") query.kender = kenderValue;
+
+    const saadhaks = await Saadhak.find(query).sort({ name: 1 });
+    const saadhakIds = saadhaks.map((s) => s._id);
+
+    const fromDate = new Date(from);
+    fromDate.setUTCHours(0, 0, 0, 0);
+    const toDate = new Date(to);
+    toDate.setUTCHours(23, 59, 59, 999);
+
+    const attendance = await Attendance.find({
+      saadhak: { $in: saadhakIds },
+      date: { $gte: fromDate, $lte: toDate },
+    });
+
+    const attendanceMap = new Map();
+    attendance.forEach((a) => {
+      const sid = a.saadhak.toString();
+      const localDate = new Date(a.date);
+      localDate.setMinutes(localDate.getMinutes() + 330);
+      const dateStr = localDate.toISOString().split("T")[0];
+      if (!attendanceMap.has(sid)) attendanceMap.set(sid, new Set());
+      attendanceMap.get(sid).add(dateStr);
+    });
+
+    const dateList = [];
+    let current = new Date(fromDate);
+    while (current <= toDate) {
+      const temp = new Date(current);
+      temp.setMinutes(temp.getMinutes() + 330);
+      dateList.push(temp.toISOString().split("T")[0]);
+      current.setDate(current.getDate() + 1);
+    }
+
+    const missingSaadhaks = saadhaks.filter((s) => {
+      const sid = s._id.toString();
+      const attendedDates = attendanceMap.get(sid) || new Set();
+      const attendedAny = dateList.some((d) => attendedDates.has(d));
+      return !attendedAny;
+    });
+
+    const lastAttendanceMap = {};
+    const lastAttendance = await Attendance.aggregate([
+      { $match: { saadhak: { $in: saadhakIds } } },
+      { $sort: { date: -1 } },
+      { $group: { _id: "$saadhak", lastDate: { $first: "$date" } } },
+    ]);
+    lastAttendance.forEach((entry) => {
+      lastAttendanceMap[entry._id.toString()] = entry.lastDate;
+    });
+
+    const kenderIds = [...new Set(missingSaadhaks.map((s) => s.kender).filter(Boolean))];
+    const kenders = await Kender.find({ _id: { $in: kenderIds } }).select("name");
+    const kenderMap = {};
+    kenders.forEach((k) => {
+      kenderMap[k._id.toString()] = k.name;
+    });
+
+    const result = missingSaadhaks.map((s) => {
+      const last = lastAttendanceMap[s._id.toString()] || null;
+      const daysSince = last
+        ? Math.floor((Date.now() - new Date(last).getTime()) / (1000 * 60 * 60 * 24))
+        : -1;
+
+      return {
+        name: s.name,
+        mobile: s.mobile,
+        lastAttended: last,
+        kenderName: s.kender ? kenderMap[s.kender.toString()] || "—" : "—",
+        daysSince,
+      };
+    });
+
+    let filteredResult = result;
+
+    if (filter === "never") {
+      filteredResult = result.filter((s) => !s.lastAttended);
+    } else if (filter === "attended") {
+      filteredResult = result.filter((s) => !!s.lastAttended);
+    }
+
+    if (sortBy === "name") {
+      filteredResult.sort((a, b) =>
+        sortDir === "asc"
+          ? a.name.localeCompare(b.name)
+          : b.name.localeCompare(a.name)
+      );
+    } else if (sortBy === "days") {
+      filteredResult.sort((a, b) => a.daysSince - b.daysSince);
+      if (sortDir === "desc") filteredResult.reverse();
+    }
+
+    // Create Excel sheet
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Missing Attendance");
+
+    sheet.addRow(["S.No", "Name", "Mobile", "Kender", "Last Attended", "Days Since"]);
+
+    filteredResult.forEach((s, i) => {
+      const last = s.lastAttended
+        ? new Date(s.lastAttended).toLocaleDateString("en-IN", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          })
+        : "Never Attended";
+
+      const days = s.daysSince === -1 ? "—" : s.daysSince;
+
+      sheet.addRow([i + 1, s.name, s.mobile, s.kenderName, last, days]);
+    });
+
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=Missing_Attendance_${from}_to_${to}.xlsx`
+    );
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    console.error("Excel Export Error:", err);
+    res.status(500).send("Error generating Excel file");
+  }
+};
+

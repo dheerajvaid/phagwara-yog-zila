@@ -62,6 +62,12 @@
     <a href="#" id="exportPdfBtn" class="btn btn-danger btn-sm fw-bold">
       📄 Export PDF
     </a>
+
+   <a href="#" id="exportExcelBtn" class="btn btn-outline-success btn-sm fw-bold">
+    📊 Export Excel
+  </a>
+
+
   </div>
 
   <div class="mb-3">
@@ -188,7 +194,21 @@ exportBtn.addEventListener('click', function () {
   const filter = filterDropdown.value;
   const baseUrl = `/attendance/export/pdf/missing?from=<%= from %>&to=<%= to %>&zila=<%= zila %>&ksheter=<%= ksheter %>&kender=<%= kender %>`;
   exportBtn.href = `${baseUrl}&filter=${filter}&sortBy=${sortBy}&sortDir=${sortDir}`;
+      const spinner = document.getElementById('loadingSpinner');
+      if (spinner) spinner.style.display = 'block';
 
+      setTimeout(() => {
+        if (spinner) spinner.style.display = 'none';
+      }, 2000);
+    });
+
+  const exportExcelBtn = document.getElementById('exportExcelBtn');
+
+  if (exportExcelBtn) {
+    exportExcelBtn.addEventListener('click', function () {
+      const filter = document.getElementById('attendanceFilter').value;
+      const baseUrl = `/attendance/export/excel/missing?from=<%= from %>&to=<%= to %>&zila=<%= zila %>&ksheter=<%= ksheter %>&kender=<%= kender %>`;
+      exportExcelBtn.href = `${baseUrl}&filter=${filter}&sortBy=${sortBy}&sortDir=${sortDir}`;
 
       const spinner = document.getElementById('loadingSpinner');
       if (spinner) spinner.style.display = 'block';
@@ -197,6 +217,7 @@ exportBtn.addEventListener('click', function () {
         if (spinner) spinner.style.display = 'none';
       }, 2000);
     });
+  }  
   }
 
   window.addEventListener('load', () => {
