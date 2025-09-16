@@ -124,7 +124,7 @@
     <div class="d-grid gap-3">
 
       <% if (user.roles && user.roles.some(r =>
-            ['Kender Pramukh', 'Seh Kender Pramukh', 'Shikshak', 'Karyakarta'].includes(r))) { %>
+            ['Kender Pramukh', 'Seh Kender Pramukh', 'Shikshak', 'Karyakarta'].includes(r)) || user.kender === '68c82ad93cec3c399e196373') { %>
         <a href="/attendance/mark" class="btn btn-success btn-lg shadow-sm">📌 Mark Attendance</a>
       <% } %>
 

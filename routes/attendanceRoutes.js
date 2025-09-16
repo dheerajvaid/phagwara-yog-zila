@@ -9,6 +9,7 @@ const {
   ksheterRoles,
   kenderRoles,
   kenderTeamRoles,
+  saadhakRoles,
   adminRoles,
 } = require("../config/roles");
 const saadhakManagerRoles = [
@@ -30,7 +31,7 @@ const Kender = require("../models/Kender");
 router.get(
   "/mark",
   requireLogin,
-  canManage(attendanceRoles),
+  canManage([...attendanceRoles, ...saadhakRoles], "attendance"),
   attendanceController.showMarkAttendanceForm
 );
 
@@ -38,7 +39,7 @@ router.get(
 router.post(
   "/mark",
   requireLogin,
-  canManage(attendanceRoles),
+  canManage([...attendanceRoles, ...saadhakRoles], "attendance"),
   attendanceController.markAttendance
 );
 
@@ -46,7 +47,7 @@ router.post(
 router.get(
   "/today",
   requireLogin,
-  canManage(attendanceRoles),
+  canManage([...attendanceRoles, ...saadhakRoles], "attendance"),
   attendanceController.viewTodayAttendance
 );
 
@@ -54,7 +55,7 @@ router.get(
 router.get(
   "/reports/:date",
   requireLogin,
-  canManage(saadhakManagerRoles),
+  canManage([...attendanceRoles, ...saadhakRoles], "attendance"),
   attendanceController.showAttendanceReport
 );
 

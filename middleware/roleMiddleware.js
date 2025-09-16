@@ -5,7 +5,9 @@ const rolesConfig = require("../config/roles");
 const roleHierarchy = rolesConfig.roleHierarchy;
 
 function canManage(allowedRoles, calledBy = "") {
-  return (req, res, next) => {
+   return (req, res, next) => {
+    // console.log(req.session.user.kender);
+
     const userRoles = req.session.user?.roles || [];
 
     // ✅ Admin bypass
@@ -19,8 +21,13 @@ function canManage(allowedRoles, calledBy = "") {
 
     // ✅ Sangathan Mantri bypass for events
     if (
-      userRoles.includes("Sangathan Mantri") &&
+      userRoles.includes("Zila Sangathan Mantri") &&
       calledBy === "event"
+    ) return next();
+
+     if (
+      req.session.user.kender?.id === "68c82ad93cec3c399e196373" &&
+      calledBy === "attendance"
     ) return next();
 
     // ✅ Check if any user role matches allowed roles
