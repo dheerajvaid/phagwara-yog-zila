@@ -1,0 +1,82 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-4">
+
+  <!-- 🔙 Back Button -->
+  <div class="mb-3">
+    <button class="btn btn-outline-secondary" onclick="history.back()">
+      <i class="bi bi-arrow-left"></i> Back
+    </button>
+  </div>
+
+  <h4 class="mb-3 text-danger fw-bold">Registered Users - <%= program.title %></h4>
+
+  <a href="/programs/<%= program._id %>/registrations/export" 
+   id="exportExcelBtn" 
+   class="btn btn-success mb-3">
+  <i class="bi bi-file-earmark-excel"></i> Export to Excel
+</a>
+
+  <% if (users.length === 0) { %>
+    <div class="alert alert-warning">No users have registered yet.</div>
+  <% } else { %>
+    <div class="table-responsive">
+      <table class="table table-bordered table-striped align-middle">
+        <thead class="table-dark">
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Roles</th>
+            <th>Zila</th>
+            <th>Ksheter</th>
+            <th>Kender</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% users.forEach((user, i) => { %>
+            <tr>
+              <td><%= i + 1 %></td>
+              <td><%= user.name %></td>
+              <td><%= user.mobile %></td>
+              <td><%= user.email || '-' %></td>
+              <td><%= Array.isArray(user.role) ? user.role.join(', ') : '-' %></td>
+              <td><%= user.zila?.name || '-' %></td>
+              <td><%= user.ksheter?.name || '-' %></td>
+              <td><%= user.kender?.name || '-' %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+
+  <!-- 🔙 Back Button -->
+  <div class="mb-3">
+    <button class="btn btn-outline-secondary" onclick="history.back()">
+      <i class="bi bi-arrow-left"></i> Back
+    </button>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const exportBtn = document.getElementById('exportExcelBtn');
+
+    if (exportBtn) {
+      exportBtn.addEventListener('click', function(e) {
+        const spinner = document.getElementById('loadingSpinner');
+        if (spinner) spinner.style.display = 'block';
+
+        setTimeout(() => {
+            if (spinner) spinner.style.display = 'none';
+        }, 2000);
+      });
+    }
+  });
+</script>
+
+
+<%- include('../partials/footer') %>

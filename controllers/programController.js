@@ -4,6 +4,7 @@ const Prant = require("../models/Prant");
 const Zila = require("../models/Zila");
 const Ksheter = require("../models/Ksheter");
 const Kender = require("../models/Kender");
+const XLSX = require('xlsx');
 
 const {
   adminRoles,
@@ -611,3 +612,74 @@ exports.deregisterProgram = async (req, res) => {
     res.status(500).send("Server error");
   }
 };
+
+// Fetch registered users for a program
+exports.getRegisteredUsers = async (req, res) => {
+  try {
+    const program = await Program.findById(req.params.id)
+      .populate({
+        path: 'registeredUsers',
+        model: 'Saadhak',
+        select: 'name mobile email role zila ksheter kender',
+        populate: [
+          { path: 'zila', select: 'name' },
+          { path: 'ksheter', select: 'name' },
+          { path: 'kender', select: 'name' },
+        ],
+      })
+      .lean();
+
+    if (!program) return res.status(404).send('Program not found');
+
+    res.render('programs/registrations', {
+      users: program.registeredUsers || [],
+      program,
+    });
+  } catch (err) {
+    console.error("Error fetching registrations:", err);
+    res.status(500).send("Server error");
+  }
+};
+
+exports.exportRegistrationsToExcel = async (req, res) => {
+  try {
+    const program = await Program.findById(req.params.id)
+      .populate({
+        path: 'registeredUsers',
+        select: 'name mobile email role zila ksheter kender',
+        populate: [
+          { path: 'zila', select: 'name' },
+          { path: 'ksheter', select: 'name' },
+          { path: 'kender', select: 'name' },
+        ],
+      })
+      .lean();
+
+    if (!program) return res.status(404).send('Program not found');
+
+    const data = program.registeredUsers.map((user, i) => ({
+      'S.No.': i + 1,
+      Name: user.name || '',
+      Phone: user.mobile || '',
+      Email: user.email || '',
+      Roles: user.role.join(', '),
+      Zila: user.zila?.name || '',
+      Ksheter: user.ksheter?.name || '',
+      Kender: user.kender?.name || '',
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Registered Users');
+
+    const buffer = XLSX.write(wb, { bookType: 'xlsx', type: 'buffer' });
+
+    res.setHeader('Content-Disposition', `attachment; filename=Program_${program._id}_Registrations.xlsx`);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.send(buffer);
+  } catch (err) {
+    console.error("Excel export error:", err);
+    res.status(500).send("Server error");
+  }
+};
+

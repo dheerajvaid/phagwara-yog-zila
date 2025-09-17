@@ -23,10 +23,11 @@
       <% programs.forEach(program => { %>
         <div class="col-md-4 mb-3">
           <div class="card shadow-sm h-100">
-            <!-- Registration Count Badge -->
-            <span class="position-absolute top-0 end-0 bg-danger text-white px-2 py-1 rounded-start">
+            <!-- Registration Count Badge (clickable) -->
+            <a href="/programs/<%= program._id %>/registrations" class="position-absolute top-0 end-0 bg-danger text-white px-2 py-1 rounded-start text-decoration-none">
               <%= program.registeredUsers ? program.registeredUsers.length : 0 %>
-            </span>
+            </a>
+
 
             <div class="card-body d-flex flex-column">
               <h5 class="card-title">

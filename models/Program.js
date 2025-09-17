@@ -31,7 +31,7 @@ const ProgramSchema = new mongoose.Schema({
     required: true 
   }],
 
-  registeredUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  registeredUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "Saadhak" }],
 
   public: { type: Boolean, default: false },
 });

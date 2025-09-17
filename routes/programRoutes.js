@@ -90,4 +90,7 @@ router.post(
   programController.deregisterProgram
 );
 
+router.get('/:id/registrations', programController.getRegisteredUsers);
+router.get('/:id/registrations/export', programController.exportRegistrationsToExcel);
+
 module.exports = router;
