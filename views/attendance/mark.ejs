@@ -71,7 +71,7 @@
     </div>
 
     <div>
-      <button type="submit" class="btn btn-primary mt-3">
+      <button type="submit" class="btn btn-primary mt-3" id="submitAttendance">
         ✅ Submit Attendance
       </button>
     </div>
@@ -88,7 +88,8 @@
         const tableBody = document.getElementById("saadhakTableBody");
         const attendanceDateInput = document.getElementById("attendanceDate");
         const checkbox = document.getElementById('toggleDiv');
-          
+        const submitAttendance = document.getElementById('submitAttendance');
+
         const today = new Date();
 
 // Convert to IST
@@ -234,6 +235,15 @@
       box.classList.toggle('d-none', !this.checked);
     });
   });
+
+  submitAttendance.addEventListener('click', function () {
+      const spinner = document.getElementById('loadingSpinner');
+      if (spinner) spinner.style.display = 'block';
+
+      setTimeout(() => {
+        if (spinner) spinner.style.display = 'none';
+      }, 3000);
+    });
 
       document.getElementById('toggleAdhikari').addEventListener('change', function () {
         const adhikariRows = document.querySelectorAll('.adhikari');
