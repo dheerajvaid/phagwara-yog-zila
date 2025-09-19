@@ -264,20 +264,23 @@
   showNextNotification();
   setInterval(showNextNotification, 16000); // Rotate every 8 seconds
 
-  // Download Tip Image
+  // High-quality Tip Image Download
   document.getElementById("downloadTipBtn").addEventListener("click", function () {
     const tipElement = document.getElementById("tipImageArea");
+
     html2canvas(tipElement, {
-      backgroundColor: '#ffffff',
-      scale: 2,
+      backgroundColor: '#ffffff',  // clean white background
+      scale: 4,                    // render at 4x resolution
+      useCORS: true                // handle logo images properly
     }).then(canvas => {
       const link = document.createElement("a");
-      const today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
+      const today = new Date().toLocaleDateString('en-CA'); // Format: YYYY-MM-DD
       link.download = `Aaj-Ka-Sandesh-${today}.png`;
-      link.href = canvas.toDataURL();
+      link.href = canvas.toDataURL("image/png");
       link.click();
     });
   });
 </script>
+
 
 <%- include('./partials/footer') %>
