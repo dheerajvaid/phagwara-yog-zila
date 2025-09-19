@@ -37,7 +37,7 @@
         <select name="creation_year" class="form-select">
           <option value="">Year</option>
           <% const currentYear = new Date().getFullYear(); %>
-          <% for(let y = currentYear; y >= 2000; y--) { %>
+          <% for(let y = currentYear; y >= 1967; y--) { %>
             <option value="<%= y %>" <%= new Date(kender.creationDate).getFullYear() === y ? 'selected' : '' %>><%= y %></option>
           <% } %>
         </select>

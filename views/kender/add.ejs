@@ -83,7 +83,7 @@
     </select>
     <select name="creation_year" class="form-select">
       <option value="">Year</option>
-      <% for(let y=currentYear; y>=2000; y--) { %> <!-- limit to 2000 onward -->
+      <% for(let y=currentYear; y>=1967; y--) { %> <!-- limit to 2000 onward -->
         <option value="<%= y %>" <%= formData?.creation_year == y ? 'selected' : '' %>><%= y %></option>
       <% } %>
     </select>

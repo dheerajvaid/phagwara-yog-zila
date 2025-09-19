@@ -61,7 +61,7 @@
   }
 
   #downloadTipBtn {
-    background: linear-gradient(135deg, #00b09b, #96c93d);
+    background: linear-gradient(135deg, #28a745, #28a745);
     color: white;
     font-weight: bold;
   }
@@ -135,7 +135,7 @@
 <div class="modal-body text-center text-dark px-4 py-3" style="padding-bottom: 1rem;">
 
   <div id="tipImageArea" class="bg-white text-dark"
-       style="padding: 1.5rem; border: 2px solid #28a745; border-radius: 1rem; max-width: 350px; margin: auto; box-shadow: 0 0 12px rgba(0,0,0,0.08);">
+       style="padding: 1.5rem; border: 2px solid #28a745; border-radius: 0rem; max-width: 350px; margin: auto; box-shadow: 0 0 12px rgba(0,0,0,0.08);">
 
     <!-- Logo + Heading -->
     <div class="d-flex align-items-center justify-content-center gap-3 mb-3">
@@ -156,31 +156,30 @@
                     border-radius: 50%;">
       </div>
 
+      <div>
       <h5 class="m-0 fw-bold text-success">आज का योग संदेश</h5>
+       <!-- Date -->
+    <div class="small text-dark">
+      <%= new Date().toLocaleDateString('hi-IN', { day: 'numeric', month: 'long', year: 'numeric' }) %>
     </div>
-
-    <!-- Divider -->
-    <hr style="border-top: 2px solid #28a745; margin: 0 0 1rem 0;">
-
-    <!-- Tip Text -->
-    <p class="fs-5 mb-3" style="color: #333;"><%= tipOfTheDay %>
-     <span class="text-end fst-italic text-success fw-bold" style="margin-top: -0.5rem;">
-      – <%= user.name %>
-    </span>
-    </p>
-
-    <!-- User Name -->
+    </div>
+    </div>
    
 
+    <!-- Divider -->
+    <hr style="border-top: 2px solid #28a745; margin-bottom: 0.5rem;">
 
-    <!-- Date -->
-    <div class="small text-muted">
-      📅 <%= new Date().toLocaleDateString('hi-IN', { day: 'numeric', month: 'long', year: 'numeric' }) %>
-    </div>
+    <!-- Tip Text -->
+    <p class="fs-5 mb-2 fst-italic" style="color: black;"><%= tipOfTheDay %>
+     <p class="text-center text-success fw-bold" style="margin-bottom: 0;">
+      - <%= user.name %>
+     </p>
+    </p>   
+     <hr style="border-top: 2px solid #28a745; margin-bottom: 0.5rem; margin-top: 0;">
 
     <!-- Website Footer -->
-    <div class="mt-3 small text-center text-primary fw-semibold">
-      🕉️ For more information, visit: <a href="https://www.joinyog.in" target="_blank" class="text-decoration-none text-danger">www.joinyog.in</a>
+    <div class="mt-1 text-center text-primary fw-semibold">
+      <a href="https://www.joinyog.in" target="_blank" class="text-decoration-none text-danger">www.joinyog.in</a>
     </div>
 
 
