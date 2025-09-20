@@ -16,7 +16,7 @@
 <table>
   <tr>
     <th>Description</th>
-    <td><%= program.description || '-' %></td>
+    <td><%- (program.description || '-').replace(/\n/g, '<br>') %></td>
   </tr>
   <tr>
     <th>Organizer</th>

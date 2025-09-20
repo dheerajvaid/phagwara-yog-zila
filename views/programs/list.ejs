@@ -38,14 +38,15 @@
                 <strong>Details:</strong>
                 <span class="program-details" id="details-<%= program._id %>">
                   <% if (program.description && program.description.length > 50) { %>
-                    <span class="snippet"><%= program.description.substring(0, 50) %>...</span>
-                    <span class="full d-none"><%= program.description %></span>
+                    <span class="snippet"><%- program.description.substring(0, 50).replace(/\n/g, '<br>') %>...</span>
+                    <span class="full d-none"><%- program.description.replace(/\n/g, '<br>') %></span>
                     <a href="#" class="toggle-details" data-target="<%= program._id %>">more</a>
                   <% } else { %>
-                    <%= program.description || '' %>
+                    <%- program.description ? program.description.replace(/\n/g, '<br>') : '' %>
                   <% } %>
                 </span>
               </p>
+
 
               <p class="mb-1 text-muted"> 
                 <strong>Dates:</strong>
