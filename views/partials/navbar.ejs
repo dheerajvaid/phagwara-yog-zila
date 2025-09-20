@@ -132,7 +132,8 @@ const isSaadhakOnly = user?.roles.some(role => saadhakRoles.includes(role));
 
         <% if (!user || isAdmin || isZilaLevel || isKsheterLevel || isKenderLevel || isSaadhakOnly) { %>
           <li class="nav-item"><a class="nav-link" href="/yog-samagri/report">🛍️ Yog Samagri</a></li>
-        <% } %>
+           <%- include('wishes') %>    
+          <% } %>
 
         <% if (user) { %>
           <% if (isAdmin || isPrantLevel) { %>
@@ -181,8 +182,8 @@ const isSaadhakOnly = user?.roles.some(role => saadhakRoles.includes(role));
                <%- include('program') %>
               <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
             <% } %>
-          <% } %>
-
+          <% } %>        
+          
           <li class="nav-item"><a class="nav-link" href="/dashboard">🗳️ DASHBOARD</a></li>
           <li class="nav-item"><a class="nav-link" href="/auth/change-password">🔑 Change Password</a></li>
           <li class="nav-item"><a class="nav-link text-danger" href="/auth/logout">🚪 Logout</a></li>

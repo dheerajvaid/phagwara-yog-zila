@@ -41,6 +41,8 @@ const { setEventCount } = require("./middleware/eventNotifier");
 const dashboardController = require("./controllers/dashboardController");
 const programRoutes = require("./routes/programRoutes");
 const yatraRoutes = require("./routes/yatraRoutes");
+const wishesRoutes = require('./routes/wishesRoutes');
+
 
 // Load environment variables from .env file
 dotenv.config();
@@ -133,6 +135,7 @@ app.use("/quiz", quizRoutes);
 app.use("/qubik", qubikRoute);
 app.use("/programs", programRoutes);
 app.use("/vrindavan-trip", yatraRoutes);
+app.use('/wishes', wishesRoutes);
 
 // Server Start
 const port = process.env.PORT || 3000;
