@@ -41,6 +41,17 @@
     border-radius: 50%;
   }
 
+  .progress {
+  background-color: #e9ecef;
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.progress-bar {
+  transition: width 0.6s ease;
+}
+
+
   #notificationBar {
     max-width: 420px;
     margin: 1rem auto;
@@ -179,10 +190,9 @@
 
     <!-- Website Footer -->
     <div class="mt-1 text-center text-primary fw-semibold">
+      <p class="text-danger fw-bold mb-0">BHARATIYA YOG SANSTHAN</p>
       <a href="https://www.joinyog.in" target="_blank" class="text-decoration-none text-danger">www.joinyog.in</a>
     </div>
-
-
   </div>
 
 </div>
@@ -199,11 +209,29 @@
 </div>
 
 
-<section class="container mt-5 text-center">
+<section class="container mt-1 text-center">
   <div class="dashboard-card">
 
     <h2>👋 Welcome, <%= user.name %></h2>
-    <p class="mb-4">Your mobile: <strong><%= user.mobile %></strong></p>
+    <p class="mb-1">Your mobile: <strong><%= user.mobile %></strong></p>
+
+   <% if (typeof bmi !== 'undefined' && bmi) { %>
+  <p class="mb-2">
+    <strong>BMI:</strong> <%= bmi %> 
+    (<span class="<%= bmiCategory === 'Normal' ? 'text-success' : 'text-danger' %>"><%= bmiCategory %></span>)
+  </p>
+
+  <!-- Visual Progress Bar for BMI -->
+  <div class="progress" style="height: 12px; max-width: 300px; margin: 0.5rem auto;">
+    <div class="progress-bar 
+      <% if(bmiCategory === 'Normal'){ %> bg-success <% } else { %> bg-danger <% } %>"
+      role="progressbar"
+      style="width: <%= Math.min((bmi / 40) * 100, 100).toFixed(2) %>%"
+      aria-valuenow="<%= bmi %>" aria-valuemin="0" aria-valuemax="40">
+    </div>
+  </div>
+<% } %>
+
 
     <div class="d-grid gap-3">
 
@@ -212,7 +240,7 @@
         <a href="/attendance/mark" class="btn btn-success btn-lg shadow-sm">📌 Mark Attendance</a>
       <% } %>
 
-      <a href="/attendance/top10" class="btn btn-primary btn-lg shadow-sm">🏆 Top 10</a>
+      <a href="/attendance/top10" class="btn btn-primary btn-lg shadow-sm">🏆 Top 10 Attendance</a>
 
       <!-- 🌟 Update Personal Details Button -->
       <a href="/saadhak/self-update"

@@ -24,6 +24,11 @@ const saadhakSchema = new mongoose.Schema({
   // 🔹 Newly added fields
   doj: Date, // Date of Joining
   email: String, // Not required
+
+    // 🔹 Fitness-related fields
+  weightKg: Number,        // e.g. 87
+  heightFeet: Number,      // e.g. 5
+  heightInches: Number,    // e.g. 6
 }, { timestamps: true });
 
 module.exports = mongoose.model('Saadhak', saadhakSchema);

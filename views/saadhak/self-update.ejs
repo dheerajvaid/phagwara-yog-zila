@@ -140,6 +140,27 @@
       <input type="text" name="livingArea" class="form-control" value="<%= saadhak?.livingArea || '' %>">
     </div>
 
+    <!-- Weight -->
+<div class="col-md-4">
+  <label class="form-label">Weight (kg)</label>
+  <input type="number" step="0.1" name="weightKg" class="form-control"
+         value="<%= saadhak?.weightKg || '' %>" placeholder="e.g. 87">
+</div>
+
+<!-- Height -->
+<div class="col-md-2">
+  <label class="form-label">Height (Feet)</label>
+  <input type="number" name="heightFeet" class="form-control"
+         value="<%= saadhak?.heightFeet || '' %>" placeholder="e.g. 5">
+</div>
+
+<div class="col-md-2">
+  <label class="form-label">Height (Inches)</label>
+  <input type="number" name="heightInches" class="form-control"
+         value="<%= saadhak?.heightInches || '' %>" placeholder="e.g. 6">
+</div>
+
+
     <div class="col-12 text-end">
       <button class="btn btn-success">💾 Save Changes</button>
     </div>

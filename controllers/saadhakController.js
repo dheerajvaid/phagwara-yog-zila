@@ -841,9 +841,7 @@ exports.deleteSaadhak = async (req, res) => {
   }
 };
 
-// controllers/saadhakController.js
-
-// Show the self-update form
+// GET: Show self-update form
 exports.getSelfUpdateForm = async (req, res) => {
   try {
     const saadhak = await Saadhak.findById(req.session.user.id).populate(
@@ -854,7 +852,7 @@ exports.getSelfUpdateForm = async (req, res) => {
     if (saadhak?.dob) {
       const dobDate = new Date(saadhak.dob);
       saadhak.dob_day = dobDate.getDate();
-      saadhak.dob_month = dobDate.getMonth() + 1; // month is 0-based
+      saadhak.dob_month = dobDate.getMonth() + 1;
       saadhak.dob_year = dobDate.getFullYear();
     }
 
@@ -874,21 +872,16 @@ exports.getSelfUpdateForm = async (req, res) => {
       saadhak.doj_year = dojDate.getFullYear();
     }
 
+    // 🔹 Fitness defaults
+    saadhak.weightKg = saadhak.weightKg || '';
+    saadhak.heightFeet = saadhak.heightFeet || '';
+    saadhak.heightInches = saadhak.heightInches || '';
+
     res.render("saadhak/self-update", {
       saadhak,
       months: [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
+        "Jan","Feb","Mar","Apr","May","Jun",
+        "Jul","Aug","Sep","Oct","Nov","Dec"
       ],
       currentYear: new Date().getFullYear(),
       success: req.query.success,
@@ -900,7 +893,7 @@ exports.getSelfUpdateForm = async (req, res) => {
   }
 };
 
-// Handle the update
+// POST: Handle self-update form submission
 exports.postSelfUpdate = async (req, res) => {
   try {
     // Build DOB from parts
@@ -908,7 +901,7 @@ exports.postSelfUpdate = async (req, res) => {
     if (req.body.dob_day && req.body.dob_month && req.body.dob_year) {
       dob = new Date(
         req.body.dob_year,
-        req.body.dob_month - 1, // month is zero-based
+        req.body.dob_month - 1,
         req.body.dob_day
       );
     }
@@ -923,7 +916,7 @@ exports.postSelfUpdate = async (req, res) => {
       );
     }
 
-    // Build doj (Date of Joining) from parts
+    // Build DOJ (Date of Joining) from parts
     let doj = null;
     if (req.body.doj_day && req.body.doj_month && req.body.doj_year) {
       doj = new Date(
@@ -943,6 +936,11 @@ exports.postSelfUpdate = async (req, res) => {
       livingArea: req.body.livingArea,
       doj,
       email: req.body.email,
+
+      // Fitness fields
+      weightKg: req.body.weightKg ? parseFloat(req.body.weightKg) : undefined,
+      heightFeet: req.body.heightFeet ? parseInt(req.body.heightFeet) : undefined,
+      heightInches: req.body.heightInches ? parseInt(req.body.heightInches) : undefined,
     };
 
     await Saadhak.findByIdAndUpdate(req.session.user.id, updateData);
