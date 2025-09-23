@@ -177,7 +177,11 @@
   </div>
 </div>
 
-
+<!-- Attendance Chart -->
+    <div class="mt-1">
+      <!-- <h6 class="text-center text-primary">📊 Day-wise Attendance (This Month)</h6> -->
+      <canvas id="attendanceChart" style="max-height: 300px;"></canvas>
+    </div>
 
 <!-- Kender Team -->
     <table class="table table-bordered table-sm text-center mt-1" style="font-size: 0.85rem; margin: auto; width: 100%;">
@@ -364,6 +368,63 @@
 
 <!-- Export Script -->
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Graph Script -->
+<script>
+  const today = new Date();
+  const currentDay = today.getDate(); // Day of month (1-31)
+
+  // Get full data from EJS
+  const allData = <%- JSON.stringify(monthlyAttendanceStrip) %>;
+
+  // Filter to include only days up to today
+  const filteredData = allData.filter(day => day.day <= currentDay);
+
+  // Extract labels and values
+  const labels = filteredData.map(day => day.day);
+  const data = filteredData.map(day => day.count);
+
+  const ctx = document.getElementById('attendanceChart').getContext('2d');
+ new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: labels,
+    datasets: [{
+      data: data,
+      backgroundColor: 'rgba(220, 53, 69, 1)',  // Solid red tone
+      borderColor: 'rgba(220, 53, 69, 1)',      // Red border
+      borderWidth: 1
+    }]
+  },
+  options: {
+    plugins: {
+      legend: {
+        display: false  // ✅ Hide legend to save space
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: {
+          display: true,
+          text: 'Attendance Count'
+        }
+      },
+      x: {
+        title: {
+          display: true,
+          text: 'Day of Month'
+        }
+      }
+    }
+  }
+});
+
+</script>
+
+
 <script>
   document.getElementById('exportBtn').addEventListener('click', () => {
     const element = document.getElementById('attendanceExportWrapper');
