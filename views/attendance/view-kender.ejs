@@ -275,19 +275,21 @@ class="btn btn-outline-secondary btn-sm">
     const dateCount = <%= activeDays.length %>;  // Inject date count via EJS
 
 // Define a dynamic scale factor based on date count
-const scaleFactor = (dateCount > 31)
-  ? 0.5
-  : (dateCount > 25)
-    ? 0.65
-    : (dateCount > 20)
-      ? 0.75
-      : 1;  // Normal size if few dates
+const scaleFactor = (dateCount >= 31)
+  ? 0.70
+  : (dateCount > 28)
+    ? 0.75
+    : (dateCount > 25)
+      ? 0.80
+      : (dateCount > 20)
+        ? 0.85
+        : 1;
   
-      if (viewMode === 'vertical') {
+     
   wrapper.style.transform = `scale(${scaleFactor})`;
   wrapper.style.transformOrigin = 'top left';
   wrapper.style.width = `${100 / scaleFactor}%`;   // Compensate width after scaling
-}
+
 
   if (viewMode === 'vertical') {
   clone.querySelectorAll('th').forEach(th => {
@@ -313,12 +315,8 @@ const scaleFactor = (dateCount > 31)
     th.appendChild(rotDiv);
   });
 }
-
-
-
-
     const opt = {
-      margin: [0.3, 0.3, 0.3, 0.3],
+      margin: [0.1, 0.1, 0.1, 0.1],
       filename: `Kender_Attendance_<%= selectedMonth %>_<%= selectedYear %>_${viewMode}.pdf`,
       image: { type: 'jpeg', quality: 1 },
       html2canvas: { scale: 3, scrollY: 0, useCORS: true },
