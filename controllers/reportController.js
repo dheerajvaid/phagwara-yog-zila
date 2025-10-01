@@ -194,7 +194,7 @@ exports.attendanceSummary = async (req, res) => {
   // console.log(kenderFilter);
 
   const relevantKenders = await Kender.find(kenderFilter).select("_id");
-  console.log(relevantKenders);
+  // console.log(relevantKenders);
 
   attendanceQuery.kender = { $in: relevantKenders.map((k) => k._id) };
 
