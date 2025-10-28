@@ -1,0 +1,69 @@
+<%- include('../views/partials/header') %>
+<%- include('../views/partials/navbar') %>
+
+<div class="container mt-4 mb-5">
+  <h3 class="text-center text-danger fw-bold mb-3">🙏 Hanuman Chalisa Paath Entry</h3>
+
+  <form id="paathForm" class="card p-3 shadow-sm">
+    <div class="mb-3">
+      <label class="form-label fw-semibold">Select Date:</label>
+      <input type="date" id="paathDate" name="date" class="form-control" value="<%= date %>">
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label fw-semibold">Number of Paath Done:</label>
+      <input type="number" id="paathCount" name="count" class="form-control" min="0" value="<%= count %>">
+      <small class="text-muted">Enter 0 to delete entry for this date</small>
+    </div>
+
+    <button type="submit" class="btn btn-danger w-100">💾 Save Paath</button>
+  </form>
+
+  <div id="statusMessage" class="text-center mt-3"></div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const dateInput = document.getElementById("paathDate");
+  const countInput = document.getElementById("paathCount");
+  const form = document.getElementById("paathForm");
+  const message = document.getElementById("statusMessage");
+
+  // 🌸 When date changes, fetch saved count
+  dateInput.addEventListener("change", async () => {
+    const date = dateInput.value;
+    const res = await fetch(`/paath/ajax/get?date=${date}`);
+    const data = await res.json();
+    countInput.value = data.count || 0;
+  });
+
+  // 🌸 Save or update paath
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const date = dateInput.value;
+    const count = countInput.value;
+
+    const res = await fetch("/paath/ajax/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date, count })
+    });
+
+    const data = await res.json();
+    if (data.error) {
+      message.innerHTML = `<span class='text-danger'>⚠️ ${data.error}</span>`;
+    } else {
+      message.innerHTML = `<span class='text-success'>✅ ${data.message} successfully for ${date}</span>`;
+    }
+
+    const spinner = document.getElementById('loadingSpinner');
+     
+      setTimeout(() => {
+        if (spinner) spinner.style.display = 'none';
+      }, 2000);
+  });
+
+});
+</script>
+
+<%- include('../views/partials/footer') %>

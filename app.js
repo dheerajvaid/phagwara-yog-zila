@@ -42,7 +42,7 @@ const dashboardController = require("./controllers/dashboardController");
 const programRoutes = require("./routes/programRoutes");
 const yatraRoutes = require("./routes/yatraRoutes");
 const wishesRoutes = require('./routes/wishesRoutes');
-
+const paathRoutes = require("./paathTracker/routes/paath.routes");
 
 // Load environment variables from .env file
 dotenv.config();
@@ -58,7 +58,10 @@ mongoose
 
 // View engine setup
 app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
+app.set('views', [
+  path.join(__dirname, 'views'),
+  path.join(__dirname, 'paathTracker', 'views')
+]);
 
 // Middlewares
 app.use(express.static(path.join(__dirname, "public")));
@@ -136,6 +139,9 @@ app.use("/qubik", qubikRoute);
 app.use("/programs", programRoutes);
 app.use("/vrindavan-trip", yatraRoutes);
 app.use('/wishes', wishesRoutes);
+app.use("/paath", paathRoutes);
+
+
 
 // Server Start
 const port = process.env.PORT || 3000;

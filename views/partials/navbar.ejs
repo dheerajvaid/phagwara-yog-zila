@@ -183,10 +183,20 @@ const isSaadhakOnly = user?.roles.some(role => saadhakRoles.includes(role));
               <li class="nav-item"><a class="nav-link" href="/reset-password/list">🔑 Reset Password</a></li>
             <% } %>
           <% } %>        
-          
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="paathDropdown" role="button" data-bs-toggle="dropdown">
+              🙏 Paath Tracker
+            </a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="/paath/add">Add Today's Paath</a></li>
+              <li><a class="dropdown-item" href="/paath/list">My Paath History</a></li>
+              <li><a class="dropdown-item" href="/paath/summary">Group Summary</a></li>
+            </ul>
+          </li>
           <li class="nav-item"><a class="nav-link" href="/dashboard">🗳️ DASHBOARD</a></li>
           <li class="nav-item"><a class="nav-link" href="/auth/change-password">🔑 Change Password</a></li>
           <li class="nav-item"><a class="nav-link text-danger" href="/auth/logout">🚪 Logout</a></li>
+
         <% } else { %>
           <li class="nav-item"><a class="nav-link" href="/auth/login">🔑 Login</a></li>
         <% } %>
