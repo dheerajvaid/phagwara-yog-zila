@@ -1,0 +1,179 @@
+<%- include('../views/partials/header') %>
+<%- include('../views/partials/navbar') %>
+
+<style>
+  body {
+    background: linear-gradient(180deg, #fff9f5, #ffeae3);
+  }
+  .card-custom {
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+  .table thead th {
+    background: linear-gradient(90deg, #dc3545, #ff6b6b);
+    color: white !important;
+    font-weight: 600;
+  }
+  .paath-input {
+    border-radius: 12px;
+    text-align: center;
+  }
+  .total-card {
+    background: #fff3f2;
+    border-radius: 15px;
+    padding: 10px 15px;
+    display: inline-block;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  }
+</style>
+
+<div class="container mt-4 mb-5">
+  <div class="text-center mb-4">
+    <h2 class="fw-bold text-danger mb-1">🏵 हनुमान चालीसा समूह पाठ प्रविष्टि</h2>
+    <p class="text-muted">अपने केंद्र के सभी साधकों के पाठ आज ही दर्ज करें 🙏</p>
+  </div>
+
+  <!-- Date Selector -->
+  <div class="card card-custom p-3 mb-4 bg-white">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-2 mb-md-0">
+        <label class="fw-bold text-secondary mb-1">📅 तिथि चुनें:</label>
+        <input type="date" id="groupDate" class="form-control form-control-lg shadow-sm" value="<%= today %>">
+      </div>
+      <div class="col-md-6 text-md-end text-center">
+        <div class="total-card mt-2 mt-md-4">
+          <h5 class="mb-0 text-success fw-bold">कुल पाठ: <span id="totalCountTop">0</span></h5>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spinner -->
+  <div id="loadSpinner" class="text-center my-3" style="display:none;">
+    <div class="spinner-border text-danger" role="status"></div>
+    <p class="text-muted mt-2">Loading data...</p>
+  </div>
+
+  <!-- Members Table -->
+  <div class="card card-custom overflow-hidden">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0 text-center">
+        <thead>
+          <tr>
+            <th>नाम</th>
+            <th>मोबाइल</th>
+            <th>पाठ संख्या</th>
+          </tr>
+        </thead>
+        <tbody id="groupTableBody">
+          <% saadhaks.forEach(s => { %>
+            <tr data-id="<%= s._id %>">
+              <td class="fw-semibold text-dark"><%= s.name %></td>
+              <td class="text-muted"><%= s.mobile %></td>
+              <td>
+                <input type="number" class="form-control paath-input" min="0" value="0">
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Summary + Button -->
+  <div class="text-center mt-4">
+    <div class="total-card mb-3">
+      <h5 class="fw-bold text-success">कुल पाठ आज: <span id="totalCountBottom">0</span></h5>
+    </div><br>
+    <button id="saveAllBtn" class="btn btn-lg btn-danger mt-2 rounded-pill px-4 fw-bold shadow-sm">
+      💾 सभी प्रविष्टियाँ सहेजें
+    </button>
+    <p id="saveMsg" class="mt-3 fw-semibold"></p>
+  </div>
+</div>
+
+<%- include('../views/partials/footer') %>
+
+<script>
+const dateInput = document.getElementById("groupDate");
+const tableBody = document.getElementById("groupTableBody");
+const totalCountTop = document.getElementById("totalCountTop");
+const totalCountBottom = document.getElementById("totalCountBottom");
+const saveAllBtn = document.getElementById("saveAllBtn");
+const spinner = document.getElementById("loadSpinner");
+const message = document.getElementById("saveMsg");
+const kenderId = "<%= user.kender %>";
+
+// 🧮 Calculate total and show both places
+function calculateTotal() {
+  let total = 0;
+  document.querySelectorAll(".paath-input").forEach(i => total += Number(i.value) || 0);
+  totalCountTop.textContent = total;
+  totalCountBottom.textContent = total;
+}
+
+// 🌀 Fetch saved counts when date changes
+async function fetchGroupData() {
+  spinner.style.display = "block";
+  const date = dateInput.value;
+
+  try {
+    const res = await fetch(`/paath/ajax/get-group?date=${date}&kenderId=${kenderId}`);
+    const data = await res.json();
+
+    document.querySelectorAll("#groupTableBody tr").forEach(row => {
+      const id = row.dataset.id;
+      const input = row.querySelector(".paath-input");
+      const found = data.find(d => d._id === id);
+      input.value = found ? found.count : 0;
+    });
+
+    calculateTotal();
+  } catch (err) {
+    console.error("Error loading group data:", err);
+  } finally {
+    spinner.style.display = "none";
+  }
+}
+
+dateInput.addEventListener("change", fetchGroupData);
+tableBody.addEventListener("input", calculateTotal);
+
+// 💾 Save all
+saveAllBtn.addEventListener("click", async () => {
+  spinner.style.display = "block";
+  const date = dateInput.value;
+  const entries = [];
+
+  document.querySelectorAll("#groupTableBody tr").forEach(row => {
+    entries.push({
+      saadhakId: row.dataset.id,
+      count: row.querySelector(".paath-input").value
+    });
+  });
+
+  try {
+    const res = await fetch("/paath/ajax/save-group", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date, entries, kenderId })
+    });
+
+    const data = await res.json();
+    if (data.error) {
+      message.innerHTML = `<span class="text-danger">⚠️ ${data.error}</span>`;
+    } else {
+      message.innerHTML = `<span class="text-success">✅ ${data.message}. कुल: ${data.total}</span>`;
+    }
+  } catch (err) {
+    message.innerHTML = `<span class="text-danger">⚠️ कुछ त्रुटि हुई।</span>`;
+  } finally {
+    spinner.style.display = "none";
+    calculateTotal();
+  }
+});
+
+// 🕒 Auto-load today’s data on page load
+window.addEventListener("DOMContentLoaded", fetchGroupData);
+</script>

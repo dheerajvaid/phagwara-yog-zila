@@ -91,25 +91,25 @@ exports.getPaathList = async (req, res) => {
 };
 
 
-// 🌸 GET: Group summary (today’s total & all members)
+// 🌸 GET: Group summary (total & all members for a given date)
 exports.getPaathSummary = async (req, res) => {
   try {
     const user = req.session.user;
-    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const selectedDate = req.query.date || new Date().toISOString().slice(0, 10); // YYYY-MM-DD
 
-    // 🌞 Total paath count for today
+    // 🌞 Total paath count for selected date
     const groupTotal = await Paath.aggregate([
-      { $match: { date: today } },
+      { $match: { date: selectedDate } },
       { $group: { _id: null, total: { $sum: "$count" } } },
     ]);
 
     const totalToday = groupTotal[0]?.total || 0;
 
-    // 👥 All members who did paath today
+    // 👥 All members who did paath on that date
     const topMembers = await Paath.aggregate([
-      { $match: { date: today } },
+      { $match: { date: selectedDate } },
       { $group: { _id: "$user", total: { $sum: "$count" } } },
-      { $sort: { total: -1 } }, // sorted by count (highest first)
+      { $sort: { total: -1 } },
       {
         $lookup: {
           from: "saadhaks",
@@ -120,13 +120,21 @@ exports.getPaathSummary = async (req, res) => {
       },
     ]);
 
+    // 🪄 If AJAX request (fetch only data)
+    if (req.xhr) {
+      return res.json({ totalToday, topMembers });
+    }
+
+    // Otherwise render full page
     res.render("paath-summary", {
       user,
       totalToday,
       topMembers,
+      selectedDate,
     });
   } catch (err) {
     console.error("Error loading paath summary:", err);
     res.status(500).send("Error loading paath summary");
   }
 };
+

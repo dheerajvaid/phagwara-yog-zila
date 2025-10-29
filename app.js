@@ -43,6 +43,7 @@ const programRoutes = require("./routes/programRoutes");
 const yatraRoutes = require("./routes/yatraRoutes");
 const wishesRoutes = require('./routes/wishesRoutes');
 const paathRoutes = require("./paathTracker/routes/paath.routes");
+const paathGroupRoutes = require("./paathTracker/routes/paathGroup.routes");
 
 // Load environment variables from .env file
 dotenv.config();
@@ -140,7 +141,7 @@ app.use("/programs", programRoutes);
 app.use("/vrindavan-trip", yatraRoutes);
 app.use('/wishes', wishesRoutes);
 app.use("/paath", paathRoutes);
-
+app.use("/paath", paathGroupRoutes);
 
 
 // Server Start

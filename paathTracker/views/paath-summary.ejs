@@ -1,38 +1,48 @@
 <%- include('../views/partials/header') %>
 <%- include('../views/partials/navbar') %>
 
-<div class="container mt-4 mb-5">
+<div class="container my-4 pb-5">
 
   <!-- 🌸 Title -->
   <div class="text-center mb-4">
-    <h2 class="fw-bold text-danger">🔥 समूह हनुमान चालीसा पाठ सारांश (आज)</h2>
-    <p class="text-muted">आज सभी साधकों द्वारा किए गए कुल पाठों का सारांश</p>
+    <h2 class="fw-bold text-danger">🔥 समूह हनुमान चालीसा पाठ सारांश</h2>
+    <p class="text-muted mb-0">चयनित दिन के सभी साधकों द्वारा किए गए कुल पाठों का सारांश</p>
   </div>
 
-  <!-- 🌞 Total Paath Today -->
-  <div class="card shadow-sm border-0 text-center py-4 mb-4 rounded-4">
-    <h4 class="fw-bold text-secondary mb-2">कुल पाठ आज</h4>
-    <h2 class="fw-bold text-success display-6">
-      <%= totalToday %> <span class="fs-5 text-muted">पाठ</span>
-    </h2>
-    <p class="text-muted mt-2">
-      जय हनुमान ज्ञान गुन सागर 🙏
-    </p>
+  <!-- 📅 Date Picker -->
+  <div class="d-flex justify-content-center align-items-center mb-4">
+    <label for="summaryDate" class="me-2 fw-semibold text-secondary">📅 दिनांक चुनें:</label>
+    <input type="date" id="summaryDate"
+           class="form-control border-danger shadow-sm rounded-pill text-center fw-semibold"
+           style="max-width: 200px;"
+           value="<%= selectedDate || new Date().toISOString().slice(0, 10) %>">
+  </div>
+
+  <!-- 🌞 Total Paath Card -->
+  <div class="card border-0 shadow-lg text-center mb-4 rounded-4 bg-light">
+    <div class="card-body py-4">
+      <h5 class="fw-bold text-secondary mb-2">कुल पाठ</h5>
+      <h1 id="totalPaath" class="fw-bold text-success display-5 mb-2">
+        <%= totalToday %> <span class="fs-5 text-muted">पाठ</span>
+      </h1>
+      <p class="text-muted m-0">🙏 जय हनुमान ज्ञान गुन सागर 🙏</p>
+    </div>
   </div>
 
   <!-- 👥 All Members Table -->
-  <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
-    <div class="card-header bg-danger text-white text-center fw-bold fs-5">
-      🔸 आज के सभी साधक 🔸
+  <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+    <div class="card-header bg-danger text-white text-center fw-bold fs-5 py-3">
+      🔸 सभी साधक 🔸
     </div>
 
     <div class="table-responsive">
-      <table class="table table-striped align-middle mb-0 text-center">
+      <table class="table align-middle text-center mb-0" id="membersTable">
         <thead class="bg-light">
           <tr class="text-danger fw-semibold">
-            <th style="width: 10%;">🏅 क्रम</th>
-            <th style="width: 60%;">साधक नाम</th>
-            <th style="width: 30%;">📖 पाठ संख्या</th>
+            <th style="width: 8%;">🏅</th>
+            <th style="width: 40%;">साधक नाम</th>
+            <th style="width: 32%;">📱 मोबाइल</th>
+            <th style="width: 20%;">📖 पाठ</th>
           </tr>
         </thead>
         <tbody>
@@ -42,27 +52,19 @@
                  let badgeClass = "bg-danger";
                  if (rank === 1) badgeClass = "bg-warning text-dark";
                  else if (rank === 2) badgeClass = "bg-secondary";
-                 else if (rank === 3) badgeClass = "bg-bronze"; // custom brownish for 3rd
+                 else if (rank === 3) badgeClass = "bg-bronze";
+                 const saadhak = m.saadhak[0] || {};
             %>
-              <tr>
-                <td>
-                  <strong class="text-danger"><%= rank %></strong>
-                </td>
-                <td class="fw-semibold">
-                  <%= m.saadhak[0]?.name || 'Unknown' %>
-                </td>
-                <td>
-                  <span class="badge <%= badgeClass %> fs-6">
-                    <%= m.total %>
-                  </span>
-                </td>
+              <tr class="align-middle">
+                <td><span class="fw-bold text-danger fs-5"><%= rank %></span></td>
+                <td class="fw-semibold"><%= saadhak.name || 'Unknown' %></td>
+                <td class="text-muted"><%= saadhak.mobile || '-' %></td>
+                <td><span class="badge <%= badgeClass %> fs-6 px-3 py-2"><%= m.total %></span></td>
               </tr>
             <% }) %>
           <% } else { %>
             <tr>
-              <td colspan="3" class="text-muted py-3">
-                आज अभी तक किसी ने पाठ दर्ज नहीं किया 🙏
-              </td>
+              <td colspan="4" class="py-4 text-muted fs-6">अभी तक किसी ने पाठ दर्ज नहीं किया 🙏</td>
             </tr>
           <% } %>
         </tbody>
@@ -70,15 +72,16 @@
     </div>
   </div>
 
-  <!-- 🪔 Action Buttons -->
+  <!-- 🪔 Buttons -->
   <div class="text-center mt-4">
-    <a href="/paath/add" class="btn btn-danger rounded-pill px-4 py-2 fw-bold me-2">
+    <a href="/paath/add" class="btn btn-danger rounded-pill px-4 py-2 fw-bold shadow-sm me-2">
       ➕ नया पाठ जोड़ें
     </a>
-    <a href="/paath/list" class="btn btn-outline-danger rounded-pill px-4 py-2 fw-bold">
+    <a href="/paath/list" class="btn btn-outline-danger rounded-pill px-4 py-2 fw-bold shadow-sm">
       📜 मेरा इतिहास देखें
     </a>
   </div>
+
 </div>
 
 <%- include('../views/partials/footer') %>
@@ -88,4 +91,53 @@
     background-color: #cd7f32;
     color: white;
   }
+  #summaryDate:focus {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 6px rgba(220, 53, 69, 0.4);
+  }
+  table th, table td {
+    vertical-align: middle !important;
+  }
+  @media (max-width: 576px) {
+    h2 { font-size: 1.4rem; }
+    .card-header { font-size: 1.1rem; }
+    #summaryDate { font-size: 0.9rem; }
+    table th, table td { font-size: 0.9rem; }
+  }
 </style>
+
+<script>
+document.getElementById('summaryDate').addEventListener('change', async function() {
+  const date = this.value;
+  const res = await fetch(`/paath/summary?date=${date}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+  const data = await res.json();
+
+  // Update total paath
+  document.getElementById('totalPaath').innerHTML = `${data.totalToday} <span class="fs-5 text-muted">पाठ</span>`;
+
+  // Update members table
+  const tbody = document.querySelector('#membersTable tbody');
+  tbody.innerHTML = '';
+
+  if (data.topMembers.length > 0) {
+    data.topMembers.forEach((m, i) => {
+      const rank = i + 1;
+      let badgeClass = "bg-danger";
+      if (rank === 1) badgeClass = "bg-warning text-dark";
+      else if (rank === 2) badgeClass = "bg-secondary";
+      else if (rank === 3) badgeClass = "bg-bronze";
+
+      const saadhak = m.saadhak?.[0] || {};
+      tbody.innerHTML += `
+        <tr>
+          <td><span class="fw-bold text-danger fs-5">${rank}</span></td>
+          <td class="fw-semibold">${saadhak.name || 'Unknown'}</td>
+          <td class="text-muted">${saadhak.mobile || '-'}</td>
+          <td><span class="badge ${badgeClass} fs-6 px-3 py-2">${m.total}</span></td>
+        </tr>`;
+    });
+  } else {
+    tbody.innerHTML = `<tr><td colspan="4" class="py-4 text-muted fs-6">अभी तक किसी ने पाठ दर्ज नहीं किया 🙏</td></tr>`;
+  }
+});
+</script>
