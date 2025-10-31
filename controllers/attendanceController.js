@@ -1100,7 +1100,7 @@ exports.viewTop10Attendance = async (req, res) => {
         selectedMonth === today.getMonth() + 1
           ? today.getDate()
           : end.getDate();
-      const threshold = Math.ceil(daysInMonth * 0.75);
+      const threshold = Math.ceil(daysInMonth * 0.65);
 
       Object.entries(kenderOperationalDaysMap).forEach(
         ([kenderId, datesSet]) => {
