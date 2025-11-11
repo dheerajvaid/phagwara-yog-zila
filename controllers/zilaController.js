@@ -103,13 +103,30 @@ exports.createZila = async (req, res) => {
 // ✅ View All Zilas
 exports.listZilas = async (req, res) => {
   try {
-    const zilas = await Zila.find().sort({ name: 1 });
+    const user = req.session.user;
+
+    let query = {};
+
+    // 🔹 If not admin, filter by user's Prant
+    if (
+      user &&
+      !(
+        user.role === 'Admin' ||
+        (Array.isArray(user.roles) && user.roles.includes('Admin'))
+      )
+    ) {
+      query = { prant: user.prant };
+    }
+
+    const zilas = await Zila.find(query).sort({ name: 1 });
+
     res.render('zila/manage', { zilas });
   } catch (err) {
-    console.error('Error listing Zilas:', err);
+    console.error('❌ Error listing Zilas:', err);
     res.status(500).send('Server Error');
   }
 };
+
 
 // ✅ Show Edit Form
 exports.showEditForm = async (req, res) => {

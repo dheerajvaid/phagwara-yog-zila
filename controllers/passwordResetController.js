@@ -11,24 +11,29 @@ const { all } = require("../routes/kenderRoutes");
 // GET: List all Saadhaks
 exports.getAllSaadhaks = async (req, res) => {
   try {
-    
     const user = req.session.user;
-
     let query = {};
 
+    // ✅ Admin: can see all
     if (!user.roles.includes("Admin")) {
+
+      // ✅ Prant-level filter
+      if (user.prant) query.prant = user.prant;
+
       if (
         user.roles.includes("Zila Pradhan") ||
         user.roles.includes("Zila Mantri")
       ) {
         query.zila = user.zila;
       }
+
       if (
         user.roles.includes("Ksheter Pradhan") ||
         user.roles.includes("Ksheter Mantri")
       ) {
         query.ksheter = user.ksheter;
       }
+
       if (
         user.roles.includes("Kender Pramukh") ||
         user.roles.includes("Seh Kender Pramukh") ||
@@ -37,12 +42,16 @@ exports.getAllSaadhaks = async (req, res) => {
       ) {
         query.kender = user.kender;
       }
-      if (
-        user.roles.includes("Saadhak")
-      ) {
+
+      if (user.roles.includes("Saadhak")) {
         query._id = user.id;
       }
     }
+
+    // ✅ Only fetch within user’s prant (unless admin)
+    const prantFilter = user.roles.includes("Admin")
+      ? {}
+      : { prant: user.prant };
 
     const saadhaks = await Saadhak.find(query)
       .populate("zila")
@@ -50,9 +59,9 @@ exports.getAllSaadhaks = async (req, res) => {
       .populate("kender")
       .sort({ name: 1 });
 
-    const zilas = await Zila.find().sort({ name: 1 });
-    const ksheters = await Ksheter.find().sort({ name: 1 });
-    const kenders = await Kender.find().sort({ name: 1 });
+    const zilas = await Zila.find(prantFilter).sort({ name: 1 });
+    const ksheters = await Ksheter.find(prantFilter).sort({ name: 1 });
+    const kenders = await Kender.find(prantFilter).sort({ name: 1 });
 
     res.render("resetPassword/list", { saadhaks });
   } catch (err) {
@@ -60,6 +69,7 @@ exports.getAllSaadhaks = async (req, res) => {
     res.status(500).send("Error fetching Saadhaks");
   }
 };
+
 
 // POST: Reset password
 exports.resetPassword = async (req, res) => {

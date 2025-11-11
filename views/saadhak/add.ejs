@@ -76,15 +76,20 @@
 </div>
 
 
-    <% const selectedPrant = formData?.prant || user.prant; %>
-    <% const selectedZila = formData?.zila || user.zila; %>
-    <% const selectedKsheterId = formData?.ksheter || user.ksheter; %>
-    <% const selectedKenderId = formData?.kender || user.kender; %>
+    <%
+  const isAdminUser = user?.role === 'Admin' || (Array.isArray(user?.roles) && user.roles.includes('Admin'));
+
+  const selectedPrant = isAdminUser ? (formData?.prant || '') : (formData?.prant || user.prant);
+  const selectedZila = isAdminUser ? (formData?.zila || '') : (formData?.zila || user.zila);
+  const selectedKsheterId = formData?.ksheter || user.ksheter;
+  const selectedKenderId = formData?.kender || user.kender;
+%>
+
     
     <!-- Prant -->
     <div class="col-md-4 prant-field d-none">
       <label class="form-label">Prant</label>
-      <select name="prant" id="prantSelect" class="form-select" <%= user.prant ? 'disabled' : '' %>>
+      <select name="prant" id="prantSelect" class="form-select" <%= (!isAdminUser && user.prant) ? 'disabled' : '' %>>
         <option value="">-- Select Prant --</option>
         <% prants.forEach(p => { %>
           <option value="<%= p._id %>" <%= (selectedPrant == p._id.toString()) ? 'selected' : '' %>>
@@ -92,15 +97,17 @@
           </option>
         <% }) %>
       </select>
-      <% if (user.prant) { %>
+     <% if (!isAdminUser && user.prant) { %>
+        <!-- Hidden input only when user cannot change prant -->
         <input type="hidden" name="prant" value="<%= user.prant %>">
       <% } %>
+
     </div>
 
     <!-- Zila -->
     <div class="col-md-4 zila-field d-none">
       <label class="form-label">Zila</label>
-      <select name="zila" id="zilaSelect" class="form-select" <%= user.zila ? 'disabled' : '' %>>
+      <select name="zila" id="zilaSelect" class="form-select" <%= (!isAdminUser && user.zila) ? 'disabled' : '' %>>
         <option value="">-- Select Zila --</option>
         <% zilas.forEach(z => { %>
           <% if (z.prant.toString() === selectedPrant?.toString()) { %>
@@ -293,7 +300,7 @@
   </form>
 </section>
 
-<script>
+<script>  
   const allZilas = <%- JSON.stringify(zilas.map(z => ({ _id: z._id.toString(), name: z.name, prant: z.prant?.toString() }))) %>;
   const allKsheters = <%- JSON.stringify(ksheters.map(k => ({ _id: k._id.toString(), name: k.name, zila: k.zila.toString() }))) %>;
   const allKenders = <%- JSON.stringify(kenders.map(k => ({ _id: k._id.toString(), name: k.name, ksheter: k.ksheter.toString() }))) %>;

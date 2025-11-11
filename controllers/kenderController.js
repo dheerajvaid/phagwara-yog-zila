@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const { createCanvas } = require("canvas");
 const archiver = require("archiver");
-const ExcelJS = require('exceljs');
+const ExcelJS = require("exceljs");
 const Kender = require("../models/Kender");
 const Zila = require("../models/Zila");
 const Ksheter = require("../models/Ksheter");
@@ -13,9 +13,8 @@ const drawCard = require("../helpers/drawCard");
 const messages = require("../data/messages.json");
 const roleConfig = require("../config/roles");
 
-const PDFDocument = require('pdfkit');
-const moment = require('moment');
-
+const PDFDocument = require("pdfkit");
+const moment = require("moment");
 
 const { adminRoles, prantRoles, zilaRoles, ksheterRoles, kenderRoles } =
   roleConfig;
@@ -89,7 +88,6 @@ exports.showAddForm = async (req, res) => {
   }
 };
 
-// ✅ Create New Kender
 // ✅ Create New Kender
 exports.createKender = async (req, res) => {
   try {
@@ -199,71 +197,95 @@ exports.createKender = async (req, res) => {
   }
 };
 
-// ✅ List All Kenders
 exports.listKenders = async (req, res) => {
   try {
     const user = req.session.user;
-    const allZilas = await Zila.find().sort({ name: 1 });
-    const allKsheters = await Ksheter.find().sort({ name: 1 });
+    const selectedZila = req.query.zila || "";
+    const selectedKsheter = req.query.ksheter || "";
 
-    let selectedZila = req.query.zila || "";
-    let selectedKsheter = req.query.ksheter || "";
+    const { adminRoles, prantRoles, zilaRoles, ksheterRoles } = roleConfig;
 
-    // Adjust filters based on user role
-    if (
-      user.roles.includes("Zila Pradhan") ||
-      user.roles.includes("Zila Mantri")
-    ) {
-      selectedZila = user.zila;
+    let zilas = [];
+    let ksheters = [];
+    let query = {};
+
+    // ------------------------------
+    // ROLE-BASED FILTERING LOGIC
+    // ------------------------------
+    if (user.roles.some(role => adminRoles.includes(role))) {
+      // ✅ Admin: can see everything
+      zilas = await Zila.find().sort({ name: 1 });
+      ksheters = await Ksheter.find().sort({ name: 1 });
+
+      if (selectedZila) query.zila = selectedZila;
+      if (selectedKsheter) query.ksheter = selectedKsheter;
+
+    } else if (user.roles.some(role => prantRoles.includes(role))) {
+      // ✅ Prant-level: show only Zilas & Ksheters under user's Prant
+      zilas = await Zila.find({ prant: user.prant }).sort({ name: 1 });
+      ksheters = await Ksheter.find({ prant: user.prant }).sort({ name: 1 });
+
+      if (selectedZila) query.zila = selectedZila;
+      if (selectedKsheter) query.ksheter = selectedKsheter;
+      query.prant = user.prant;
+
+    } else if (user.roles.some(role => zilaRoles.includes(role))) {
+      // ✅ Zila-level: show only their Zila & its Ksheter
+      zilas = await Zila.find({ _id: user.zila, prant: user.prant }).sort({ name: 1 });
+      ksheters = await Ksheter.find({ zila: user.zila, prant: user.prant }).sort({ name: 1 });
+
+      query.zila = user.zila;
+      query.prant = user.prant;
+      if (selectedKsheter) query.ksheter = selectedKsheter;
+
+    } else if (user.roles.some(role => ksheterRoles.includes(role))) {
+      // ✅ Ksheter-level: only their Ksheter (and its Zila)
+      zilas = await Zila.find({ _id: user.zila, prant: user.prant }).sort({ name: 1 });
+      ksheters = await Ksheter.find({ _id: user.ksheter, prant: user.prant }).sort({ name: 1 });
+
+      query.zila = user.zila;
+      query.ksheter = user.ksheter;
+      query.prant = user.prant;
+
+    } else {
+      // ❌ Lower-level users see nothing (optional)
+      query._id = null;
     }
 
-    if (
-      user.roles.includes("Ksheter Pradhan") ||
-      user.roles.includes("Ksheter Mantri")
-    ) {
-      selectedZila = user.zila;
-      selectedKsheter = user.ksheter;
-    }
-
-    // Build query
-    const query = {};
-    if (selectedZila) query.zila = selectedZila;
-    if (selectedKsheter) query.ksheter = selectedKsheter;
-
+    // ------------------------------
+    // Fetch filtered Kenders
+    // ------------------------------
     const kenders = await Kender.find(query)
       .populate("zila")
       .populate("ksheter")
+      .populate("prant")
       .sort({ name: 1 });
 
     const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
     ];
 
+    // ------------------------------
+    // Render View
+    // ------------------------------
     res.render("kender/list", {
       kenders,
-      zilas: allZilas,
-      ksheters: allKsheters,
-      selectedZila,
-      selectedKsheter,
+      zilas,
+      ksheters,
+      selectedZila: selectedZila || user.zila || "",
+      selectedKsheter: selectedKsheter || user.ksheter || "",
       user,
-      months, // ✅ added for creation date display
+      months
     });
+
   } catch (err) {
     console.error("Error fetching Kenders:", err);
     res.status(500).send("Server Error");
   }
 };
+
+
 
 exports.listByKsheter = async (req, res) => {
   try {
@@ -506,6 +528,14 @@ exports.updateKender = async (req, res) => {
 exports.deleteKender = async (req, res) => {
   try {
     const kenderId = req.params.id;
+
+    const saadhakCount = await Saadhak.countDocuments({ kender: kenderId });
+
+    if (saadhakCount > 0) {
+      return res.send(
+        "❌ Cannot delete Kender with dependent Saadhaks."
+      );
+    }
 
     await Kender.findByIdAndDelete(kenderId);
 
@@ -883,14 +913,16 @@ exports.exportKenderYearlyPDF = async (req, res) => {
     const recentCount = parseInt(req.query.recentYears) || 1;
 
     const kenders = await Kender.find()
-      .populate('zila', 'name')
-      .populate('ksheter', 'name')
+      .populate("zila", "name")
+      .populate("ksheter", "name")
       .sort({ creationDate: 1 });
 
     if (!kenders.length) return res.send("No data to export");
 
     // Prepare year ranges
-    const allYears = kenders.filter(k => k.creationDate).map(k => k.creationDate.getFullYear());
+    const allYears = kenders
+      .filter((k) => k.creationDate)
+      .map((k) => k.creationDate.getFullYear());
     const minYear = Math.min(...allYears);
     const maxYear = Math.max(...allYears);
 
@@ -900,24 +932,31 @@ exports.exportKenderYearlyPDF = async (req, res) => {
       if (y >= minYear) lastYears.unshift(y);
     }
     if (minYear < maxYear - recentCount + 1) {
-      yearRanges.push({ label: `Up to ${maxYear - recentCount}`, from: minYear, to: maxYear - recentCount });
+      yearRanges.push({
+        label: `Up to ${maxYear - recentCount}`,
+        from: minYear,
+        to: maxYear - recentCount,
+      });
     }
-    lastYears.forEach(y => yearRanges.push({ label: y.toString(), from: y, to: y }));
+    lastYears.forEach((y) =>
+      yearRanges.push({ label: y.toString(), from: y, to: y })
+    );
 
     // Prepare counts
     const zilaYearCount = {};
     const columnTotals = {};
-    yearRanges.forEach(r => columnTotals[r.label] = 0);
+    yearRanges.forEach((r) => (columnTotals[r.label] = 0));
 
-    kenders.forEach(k => {
-      const zName = k.zila?.name || 'Unknown';
+    kenders.forEach((k) => {
+      const zName = k.zila?.name || "Unknown";
       if (!zilaYearCount[zName]) zilaYearCount[zName] = {};
       const year = k.creationDate?.getFullYear();
       if (!year) return;
 
-      yearRanges.forEach(r => {
+      yearRanges.forEach((r) => {
         if (year >= r.from && year <= r.to) {
-          zilaYearCount[zName][r.label] = (zilaYearCount[zName][r.label] || 0) + 1;
+          zilaYearCount[zName][r.label] =
+            (zilaYearCount[zName][r.label] || 0) + 1;
           columnTotals[r.label] += 1;
         }
       });
@@ -926,39 +965,49 @@ exports.exportKenderYearlyPDF = async (req, res) => {
     const zilaNames = Object.keys(zilaYearCount).sort();
 
     // ---------------- CREATE PDF ----------------
-    const doc = new PDFDocument({ margin: 50, size: 'A4' });
+    const doc = new PDFDocument({ margin: 50, size: "A4" });
 
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', 'attachment; filename="Kender_Yearly_Report.pdf"');
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      'attachment; filename="Kender_Yearly_Report.pdf"'
+    );
 
     doc.pipe(res);
 
     // ---------------- HEADER ----------------
     doc
       .fontSize(18)
-      .fillColor('#1e88e5')
-      .font('Helvetica-Bold')
-      .text('BHARTIYA YOG SANSTHAN (Regd.)', { align: 'center' });
+      .fillColor("#1e88e5")
+      .font("Helvetica-Bold")
+      .text("BHARTIYA YOG SANSTHAN (Regd.)", { align: "center" });
 
     doc
       .moveDown(0.5)
       .fontSize(14)
-      .fillColor('black')
-      .text('Kender Yearly Creation Report', { align: 'center' });
+      .fillColor("black")
+      .text("Kender Yearly Creation Report", { align: "center" });
 
     doc
       .fontSize(10)
-      .text(`Generated on: ${moment().format('DD-MM-YYYY HH:mm')}`, { align: 'center' });
+      .text(`Generated on: ${moment().format("DD-MM-YYYY HH:mm")}`, {
+        align: "center",
+      });
 
     doc.moveDown(1);
 
     // ---------------- TABLE ----------------
-    const headers = ['Zila / Year', ...yearRanges.map(r => r.label), 'Total'];
+    const headers = ["Zila / Year", ...yearRanges.map((r) => r.label), "Total"];
 
-    const pageWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+    const pageWidth =
+      doc.page.width - doc.page.margins.left - doc.page.margins.right;
     const zilaColWidth = 150;
     const otherColWidth = (pageWidth - zilaColWidth) / (headers.length - 1);
-    const columnWidth = [zilaColWidth, ...Array(headers.length - 2).fill(otherColWidth), otherColWidth];
+    const columnWidth = [
+      zilaColWidth,
+      ...Array(headers.length - 2).fill(otherColWidth),
+      otherColWidth,
+    ];
 
     const rowHeight = 22;
     let y = doc.y;
@@ -967,14 +1016,17 @@ exports.exportKenderYearlyPDF = async (req, res) => {
     const startX = (doc.page.width - tableWidth) / 2;
 
     // Table Header
-    doc.fontSize(11)
-      .fillColor('white')
+    doc
+      .fontSize(11)
+      .fillColor("white")
       .rect(startX, y, tableWidth, rowHeight)
-      .fill('#1e88e5');
+      .fill("#1e88e5");
 
     let x = startX;
     headers.forEach((h, i) => {
-      doc.fillColor('white').text(h, x, y + 6, { width: columnWidth[i], align: 'center' });
+      doc
+        .fillColor("white")
+        .text(h, x, y + 6, { width: columnWidth[i], align: "center" });
       x += columnWidth[i];
     });
 
@@ -984,20 +1036,23 @@ exports.exportKenderYearlyPDF = async (req, res) => {
     zilaNames.forEach((zName, index) => {
       const row = [zName];
       let rowTotal = 0;
-      yearRanges.forEach(r => {
+      yearRanges.forEach((r) => {
         const count = zilaYearCount[zName][r.label] || 0;
-        row.push(count === 0 ? '-' : count); // show "-" instead of 0
+        row.push(count === 0 ? "-" : count); // show "-" instead of 0
         rowTotal += count;
       });
-      row.push(rowTotal === 0 ? '-' : rowTotal);
+      row.push(rowTotal === 0 ? "-" : rowTotal);
 
-      const bgColor = index % 2 === 0 ? '#f9f9f9' : '#ffffff';
+      const bgColor = index % 2 === 0 ? "#f9f9f9" : "#ffffff";
       doc.fillColor(bgColor).rect(startX, y, tableWidth, rowHeight).fill();
 
       x = startX;
-      doc.fillColor('black').font('Helvetica').fontSize(10);
+      doc.fillColor("black").font("Helvetica").fontSize(10);
       row.forEach((cell, i) => {
-        doc.text(cell.toString(), x, y + 6, { width: columnWidth[i], align: 'center' });
+        doc.text(cell.toString(), x, y + 6, {
+          width: columnWidth[i],
+          align: "center",
+        });
         x += columnWidth[i];
       });
 
@@ -1009,25 +1064,27 @@ exports.exportKenderYearlyPDF = async (req, res) => {
     });
 
     // Column Totals Row
-    const totalRow = ['Total'];
+    const totalRow = ["Total"];
     let grandTotal = 0;
-    yearRanges.forEach(r => {
+    yearRanges.forEach((r) => {
       const count = columnTotals[r.label] || 0;
-      totalRow.push(count === 0 ? '-' : count);
+      totalRow.push(count === 0 ? "-" : count);
       grandTotal += count;
     });
-    totalRow.push(grandTotal === 0 ? '-' : grandTotal);
+    totalRow.push(grandTotal === 0 ? "-" : grandTotal);
 
-    doc.fillColor('#ffd700').rect(startX, y, tableWidth, rowHeight).fill();
+    doc.fillColor("#ffd700").rect(startX, y, tableWidth, rowHeight).fill();
     x = startX;
-    doc.fillColor('black').font('Helvetica-Bold').fontSize(10);
+    doc.fillColor("black").font("Helvetica-Bold").fontSize(10);
     totalRow.forEach((cell, i) => {
-      doc.text(cell.toString(), x, y + 6, { width: columnWidth[i], align: 'center' });
+      doc.text(cell.toString(), x, y + 6, {
+        width: columnWidth[i],
+        align: "center",
+      });
       x += columnWidth[i];
     });
 
     doc.end();
-
   } catch (err) {
     console.error(err);
     res.status(500).send("Error generating PDF");
@@ -1040,11 +1097,13 @@ exports.exportKenderYearlyExcel = async (req, res) => {
 
     // Fetch kenders (same as report)
     const kenders = await Kender.find()
-      .populate('zila', 'name')
-      .populate('ksheter', 'name')
+      .populate("zila", "name")
+      .populate("ksheter", "name")
       .sort({ creationDate: 1 });
 
-    const allYears = kenders.filter(k => k.creationDate).map(k => k.creationDate.getFullYear());
+    const allYears = kenders
+      .filter((k) => k.creationDate)
+      .map((k) => k.creationDate.getFullYear());
     if (!allYears.length) return res.send("No data to export");
 
     const minYear = Math.min(...allYears);
@@ -1056,24 +1115,31 @@ exports.exportKenderYearlyExcel = async (req, res) => {
       if (y >= minYear) lastYears.unshift(y);
     }
     if (minYear < maxYear - recentCount + 1) {
-      yearRanges.push({ label: `Up to ${maxYear - recentCount}`, from: minYear, to: maxYear - recentCount });
+      yearRanges.push({
+        label: `Up to ${maxYear - recentCount}`,
+        from: minYear,
+        to: maxYear - recentCount,
+      });
     }
-    lastYears.forEach(y => yearRanges.push({ label: y.toString(), from: y, to: y }));
+    lastYears.forEach((y) =>
+      yearRanges.push({ label: y.toString(), from: y, to: y })
+    );
 
     // Prepare counts
     const zilaYearCount = {};
     const columnTotals = {};
-    yearRanges.forEach(r => columnTotals[r.label] = 0);
+    yearRanges.forEach((r) => (columnTotals[r.label] = 0));
 
-    kenders.forEach(k => {
-      const zName = k.zila?.name || 'Unknown';
+    kenders.forEach((k) => {
+      const zName = k.zila?.name || "Unknown";
       if (!zilaYearCount[zName]) zilaYearCount[zName] = {};
       const year = k.creationDate?.getFullYear();
       if (!year) return;
 
-      yearRanges.forEach(r => {
+      yearRanges.forEach((r) => {
         if (year >= r.from && year <= r.to) {
-          zilaYearCount[zName][r.label] = (zilaYearCount[zName][r.label] || 0) + 1;
+          zilaYearCount[zName][r.label] =
+            (zilaYearCount[zName][r.label] || 0) + 1;
           columnTotals[r.label] += 1;
         }
       });
@@ -1083,18 +1149,22 @@ exports.exportKenderYearlyExcel = async (req, res) => {
 
     // Create Excel workbook
     const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet('Kender Yearly');
+    const sheet = workbook.addWorksheet("Kender Yearly");
 
     // Header
-    const headerRow = ['Zila / Year', ...yearRanges.map(r => r.label), 'Total'];
+    const headerRow = [
+      "Zila / Year",
+      ...yearRanges.map((r) => r.label),
+      "Total",
+    ];
     sheet.addRow(headerRow);
 
     // Rows
-    zilaNames.forEach(zName => {
+    zilaNames.forEach((zName) => {
       const row = [];
       row.push(zName);
       let rowTotal = 0;
-      yearRanges.forEach(r => {
+      yearRanges.forEach((r) => {
         const count = zilaYearCount[zName][r.label] || 0;
         row.push(count);
         rowTotal += count;
@@ -1104,9 +1174,9 @@ exports.exportKenderYearlyExcel = async (req, res) => {
     });
 
     // Column Totals
-    const totalRow = ['Total'];
+    const totalRow = ["Total"];
     let grandTotal = 0;
-    yearRanges.forEach(r => {
+    yearRanges.forEach((r) => {
       const count = columnTotals[r.label] || 0;
       totalRow.push(count);
       grandTotal += count;
@@ -1115,14 +1185,18 @@ exports.exportKenderYearlyExcel = async (req, res) => {
     sheet.addRow(totalRow);
 
     // Send workbook
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', 'attachment; filename=kender_yearly_report.xlsx');
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=kender_yearly_report.xlsx"
+    );
     await workbook.xlsx.write(res);
     res.end();
-
   } catch (err) {
     console.error(err);
     res.status(500).send("Error generating Excel");
   }
 };
-

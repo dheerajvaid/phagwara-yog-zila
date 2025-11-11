@@ -83,35 +83,54 @@ exports.createKsheter = async (req, res) => {
   }
 };
 
+// ✅ View All Ksheters (filtered by role)
 exports.listKsheter = async (req, res) => {
   try {
     const selectedZilaId = req.query.zila;
     const user = req.session.user;
-    // console.log(user);
-
-    let query = {};
-
     const { adminRoles, prantRoles, zilaRoles } = require("../config/roles");
 
-    if (
-      user.roles.some(
-        (role) => adminRoles.includes(role) || prantRoles.includes(role)
-      )
-    ) {
-      if (selectedZilaId && selectedZilaId !== "all") {
-        query.zila = selectedZilaId;
-      } else {
-        // Show all zilas – don't set query.zila
-        delete query.zila;
-      }
-    } else if (user.roles.some((role) => zilaRoles.includes(role))) {
+    let query = {};
+    let zilaQuery = {};
+
+    const roles = Array.isArray(user.roles) ? user.roles : [user.role].filter(Boolean);
+
+    // ✅ Admin / Prant logic
+    if (roles.some((r) => adminRoles.includes(r))) {
+      // Admin: see all
+      if (selectedZilaId && selectedZilaId !== "all") query.zila = selectedZilaId;
+    } 
+    else if (roles.some((r) => prantRoles.includes(r))) {
+      // Prant user: see only their Prant’s Zilas
+      const prantId =
+        typeof user.prant === "object" && user.prant._id ? user.prant._id : user.prant;
+
+      zilaQuery = { prant: prantId };
+      if (selectedZilaId && selectedZilaId !== "all") query.zila = selectedZilaId;
+      else query = { zila: { $in: await Zila.find(zilaQuery).distinct("_id") } };
+    } 
+    else if (roles.some((r) => zilaRoles.includes(r))) {
+      // Zila user: only their Zila
       query.zila = user.zila;
-    } else {
-      // Unauthorized
-      query.zila = null;
+      zilaQuery = { _id: user.zila };
+    } 
+    else {
+      return res.render("ksheter/list", {
+        ksheters: [],
+        zilas: [],
+        selectedZilaId: null,
+        user,
+        error: "You are not authorized to view Ksheter data.",
+        adminRoles,
+        prantRoles,
+        zilaRoles,
+      });
     }
 
-    const zilas = await Zila.find().sort({ name: 1 });
+    // ✅ Fetch only applicable Zilas
+    const zilas = await Zila.find(zilaQuery).sort({ name: 1 });
+
+    // ✅ Fetch Ksheters
     const ksheters = await Ksheter.find(query)
       .populate("zila")
       .sort({ name: 1 });
@@ -122,12 +141,12 @@ exports.listKsheter = async (req, res) => {
       selectedZilaId: selectedZilaId || user.zila || null,
       user,
       error: null,
-      adminRoles: roleConfig.adminRoles,
-      zilaRoles: roleConfig.zilaRoles,
-      prantRoles: roleConfig.prantRoles,
+      adminRoles,
+      zilaRoles,
+      prantRoles,
     });
   } catch (err) {
-    console.error("Error listing Ksheters:", err);
+    console.error("❌ Error listing Ksheters:", err);
     res.status(500).send("Server Error");
   }
 };

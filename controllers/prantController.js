@@ -3,7 +3,7 @@ const Prant = require("../models/Prant");
 // GET: All Prants
 exports.listPrants = async (req, res) => {
   try {
-    const prants = await Prant.find({ deleted: false }).sort({ createdAt: -1 });
+    const prants = await Prant.find().sort({ name: 1 });
     res.render("prant/list", { prants });
   } catch (err) {
     console.error("Error loading prants:", err);

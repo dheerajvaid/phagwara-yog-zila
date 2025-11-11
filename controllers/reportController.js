@@ -16,23 +16,34 @@ exports.teamSummary = async (req, res) => {
   const user = req.session.user;
   const query = {};
 
+  // ✅ Base filtering (non-admins see only their own scope)
   if (!user.roles.includes("Admin")) {
+    if (user.prant) query.prant = user.prant;
     if (user.zila) query.zila = user.zila;
     if (user.ksheter) query.ksheter = user.ksheter;
     if (user.kender) query.kender = user.kender;
   }
 
-  const zilas = await Zila.find(query.zila ? { _id: query.zila } : {});
-  const ksheters = await Ksheter.find(
-    query.ksheter ? { _id: query.ksheter } : {}
+  // ✅ Fetch only relevant data (Prant filter applied)
+  const prantFilter = user.roles.includes("Admin")
+    ? {}
+    : { prant: user.prant };
+
+  const zilas = await Zila.find(
+    query.zila ? { _id: query.zila } : prantFilter
   );
-  const kenders = await Kender.find(query.kender ? { _id: query.kender } : {});
+  const ksheters = await Ksheter.find(
+    query.ksheter ? { _id: query.ksheter } : prantFilter
+  );
+  const kenders = await Kender.find(
+    query.kender ? { _id: query.kender } : prantFilter
+  );
   const saadhaks = await Saadhak.find(query).populate("zila ksheter kender");
 
-  // Grouping logic
+  // ✅ Grouping logic (unchanged)
   const summary = {};
-  const ksheterTotals = {}; // subtotal for each ksheter
-  const zilaTotals = {}; // subtotal for each zila
+  const ksheterTotals = {};
+  const zilaTotals = {};
 
   saadhaks.forEach((s) => {
     if (!s.zila || !s.ksheter || !s.kender) return;
@@ -43,22 +54,20 @@ exports.teamSummary = async (req, res) => {
 
     summary[zilaName] = summary[zilaName] || {};
     summary[zilaName][ksheterName] = summary[zilaName][ksheterName] || {};
-    summary[zilaName][ksheterName][kenderName] = summary[zilaName][ksheterName][
-      kenderName
-    ] || {
-      Saadhak: 0,
-      Shikshak: 0,
-      Karyakarta: 0,
-    };
+    summary[zilaName][ksheterName][kenderName] =
+      summary[zilaName][ksheterName][kenderName] || {
+        Saadhak: 0,
+        Shikshak: 0,
+        Karyakarta: 0,
+      };
 
     ksheterTotals[zilaName] = ksheterTotals[zilaName] || {};
-    ksheterTotals[zilaName][ksheterName] = ksheterTotals[zilaName][
-      ksheterName
-    ] || {
-      Saadhak: 0,
-      Shikshak: 0,
-      Karyakarta: 0,
-    };
+    ksheterTotals[zilaName][ksheterName] =
+      ksheterTotals[zilaName][ksheterName] || {
+        Saadhak: 0,
+        Shikshak: 0,
+        Karyakarta: 0,
+      };
 
     zilaTotals[zilaName] = zilaTotals[zilaName] || {
       Saadhak: 0,
@@ -66,20 +75,22 @@ exports.teamSummary = async (req, res) => {
       Karyakarta: 0,
     };
 
-    s.role.forEach((r) => {
-      if (["Saadhak", "Shikshak", "Karyakarta"].includes(r)) {
-        summary[zilaName][ksheterName][kenderName][r]++;
-        ksheterTotals[zilaName][ksheterName][r]++;
-        zilaTotals[zilaName][r]++;
-      }
-    });
+    if (Array.isArray(s.role)) {
+      s.role.forEach((r) => {
+        if (["Saadhak", "Shikshak", "Karyakarta"].includes(r)) {
+          summary[zilaName][ksheterName][kenderName][r]++;
+          ksheterTotals[zilaName][ksheterName][r]++;
+          zilaTotals[zilaName][r]++;
+        }
+      });
+    }
   });
-  //   console.log(summary);
+
   res.render("report/summary", {
     summary,
     ksheterTotals,
     zilaTotals,
-    user: req.session.user,
+    user,
   });
 };
 

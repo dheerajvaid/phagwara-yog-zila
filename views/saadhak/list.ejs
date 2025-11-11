@@ -18,9 +18,6 @@
       <label class="form-label">Prant</label>
       <select id="prantFilter" class="form-select">
         <option value="">Select Prant</option>
-        <% prants.forEach(p => { %>
-          <option value="<%= p._id %>"><%= p.name %></option>
-        <% }) %>
       </select>
     </div>
     <div class="col-md-3">
@@ -98,7 +95,9 @@
     const resetBtn = document.getElementById("resetBtn");
     const tableBody = document.getElementById("saadhakTableBody");
     const searchBtn = document.getElementById("searchBtn");
+    const searchInput = document.getElementById("searchInput");
 
+    // ---------- Populate Functions ----------
     function populateZila(prantId) {
       zilaFilter.innerHTML = '<option value="">All Zila</option>';
       const filtered = allZilas.filter(z => z.prant === prantId);
@@ -123,30 +122,97 @@
       });
     }
 
-    // Role-based preselection
-    if (user.prant) {
-      prantFilter.value = user.prant;
-      prantFilter.disabled = true;
-      populateZila(user.prant);
+    // ---------- Populate Prant Dropdown Based on User ----------
+    function populatePrant() {
+      prantFilter.innerHTML = '<option value="">Select Prant</option>';
+      const isAdmin = Array.isArray(user.roles) && user.roles.includes("Admin");
+
+      if (isAdmin) {
+        // Admin sees all prants
+        allPrant.forEach(p => {
+          prantFilter.innerHTML += `<option value="${p._id}">${p.name}</option>`;
+        });
+        prantFilter.disabled = false;
+      } else {
+        // Non-admin sees only their prant(s)
+        let allowed = [];
+
+        if (Array.isArray(user.prant)) {
+          allowed = user.prant.map(x => (typeof x === 'object' && x?._id) ? x._id : x);
+        } else if (user.prant) {
+          allowed = [(typeof user.prant === 'object' && user.prant?._id) ? user.prant._id : user.prant];
+        }
+
+        const allowedPrants = allPrant.filter(p => allowed.includes(String(p._id)));
+        allowedPrants.forEach(p => {
+          prantFilter.innerHTML += `<option value="${p._id}">${p.name}</option>`;
+        });
+
+        if (allowedPrants.length === 1) {
+          prantFilter.value = allowedPrants[0]._id;
+          prantFilter.disabled = true;
+        } else {
+          prantFilter.disabled = false;
+        }
+      }
+
+      if (prantFilter.value) {
+        populateZila(prantFilter.value);
+      }
     }
 
-    if (user.zila) {
-      zilaFilter.value = user.zila;
-      zilaFilter.disabled = true;
-      populateKsheter(user.zila);
-    }
+    // ---------- Initial Hierarchical Population ----------
+    populatePrant();
 
-    if (user.ksheter) {
-      ksheterFilter.value = user.ksheter;
-      ksheterFilter.disabled = true;
-      populateKender(user.ksheter);
-    }
+ // ✅ Role-based preselection and safe dropdown handling
+if (user.roles.includes("Admin")) {
+  // Admin: show all Prants initially
+  prantFilter.innerHTML = '<option value="">All Prant</option>';
+  allPrant.forEach(p => {
+    prantFilter.innerHTML += `<option value="${p._id}">${p.name}</option>`;
+  });
 
-    if (user.kender) {
-      kenderFilter.value = user.kender;
-      kenderFilter.disabled = true;
-    }
+  // Keep all Zila, Ksheter, Kender dropdowns empty until a Prant is chosen
+  zilaFilter.innerHTML = '<option value="">Select Zila</option>';
+  ksheterFilter.innerHTML = '<option value="">Select Ksheter</option>';
+  kenderFilter.innerHTML = '<option value="">Select Kender</option>';
+} 
+else {
+  // Non-admin users: restrict dropdowns based on role
+  if (user.prant) {
+    prantFilter.value = user.prant;
+    prantFilter.disabled = true;
+    populateZila(user.prant);
+  } else {
+    zilaFilter.innerHTML = '<option value="">Select Zila</option>';
+    ksheterFilter.innerHTML = '<option value="">Select Ksheter</option>';
+    kenderFilter.innerHTML = '<option value="">Select Kender</option>';
+  }
 
+  if (user.zila) {
+    zilaFilter.value = user.zila;
+    zilaFilter.disabled = true;
+    populateKsheter(user.zila);
+  } else if (!user.prant) {
+    ksheterFilter.innerHTML = '<option value="">Select Ksheter</option>';
+    kenderFilter.innerHTML = '<option value="">Select Kender</option>';
+  }
+
+  if (user.ksheter) {
+    ksheterFilter.value = user.ksheter;
+    ksheterFilter.disabled = true;
+    populateKender(user.ksheter);
+  } else if (!user.zila) {
+    kenderFilter.innerHTML = '<option value="">Select Kender</option>';
+  }
+
+  if (user.kender) {
+    kenderFilter.value = user.kender;
+    kenderFilter.disabled = true;
+  }
+}
+
+    // ---------- Change Listeners ----------
     prantFilter.addEventListener("change", function () {
       populateZila(this.value);
       ksheterFilter.innerHTML = '<option value="">All Ksheter</option>';
@@ -162,6 +228,7 @@
       populateKender(this.value);
     });
 
+    // ---------- Render Table ----------
     function renderTable() {
       const selectedPrant = prantFilter.value;
       const selectedZila = zilaFilter.value;
@@ -208,12 +275,10 @@
 
       if (paginated.length === 0) {
         tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No matching records found.</td></tr>';
-        
         const pagination = document.getElementById("pagination");
-        if (pagination) pagination.innerHTML = ""; // clear instead of remove
+        if (pagination) pagination.innerHTML = "";
         return;
       }
-
 
       paginated.forEach((s, index) => {
         const primaryRole = Array.isArray(s.role) ? s.role[0] : null;
@@ -264,152 +329,95 @@
               </div>
             </div>
           </td>
-        </tr>
-      `;
+        </tr>`;
       });
 
       renderPagination(filtered.length);
     }
 
-  function renderPagination(totalItems) {
-  const pagination = document.getElementById("pagination");
-  const totalPages = Math.ceil(totalItems / pageSize);
-  pagination.innerHTML = "";
+    // ---------- Pagination ----------
+    function renderPagination(totalItems) {
+      const pagination = document.getElementById("pagination");
+      const totalPages = Math.ceil(totalItems / pageSize);
+      pagination.innerHTML = "";
+      if (totalPages <= 1) return;
 
-  if (totalPages <= 1) return; // No need to paginate
+      const createPageItem = (page, label = null, active = false, disabled = false) => {
+        const li = document.createElement("li");
+        li.className = `page-item${active ? " active" : ""}${disabled ? " disabled" : ""}`;
+        const button = document.createElement("button");
+        button.className = "page-link";
+        button.textContent = label || page;
+        button.disabled = disabled;
+        if (!disabled && !active) {
+          button.addEventListener("click", () => {
+            currentPage = page;
+            renderTable();
+          });
+        }
+        li.appendChild(button);
+        return li;
+      };
 
-  const createPageItem = (page, label = null, active = false, disabled = false) => {
-    const li = document.createElement("li");
-    li.className = `page-item${active ? " active" : ""}${disabled ? " disabled" : ""}`;
-    const button = document.createElement("button");
-    button.className = "page-link";
-    button.textContent = label || page;
-    button.disabled = disabled;
+      pagination.appendChild(createPageItem(currentPage - 1, "«", false, currentPage === 1));
 
-    if (!disabled && !active) {
-      button.addEventListener("click", () => {
-        currentPage = page;
-        renderTable();
-      });
+      const maxVisible = 5;
+      let startPage = Math.max(1, currentPage - 2);
+      let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+
+      if (endPage - startPage < maxVisible - 1 && startPage > 1) {
+        startPage = Math.max(1, endPage - maxVisible + 1);
+      }
+
+      if (startPage > 1) {
+        pagination.appendChild(createPageItem(1));
+        if (startPage > 2) {
+          const dots = document.createElement("li");
+          dots.className = "page-item disabled";
+          dots.innerHTML = `<span class="page-link">…</span>`;
+          pagination.appendChild(dots);
+        }
+      }
+
+      for (let i = startPage; i <= endPage; i++) {
+        pagination.appendChild(createPageItem(i, null, i === currentPage));
+      }
+
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+          const dots = document.createElement("li");
+          dots.className = "page-item disabled";
+          dots.innerHTML = `<span class="page-link">…</span>`;
+          pagination.appendChild(dots);
+        }
+        pagination.appendChild(createPageItem(totalPages));
+      }
+
+      pagination.appendChild(createPageItem(currentPage + 1, "»", false, currentPage === totalPages));
     }
 
-    li.appendChild(button);
-    return li;
-  };
-
-  // Previous button
-  pagination.appendChild(createPageItem(currentPage - 1, "«", false, currentPage === 1));
-
-  const maxVisible = 5;
-  let startPage = Math.max(1, currentPage - 2);
-  let endPage = Math.min(totalPages, startPage + maxVisible - 1);
-
-  if (endPage - startPage < maxVisible - 1 && startPage > 1) {
-    startPage = Math.max(1, endPage - maxVisible + 1);
-  }
-
-  if (startPage > 1) {
-    pagination.appendChild(createPageItem(1));
-    if (startPage > 2) {
-      const dots = document.createElement("li");
-      dots.className = "page-item disabled";
-      dots.innerHTML = `<span class="page-link">…</span>`;
-      pagination.appendChild(dots);
-    }
-  }
-
-  for (let i = startPage; i <= endPage; i++) {
-    pagination.appendChild(createPageItem(i, null, i === currentPage));
-  }
-
-  if (endPage < totalPages) {
-    if (endPage < totalPages - 1) {
-      const dots = document.createElement("li");
-      dots.className = "page-item disabled";
-      dots.innerHTML = `<span class="page-link">…</span>`;
-      pagination.appendChild(dots);
-    }
-    pagination.appendChild(createPageItem(totalPages));
-  }
-
-  // Next button
-  pagination.appendChild(createPageItem(currentPage + 1, "»", false, currentPage === totalPages));
-}
-
-  function changePage(page) {
-    currentPage = page;
-    renderTable();
-  }
-
-  window.changePage = changePage;
-
-
+    // ---------- Export, Search & Reset ----------
     document.getElementById("exportCsvBtn").addEventListener("click", () => {
       const filtered = currentFilteredSaadhaks;
-      
       if (filtered.length === 0) {
         alert("No matching records to export.");
         return;
       }
-
       const headers = ["S.No", "Name", "Mobile", "Email", "DOJ", "DOB", "DOM", "Prant", "Zila", "Ksheter", "Kender", "Roles", "Address"];
-      
-      const formatDate = (dateStr) => {
-          if (!dateStr) return '';
-          const date = new Date(dateStr);
-          const day = String(date.getDate()).padStart(2, '0');
-          const month = String(date.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
-          const year = date.getFullYear();
-          return `${day}-${month}-${year}`;
-        };
-
-        const rows = filtered.map((s, index) => [
-          index + 1,
-          s.name || '',
-          s.mobile || '',
-          s.email || '',
-          formatDate(s.doj),
-          formatDate(s.dob),
-          formatDate(s.marriageDate),
-          s.prant?.name || '',
-          s.zila?.name || '',
-          s.ksheter?.name || '',
-          s.kender?.name || '',
-          Array.isArray(s.role) ? s.role.join(', ') : '',
-          s.address || '',
-        ]);
-
-        // console.log(rows.length);
-        const sanitize = (value) => {
-          return (value || '')
-            .toString()
-            .trim()
-            .replace(/"/g, '""')         // Escape quotes for CSV
-            .replace(/[\r\n]+/g, ' ')    // Replace line breaks with space
-            .replace(/#/g, ' ');    // Optional: replace # if you want
-        };
-
-      const csvContent = "data:text/csv;charset=utf-8," +
-      [headers, ...rows]
-        .map(e => e.map(v => `"${sanitize(v)}"`).join(","))
-        .join("\n");
-
-          const link = document.createElement("a");
-          link.setAttribute("href", encodeURI(csvContent));
-          link.setAttribute("download", "saadhaks_filtered.csv");
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-
-          // 🔁 Run some function after 2 seconds (2000 ms)
-      setTimeout(() => {
-       const spinner = document.getElementById("loadingSpinner");
-       
-       if (spinner) {
-       
-        spinner.style.display = "none";
-       }
-      }, 2000);
+      const formatDate = (d) => (!d ? '' : new Date(d).toLocaleDateString('en-GB').replace(/\//g, '-'));
+      const rows = filtered.map((s, i) => [
+        i + 1, s.name || '', s.mobile || '', s.email || '',
+        formatDate(s.doj), formatDate(s.dob), formatDate(s.marriageDate),
+        s.prant?.name || '', s.zila?.name || '', s.ksheter?.name || '',
+        s.kender?.name || '', Array.isArray(s.role) ? s.role.join(', ') : '', s.address || ''
+      ]);
+      const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].map(e => e.map(v => `"${(v || '').replace(/"/g, '""')}"`).join(",")).join("\n");
+      const link = document.createElement("a");
+      link.href = encodeURI(csvContent);
+      link.download = "saadhaks_filtered.csv";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     });
 
     searchBtn.addEventListener("click", () => {
@@ -420,26 +428,24 @@
     resetBtn.addEventListener("click", () => {
       currentPage = 1;
       searchInput.value = "";
-      if (user.roles.includes("Admin")) {
+      const isAdmin = Array.isArray(user.roles) && user.roles.includes("Admin");
+      if (isAdmin) {
+        prantFilter.disabled = false;
         prantFilter.value = "";
         zilaFilter.innerHTML = '<option value="">Select Zila</option>';
         ksheterFilter.innerHTML = '<option value="">Select Ksheter</option>';
         kenderFilter.innerHTML = '<option value="">Select Kender</option>';
       } else {
-        prantFilter.value = user.prant || "";
-        zilaFilter.value = user.zila || "";
-        populateZila(user.prant);
-        populateKsheter(user.zila);
-        ksheterFilter.value = user.ksheter || "";
-        populateKender(user.ksheter);
-        kenderFilter.value = user.kender || "";
+        populatePrant();
       }
       tableBody.innerHTML = '';
       renderTable();
     });
 
+    // ---------- Initial Render ----------
     renderTable();
   });
 </script>
+
 
 <%- include('../partials/footer') %>

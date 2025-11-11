@@ -226,7 +226,7 @@ exports.createSaadhak = async (req, res) => {
     }
 
     const trimmedEmail = email?.trim().toLowerCase();
-    
+
     if (trimmedEmail) {
       const existingEmail = await Saadhak.findOne({ email: trimmedEmail });
       if (existingEmail) {
@@ -261,6 +261,9 @@ exports.createSaadhak = async (req, res) => {
         "❌ Prant, Zila, Ksheter, and Kender must be selected for Kender, Shikshak, Karyakarta & Saadhak level roles."
       );
     }
+
+    console.log(typeof(prant));
+    console.log(prant);
 
     // Determine prantId cleanly
     const prantId = prant?.trim() || user?.prant?.$oid || user?.prant;
@@ -340,8 +343,9 @@ exports.listSaadhaks = async (req, res) => {
     const user = req.session.user;
 
     const query = {};
-    const userRoles = user.roles;
+    const userRoles = Array.isArray(user.roles) ? user.roles : [user.roles]; // ✅ Always treat roles as array
 
+    // Helper function for role checks
     const hasRole = (roleGroup) => userRoles.some((r) => roleGroup.includes(r));
 
     // If user has no allowed role, show nothing
@@ -358,37 +362,42 @@ exports.listSaadhaks = async (req, res) => {
     ) {
       query._id = null;
     } else if (!userRoles.includes("Admin")) {
-      // Admin gets all access — skip restrictions
+      // ✅ Admin gets full access — skip restrictions
 
-      // Apply Prant-level restrictions
+      // ✅ Apply Prant-level restrictions (for Prant team)
       if (hasRole(prantRoles)) {
         query.prant = user.prant?.$oid || user.prant;
       }
 
-      // Apply Zila-level restrictions
+      // ✅ Apply Zila-level restrictions
       if (hasRole(zilaRoles)) {
+        query.prant = user.prant?.$oid || user.prant;
         query.zila = user.zila?.$oid || user.zila;
       }
 
-      // Apply Ksheter-level restrictions + exclude Ksheter roles
+      // ✅ Apply Ksheter-level restrictions
       if (hasRole(ksheterRoles)) {
+        query.prant = user.prant?.$oid || user.prant;
+        query.zila = user.zila?.$oid || user.zila;
         query.ksheter = user.ksheter?.$oid || user.ksheter;
       }
 
-      // Apply Kender-level restrictions + exclude Ksheter and Kender Main Team roles
-      if (hasRole(kenderRoles)) {
+      // ✅ Apply Kender-level restrictions
+      if (hasRole(kenderRoles) || hasRole(kenderTeamRoles)) {
+        query.prant = user.prant?.$oid || user.prant;
+        query.zila = user.zila?.$oid || user.zila;
+        query.ksheter = user.ksheter?.$oid || user.ksheter;
         query.kender = user.kender?.$oid || user.kender;
       }
     }
 
+    // ✅ Fetch data as before
     const saadhaks = await Saadhak.find(query)
       .populate("prant")
       .populate("zila")
       .populate("ksheter")
       .populate("kender")
       .sort({ name: 1 });
-
-    console.log(saadhaks.length);
 
     const [prants, zilas, ksheters, kenders] = await Promise.all([
       Prant.find().sort({ name: 1 }),
@@ -410,6 +419,7 @@ exports.listSaadhaks = async (req, res) => {
     res.status(500).send("Server Error");
   }
 };
+
 
 // ✅ Show Edit Form (Updated with unified role logic)
 exports.showEditForm = async (req, res) => {
@@ -672,7 +682,7 @@ exports.updateSaadhak = async (req, res) => {
     }
 
     const normalizedEmail = email?.trim().toLowerCase();
-  
+
     if (normalizedEmail) {
       const existingEmail = await Saadhak.findOne({ email: normalizedEmail });
       if (existingEmail && existingEmail._id.toString() !== saadhakId) {
@@ -775,18 +785,22 @@ exports.updateSaadhak = async (req, res) => {
     let updatedKsheter = ksheter && ksheter !== "" ? ksheter : undefined;
     let updatedKender = kender && kender !== "" ? kender : undefined;
 
-    if (Array.isArray(role) && role.some((r) => zilaRoles.includes(r))) {
+    // ✅ Ensure role is always an array
+    if (!Array.isArray(role)) {
+      role = [role];
+    }
+
+    // ✅ Hierarchy Logic
+    if (role.some((r) => zilaRoles.includes(r))) {
+      updatedZila = updatedZila; // keep zila if needed
       updatedKsheter = undefined;
       updatedKender = undefined;
-    } else if (
-      Array.isArray(role) &&
-      role.some((r) => ksheterRoles.includes(r))
-    ) {
+    } else if (role.some((r) => ksheterRoles.includes(r))) {
       updatedKender = undefined;
     }
 
-    // ✅ Final DB Update
-    await Saadhak.findByIdAndUpdate(saadhakId, {
+    // ✅ Prepare Update Object
+    const updateData = {
       name: formatName(name.trim()),
       mobile,
       doj,
@@ -799,10 +813,20 @@ exports.updateSaadhak = async (req, res) => {
       livingArea,
       role,
       prant: updatedPrant,
-      zila: updatedZila,
-      ksheter: updatedKsheter,
-      kender: updatedKender,
-    });
+    };
+
+    // ✅ Handle Zila / Ksheter / Kender hierarchy unsets
+    if (updatedZila !== undefined) updateData.zila = updatedZila;
+    else updateData.$unset = { ...(updateData.$unset || {}), zila: "" };
+
+    if (updatedKsheter !== undefined) updateData.ksheter = updatedKsheter;
+    else updateData.$unset = { ...(updateData.$unset || {}), ksheter: "" };
+
+    if (updatedKender !== undefined) updateData.kender = updatedKender;
+    else updateData.$unset = { ...(updateData.$unset || {}), kender: "" };
+
+    // ✅ Final DB Update
+    await Saadhak.findByIdAndUpdate(saadhakId, updateData);
 
     return res.redirect("/saadhak/manage");
 
@@ -833,6 +857,12 @@ exports.updateSaadhak = async (req, res) => {
 // ✅ Handle Delete
 exports.deleteSaadhak = async (req, res) => {
   try {
+    const user = req.session.user;
+    
+    if (user.id == req.params.id) {
+      return res.render("error/unauthorized");
+    }
+
     await Saadhak.findByIdAndDelete(req.params.id);
     res.redirect("/saadhak/manage");
   } catch (err) {
@@ -873,15 +903,25 @@ exports.getSelfUpdateForm = async (req, res) => {
     }
 
     // 🔹 Fitness defaults
-    saadhak.weightKg = saadhak.weightKg || '';
-    saadhak.heightFeet = saadhak.heightFeet || '';
-    saadhak.heightInches = saadhak.heightInches || '';
+    saadhak.weightKg = saadhak.weightKg || "";
+    saadhak.heightFeet = saadhak.heightFeet || "";
+    saadhak.heightInches = saadhak.heightInches || "";
 
     res.render("saadhak/self-update", {
       saadhak,
       months: [
-        "Jan","Feb","Mar","Apr","May","Jun",
-        "Jul","Aug","Sep","Oct","Nov","Dec"
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
       ],
       currentYear: new Date().getFullYear(),
       success: req.query.success,
@@ -939,8 +979,12 @@ exports.postSelfUpdate = async (req, res) => {
 
       // Fitness fields
       weightKg: req.body.weightKg ? parseFloat(req.body.weightKg) : undefined,
-      heightFeet: req.body.heightFeet ? parseInt(req.body.heightFeet) : undefined,
-      heightInches: req.body.heightInches ? parseInt(req.body.heightInches) : undefined,
+      heightFeet: req.body.heightFeet
+        ? parseInt(req.body.heightFeet)
+        : undefined,
+      heightInches: req.body.heightInches
+        ? parseInt(req.body.heightInches)
+        : undefined,
     };
 
     await Saadhak.findByIdAndUpdate(req.session.user.id, updateData);
