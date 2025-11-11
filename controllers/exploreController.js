@@ -598,6 +598,13 @@ exports.exportDirectoryWord = async (req, res) => {
   try {
     const user = req.session.user;
 
+    // 🟡 Restrict Prant-level users to their own Prant only
+    if (!user.roles.includes("Admin")) {
+      if (user.roles.some((role) => prantRoles.includes(role))) {
+        req.query.prant = user.prant; // Force only their own Prant data
+      }
+    }
+
     // 🟡 Normalize filters
     const normalizeScopeValue = (value) => {
       if (!value) return "";
@@ -654,12 +661,27 @@ exports.exportDirectoryWord = async (req, res) => {
     }
 
     const prantFilter = prantQuery ? { _id: prantQuery } : {};
-
-    const zilaFilter = zilaQuery ? { _id: zilaQuery } : {};
-
-    const ksheterFilter = ksheterQuery ? { _id: ksheterQuery } : {};
-
-    const kenderFilter = kenderQuery ? { _id: kenderQuery } : {};
+    const zilaFilter = zilaQuery
+      ? { _id: zilaQuery }
+      : prantQuery
+        ? { prant: prantQuery }
+        : {};
+    const ksheterFilter = ksheterQuery
+      ? { _id: ksheterQuery }
+      : zilaQuery
+        ? { zila: zilaQuery }
+        : prantQuery
+          ? { prant: prantQuery }
+          : {};
+    const kenderFilter = kenderQuery
+      ? { _id: kenderQuery }
+      : ksheterQuery
+        ? { ksheter: ksheterQuery }
+        : zilaQuery
+          ? { zila: zilaQuery }
+          : prantQuery
+            ? { prant: prantQuery }
+            : {};
 
     const [zilas, ksheterList, kenderList, saadhaks] = await Promise.all([
       Zila.find(zilaFilter).lean(),
@@ -930,7 +952,9 @@ exports.exportSummaryExcel = async (req, res) => {
       const prant = await Prant.findById(user.prant).lean();
       levelLabel = `${prant?.name || "Your"}`;
 
-      const zilas = await Zila.find({ prant: user.prant }).lean().sort({ name: 1 });
+      const zilas = await Zila.find({ prant: user.prant })
+        .lean()
+        .sort({ name: 1 });
 
       for (const zila of zilas) {
         const zones = await Ksheter.countDocuments({ zila: zila._id });
@@ -943,7 +967,9 @@ exports.exportSummaryExcel = async (req, res) => {
       const zila = await Zila.findById(user.zila).lean();
       levelLabel = `${zila?.name || "Your"}`;
 
-      const ksheters = await Ksheter.find({ zila: user.zila }).lean().sort({ name: 1 });
+      const ksheters = await Ksheter.find({ zila: user.zila })
+        .lean()
+        .sort({ name: 1 });
 
       for (const ksheter of ksheters) {
         const kenders = await Kender.countDocuments({ ksheter: ksheter._id });
@@ -1035,7 +1061,6 @@ exports.exportSummaryExcel = async (req, res) => {
     res.status(500).send("Failed to export Excel summary.");
   }
 };
-
 
 exports.exportSummaryPDF = async (req, res) => {
   try {
@@ -1181,7 +1206,11 @@ exports.exportSummaryPDF = async (req, res) => {
     // ------------------ TABLE ------------------
     doc.font("Helvetica-Bold").fontSize(11).fillColor("black");
 
-    const tableHeaders = ["#", level === "PRANT" ? "Zila" : "Ksheter", ...headers];
+    const tableHeaders = [
+      "#",
+      level === "PRANT" ? "Zila" : "Ksheter",
+      ...headers,
+    ];
     const columnWidth = [40, 200, ...headers.map(() => 100)];
     const rowHeight = 20;
     let y = doc.y;
@@ -1262,7 +1291,6 @@ exports.exportSummaryPDF = async (req, res) => {
     res.status(500).send("Failed to export PDF summary.");
   }
 };
-
 
 function getTeam(saadhaks, level, id, roles) {
   const upperRoles = roles.map((r) => r.toUpperCase());

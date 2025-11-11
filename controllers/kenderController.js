@@ -286,7 +286,6 @@ exports.listKenders = async (req, res) => {
 };
 
 
-
 exports.listByKsheter = async (req, res) => {
   try {
     const ksheterId = req.params.id;
