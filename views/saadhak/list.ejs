@@ -294,42 +294,48 @@ else {
           : '<span class="text-muted">—</span>';
 
         tableBody.innerHTML += `
-        <tr style="border: 2px solid black">
-          <td style="border: 2px solid black" class="fw-bold">${start + index + 1}</td>
-          <td class="position-relative">
-            <div class="position-absolute top-0 end-0 mt-1 me-1 d-flex gap-1">
-              <a href="/saadhak/edit/${s._id}" class="btn btn-sm btn-outline-primary py-0 px-1" title="Edit">🖊️</a>
-              <button class="btn btn-sm btn-outline-danger py-0 px-1" data-bs-toggle="modal" data-bs-target="#deleteModal${s._id}" title="Delete">🗑️</button>
-            </div>
+  <tr style="border: 2px solid black">
+    <td style="border: 2px solid black" class="fw-bold">${start + index + 1}</td>
+    <td class="position-relative">
 
-            <div class="fw-bold text-primary d-flex align-items-center flex-wrap">
-              <a href="/saadhak/edit/${s._id}" class="text-decoration-none text-success me-2">${s.name}</a>
-              <span class="d-flex flex-wrap gap-1 me-2">${rolesHtml}</span>
-            </div>
-            <span class="text-danger fw-bold">${s.mobile || '—'}</span>
+      <div class="fw-bold text-primary d-flex align-items-center flex-wrap">
+        <a href="/saadhak/edit/${s._id}" class="text-decoration-none text-success me-2">${s.name}</a>
+        <span class="d-flex flex-wrap gap-1 me-2">${rolesHtml}</span>
+      </div>
+      <span class="text-danger fw-bold">${s.mobile || '—'}</span>
 
-            <div class="text-dark small"><span class="text-primary fw-bold">${s.kender?.name || '—'}</span></div>
-            <div class="text-dark small"><span class="fw-bold" style="color: orange;">${s.ksheter?.name || '—'}</span></div>
-            <div class="text-dark small"><span class="text-dark fw-bold">${s.zila?.name || '—'}</span></div>
-            <div class="text-dark small"><span class="text-secondary fw-bold">${s.prant?.name || '—'}</span></div>
+      <div class="text-dark small"><span class="text-primary fw-bold">${s.kender?.name || '—'}</span></div>
+      <div class="text-dark small"><span class="fw-bold" style="color: orange;">${s.ksheter?.name || '—'}</span></div>
+      <div class="text-dark small"><span class="text-dark fw-bold">${s.zila?.name || '—'}</span></div>
 
-            <div class="modal fade" id="deleteModal${s._id}" tabindex="-1">
-              <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                  <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title">Confirm Delete</h5>
-                    <button class="btn-close" data-bs-dismiss="modal"></button>
-                  </div>
-                  <div class="modal-body">Delete <strong>${s.name}</strong>?</div>
-                  <div class="modal-footer">
-                    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-                    <a href="/saadhak/delete/${s._id}" class="btn btn-danger btn-sm">Yes, Delete</a>
-                  </div>
-                </div>
-              </div>
+      <!-- ✅ Prant line + edit/delete icons on same line -->
+      <div class="text-dark small d-flex justify-content-between align-items-center">
+        <span class="text-secondary fw-bold">${s.prant?.name || '—'}</span>
+        <div class="d-flex gap-1">
+          <a href="/saadhak/edit/${s._id}" class="btn btn-sm btn-outline-primary py-0 px-1" title="Edit">🖊️</a>
+          <button class="btn btn-sm btn-outline-danger py-0 px-1" data-bs-toggle="modal" data-bs-target="#deleteModal${s._id}" title="Delete">🗑️</button>
+        </div>
+      </div>
+
+      <div class="modal fade" id="deleteModal${s._id}" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+              <h5 class="modal-title">Confirm Delete</h5>
+              <button class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-          </td>
-        </tr>`;
+            <div class="modal-body">Delete <strong>${s.name}</strong>?</div>
+            <div class="modal-footer">
+              <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+              <a href="/saadhak/delete/${s._id}" class="btn btn-danger btn-sm">Yes, Delete</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </td>
+  </tr>`;
+
       });
 
       renderPagination(filtered.length);

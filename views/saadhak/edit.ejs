@@ -48,33 +48,42 @@
 </div>
 
     
-    <% const selectedPrant = saadhak?.prant || user.prant; %>
+   <% const isAdminUser = user?.role === 'Admin' || (Array.isArray(user?.roles) && user.roles.includes('Admin')); %>
+
+ <% const selectedPrant = saadhak?.prant || user.prant; %>
     <% const selectedZila = saadhak?.zila || user.zila; %>
     <% const selectedKsheterId = saadhak?.ksheter || user.ksheter; %>
     <% const selectedKenderId = saadhak?.kender || user.kender; %>
 
+
     <!-- Prant -->
     <div class="col-md-4 prant-field d-none">
       <label class="form-label">Prant</label>
-      <select name="prant" id="prantSelect" class="form-select" <%= user.prant ? 'disabled' : '' %>>
+      <select name="prant" id="prantSelect" class="form-select" <%= (!isAdminUser && user.prant) ? 'disabled' : '' %>>
         <option value="">-- Select Prant --</option>
         <% prants.forEach(p => { %>
-          <option value="<%= p._id %>" <%= (selectedPrant == p._id.toString()) ? 'selected' : '' %>><%= p.name %></option>
+          <option value="<%= p._id %>" <%= (selectedPrant == p._id.toString()) ? 'selected' : '' %>>
+            <%= p.name %>
+          </option>
         <% }) %>
       </select>
-      <% if (user.prant) { %>
+     <% if (!isAdminUser && user.prant) { %>
+        <!-- Hidden input only when user cannot change prant -->
         <input type="hidden" name="prant" value="<%= user.prant %>">
       <% } %>
+
     </div>
 
     <!-- Zila -->
     <div class="col-md-4 zila-field d-none">
       <label class="form-label">Zila</label>
-      <select name="zila" id="zilaSelect" class="form-select" <%= user.zila ? 'disabled' : '' %>>
+      <select name="zila" id="zilaSelect" class="form-select" <%= (!isAdminUser && user.zila) ? 'disabled' : '' %>>
         <option value="">-- Select Zila --</option>
         <% zilas.forEach(z => { %>
           <% if (z.prant.toString() === selectedPrant?.toString()) { %>
-            <option value="<%= z._id %>" <%= (selectedZila == z._id.toString()) ? 'selected' : '' %>><%= z.name %></option>
+            <option value="<%= z._id %>" <%= (selectedZila == z._id.toString()) ? 'selected' : '' %>>
+              <%= z.name %>
+            </option>
           <% } %>
         <% }) %>
       </select>
@@ -90,7 +99,9 @@
         <option value="">-- Select Ksheter --</option>
         <% ksheters.forEach(k => { %>
           <% if (k.zila.toString() === selectedZila?.toString()) { %>
-            <option value="<%= k._id %>" <%= (selectedKsheterId == k._id.toString()) ? 'selected' : '' %>><%= k.name %></option>
+            <option value="<%= k._id %>" <%= (selectedKsheterId == k._id.toString()) ? 'selected' : '' %>>
+              <%= k.name %>
+            </option>
           <% } %>
         <% }) %>
       </select>
@@ -106,7 +117,9 @@
         <option value="">-- Select Kender --</option>
         <% kenders.forEach(k => { %>
           <% if (k.ksheter.toString() === selectedKsheterId?.toString()) { %>
-            <option value="<%= k._id %>" <%= (selectedKenderId == k._id.toString()) ? 'selected' : '' %>><%= k.name %></option>
+            <option value="<%= k._id %>" <%= (selectedKenderId == k._id.toString()) ? 'selected' : '' %>>
+              <%= k.name %>
+            </option>
           <% } %>
         <% }) %>
       </select>
