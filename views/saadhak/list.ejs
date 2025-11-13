@@ -403,28 +403,75 @@ else {
     }
 
     // ---------- Export, Search & Reset ----------
-    document.getElementById("exportCsvBtn").addEventListener("click", () => {
-      const filtered = currentFilteredSaadhaks;
-      if (filtered.length === 0) {
-        alert("No matching records to export.");
-        return;
-      }
-      const headers = ["S.No", "Name", "Mobile", "Email", "DOJ", "DOB", "DOM", "Prant", "Zila", "Ksheter", "Kender", "Roles", "Address"];
-      const formatDate = (d) => (!d ? '' : new Date(d).toLocaleDateString('en-GB').replace(/\//g, '-'));
-      const rows = filtered.map((s, i) => [
-        i + 1, s.name || '', s.mobile || '', s.email || '',
-        formatDate(s.doj), formatDate(s.dob), formatDate(s.marriageDate),
-        s.prant?.name || '', s.zila?.name || '', s.ksheter?.name || '',
-        s.kender?.name || '', Array.isArray(s.role) ? s.role.join(', ') : '', s.address || ''
-      ]);
-      const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].map(e => e.map(v => `"${(v || '').replace(/"/g, '""')}"`).join(",")).join("\n");
-      const link = document.createElement("a");
-      link.href = encodeURI(csvContent);
-      link.download = "saadhaks_filtered.csv";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    });
+document.getElementById("exportCsvBtn").addEventListener("click", () => {
+    
+ const spinner = document.getElementById('loadingSpinner');
+      if (spinner) spinner.style.display = 'block';
+
+    
+  try {
+    
+    const filtered = currentFilteredSaadhaks;
+    if (!filtered || filtered.length === 0) {
+      alert("No matching records to export.");
+      spinner.style.display = "none";
+      return;
+    }
+
+    const headers = [
+      "S.No", "Name", "Mobile", "Email", "DOJ", "DOB", "DOM",
+      "Prant", "Zila", "Ksheter", "Kender", "Roles", "Address"
+    ];
+
+    const formatDate = (d) => (!d ? '' : new Date(d).toLocaleDateString('en-GB').replace(/\//g, '-'));
+
+    const rows = filtered.map((s, i) => [
+      i + 1,
+      s.name || '',
+      s.mobile || '',
+      s.email || '',
+      formatDate(s.doj),
+      formatDate(s.dob),
+      formatDate(s.marriageDate),
+      s.prant?.name || '',
+      s.zila?.name || '',
+      s.ksheter?.name || '',
+      s.kender?.name || '',
+      Array.isArray(s.role) ? s.role.join(', ') : (s.role || ''),
+      s.address || ''
+    ]);
+
+    // ✅ Build CSV
+    const csvArray = [headers, ...rows];
+    const csvString = csvArray.map(row =>
+      row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(',')
+    ).join('\r\n');
+
+    // ✅ Create Blob & trigger download
+    const blob = new Blob(["\uFEFF" + csvString], { type: 'text/csv;charset=utf-8;' }); // include BOM for Excel
+    const link = document.createElement('a');
+    const url = window.URL.createObjectURL(blob);
+    link.href = url;
+    link.download = 'saadhaks_filtered.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    console.log("✅ CSV exported:", filtered.length, "records");
+
+
+
+  } catch (err) {
+    console.error("❌ CSV export failed:", err);
+    alert("Error exporting CSV. Check console for details.");
+  } 
+
+    setTimeout(() => {
+        if (spinner) spinner.style.display = 'none';
+      }, 2000);
+});
+
 
     searchBtn.addEventListener("click", () => {
       currentPage = 1;
