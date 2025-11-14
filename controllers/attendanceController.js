@@ -8,7 +8,7 @@ const messages = require("../utils/motivationalMessages");
 const pdfExport = require("../utils/pdfExport");
 const roleConfig = require("../config/roles");
 const roles = roleConfig;
-const ExcelJS = require('exceljs');
+const ExcelJS = require("exceljs");
 
 const {
   adminRoles,
@@ -303,7 +303,14 @@ exports.markAttendance = async (req, res) => {
 exports.viewTodayAttendance = async (req, res) => {
   try {
     const user = req.session.user;
-    const selectedDate = req.query.date ? new Date(req.query.date) : new Date();
+    // Always get today's date in India timezone
+    const todayIndia = new Date()
+      .toLocaleString("en-CA", { timeZone: "Asia/Kolkata" })
+      .split(",")[0];
+
+    const selectedDate = req.query.date
+      ? new Date(req.query.date)
+      : new Date(todayIndia);
 
     const start = new Date(selectedDate);
     start.setHours(0, 0, 0, 0);
@@ -2106,8 +2113,12 @@ exports.exportMissingExcel = async (req, res) => {
       lastAttendanceMap[entry._id.toString()] = entry.lastDate;
     });
 
-    const kenderIds = [...new Set(missingSaadhaks.map((s) => s.kender).filter(Boolean))];
-    const kenders = await Kender.find({ _id: { $in: kenderIds } }).select("name");
+    const kenderIds = [
+      ...new Set(missingSaadhaks.map((s) => s.kender).filter(Boolean)),
+    ];
+    const kenders = await Kender.find({ _id: { $in: kenderIds } }).select(
+      "name"
+    );
     const kenderMap = {};
     kenders.forEach((k) => {
       kenderMap[k._id.toString()] = k.name;
@@ -2116,7 +2127,9 @@ exports.exportMissingExcel = async (req, res) => {
     const result = missingSaadhaks.map((s) => {
       const last = lastAttendanceMap[s._id.toString()] || null;
       const daysSince = last
-        ? Math.floor((Date.now() - new Date(last).getTime()) / (1000 * 60 * 60 * 24))
+        ? Math.floor(
+            (Date.now() - new Date(last).getTime()) / (1000 * 60 * 60 * 24)
+          )
         : -1;
 
       return {
@@ -2151,7 +2164,14 @@ exports.exportMissingExcel = async (req, res) => {
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet("Missing Attendance");
 
-    sheet.addRow(["S.No", "Name", "Mobile", "Kender", "Last Attended", "Days Since"]);
+    sheet.addRow([
+      "S.No",
+      "Name",
+      "Mobile",
+      "Kender",
+      "Last Attended",
+      "Days Since",
+    ]);
 
     filteredResult.forEach((s, i) => {
       const last = s.lastAttended
@@ -2167,7 +2187,10 @@ exports.exportMissingExcel = async (req, res) => {
       sheet.addRow([i + 1, s.name, s.mobile, s.kenderName, last, days]);
     });
 
-    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
     res.setHeader(
       "Content-Disposition",
       `attachment; filename=Missing_Attendance_${from}_to_${to}.xlsx`
@@ -2180,4 +2203,3 @@ exports.exportMissingExcel = async (req, res) => {
     res.status(500).send("Error generating Excel file");
   }
 };
-

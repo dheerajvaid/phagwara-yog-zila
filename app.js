@@ -54,18 +54,17 @@ dotenv.config();
 // ---------------------------------------------
 // 🚀 FASTEST POSSIBLE SERVER START (Render Optimized)
 // ---------------------------------------------
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3000; // Render recommended fallback
 const host = "0.0.0.0";
 
-app.get("/healthz", (req, res) => res.status(200).send("OK")); // health check
+app.get("/healthz", (req, res) => res.status(200).send("OK"));
 
 app.listen(port, host, () => {
   console.log(`🚀 Server started instantly at http://${host}:${port}`);
 });
 
-
 // ---------------------------------------------
-// 📌 2) VIEW ENGINE + STATIC FILES
+// 📌 VIEW ENGINE + STATIC FILES
 // ---------------------------------------------
 app.set("view engine", "ejs");
 app.set("views", [
@@ -79,7 +78,7 @@ app.use(express.json());
 app.use(methodOverride("_method"));
 
 // ---------------------------------------------
-// 📌 3) CONNECT MONGO (DO NOT BLOCK STARTUP)
+// 📌 CONNECT MONGO (Does NOT block startup)
 // ---------------------------------------------
 mongoose
   .connect(process.env.MONGO_URI, {
@@ -90,7 +89,7 @@ mongoose
     console.log("MongoDB connected");
 
     // ---------------------------------------------
-    // 📌 4) SESSION STORE (LOAD ONLY AFTER MONGO)
+    // 📌 SESSION STORE (Load only after DB ready)
     // ---------------------------------------------
     app.use(
       session({
@@ -113,7 +112,7 @@ mongoose
     app.use(flash());
 
     // ---------------------------------------------
-    // 📌 5) GLOBAL USER + ROLES
+    // 📌 GLOBAL USER + ROLES
     // ---------------------------------------------
     app.use((req, res, next) => {
       res.locals.user = req.session.user || null;
@@ -126,16 +125,20 @@ mongoose
     });
 
     // ---------------------------------------------
-    // 📌 6) DELAY HEAVY MIDDLEWARES (Render fix)
+    // 📌 INJECT SCOPE DATA (prant/zila/ksheter/kender) — must be BEFORE routes
+    // ---------------------------------------------
+    app.use(injectScopeData);
+
+    // ---------------------------------------------
+    // 📌 DELAY HEAVY MIDDLEWARES (Render optimization)
     // ---------------------------------------------
     setImmediate(() => {
       app.use(setEventCount);
       app.use(assignRoleLevel);
-      app.use(injectScopeData);
     });
 
     // ---------------------------------------------
-    // 📌 7) LOAD ROUTES (after middlewares)
+    // 📌 LOAD ROUTES
     // ---------------------------------------------
     app.get("/", dashboardController.getFrontPageData);
 
