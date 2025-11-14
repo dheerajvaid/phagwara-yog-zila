@@ -4,19 +4,19 @@
 <div class="container mt-4 mb-5">
   <!-- Title -->
   <div class="text-center mb-4">
-    <h2 class="fw-bold text-danger">📜 श्री हनुमान चालीसा पाठ इतिहास</h2>
-    <p class="text-muted">आपके द्वारा अब तक किए गए पाठों का विवरण</p>
+    <h2 class="fw-bold text-danger">📜 Step Tracking History</h2>
+    <p class="text-muted">Your step entries recorded so far</p>
   </div>
 
   <!-- Summary -->
   <% if (totalPaath > 0) { %>
     <div class="alert alert-success text-center fw-semibold rounded-3">
-      🙏 कुल किए गए पाठ: <span class="text-danger"><%= totalPaath %></span>
+      🚶‍♂️ Total Steps Logged: <span class="text-danger"><%= totalPaath %></span>
     </div>
   <% } else { %>
     <div class="alert alert-warning text-center rounded-3">
-      अभी तक कोई पाठ प्रविष्टि नहीं मिली। 🙏  
-      <a href="/paath/add" class="text-danger fw-bold">नया पाठ जोड़ें</a>
+      No step entries found yet.  
+      <a href="/paath/add" class="text-danger fw-bold">Add Steps</a>
     </div>
   <% } %>
 
@@ -27,17 +27,15 @@
         <table class="table table-striped align-middle mb-0">
           <thead class="bg-danger text-white text-center">
             <tr>
-              <th style="width: 40%;">📅 तिथि</th>
-              <th style="width: 30%;">📖 पाठ संख्या</th>
-              
+              <th style="width: 40%;">📅 Date</th>
+              <th style="width: 30%;">🚶 Steps</th>
             </tr>
           </thead>
           <tbody class="text-center">
             <% paaths.forEach(p => { %>
               <tr>
-                <td><%= new Date(p.date).toLocaleDateString('hi-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) %></td>
+                <td><%= new Date(p.date).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) %></td>
                 <td><span class="badge bg-danger fs-6"><%= p.count %></span></td>
-                
               </tr>
             <% }) %>
           </tbody>
@@ -49,7 +47,7 @@
   <!-- Back or Add Button -->
   <div class="text-center mt-4">
     <a href="/paath/add" class="btn btn-danger rounded-pill px-4 py-2 fw-bold">
-      ➕ नया पाठ जोड़ें
+      ➕ Add Steps
     </a>
   </div>
 </div>

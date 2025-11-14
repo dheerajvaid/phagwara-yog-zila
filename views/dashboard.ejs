@@ -23,11 +23,17 @@
     color: #6c757d;
   }
 
-  .dashboard-card .btn {
-    font-size: 1.1rem;
-    padding: 0.8rem;
-    border-radius: 0.75rem;
-    position: relative;
+  /* NEW — Compact button grid (2 per row) */
+  .btn-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .btn-grid .btn {
+    font-size: 1rem;
+    padding: 0.7rem;
+    border-radius: 0.65rem;
   }
 
   .dashboard-card .badge-calendar {
@@ -42,15 +48,14 @@
   }
 
   .progress {
-  background-color: #e9ecef;
-  border-radius: 0.75rem;
-  overflow: hidden;
-}
+    background-color: #e9ecef;
+    border-radius: 0.75rem;
+    overflow: hidden;
+  }
 
-.progress-bar {
-  transition: width 0.6s ease;
-}
-
+  .progress-bar {
+    transition: width 0.6s ease;
+  }
 
   #notificationBar {
     max-width: 420px;
@@ -86,6 +91,46 @@
     margin: auto;
   }
 
+  .steps-box {
+  background: linear-gradient(135deg, #00e3ae, #00b4d8, #0077b6);
+  border-radius: 14px;
+  padding: 14px 18px !important;
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 6px 14px rgba(0, 200, 180, 0.45);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Glossy line */
+.steps-box::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(
+    to bottom right,
+    rgba(255, 255, 255, 0.22),
+    rgba(255, 255, 255, 0.02)
+  );
+  mix-blend-mode: soft-light;
+}
+
+/* Shine streak */
+.steps-box::after {
+  content: "";
+  position: absolute;
+  top: -40%;
+  left: -30%;
+  width: 60%;
+  height: 180%;
+  background: rgba(255, 255, 255, 0.25);
+  transform: rotate(25deg);
+  filter: blur(20px);
+}
+
   @keyframes scroll {
     0% { transform: translateX(0); }
     100% { transform: translateX(-100%); }
@@ -117,88 +162,52 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content shadow-lg border-2" style="max-width: 400px; margin: auto;">
 
-      <!-- Modal Header -->
       <div class="modal-header bg-success text-white py-2">
         <h5 class="modal-title d-flex align-items-center gap-2" id="tipModalLabel">
-          <div style="
-              height: 44px;
-              width: 44px;
-              padding: 4px;
-              border: 2px solid white;
-              border-radius: 50%;
-              background-color: white;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            ">
-            <img src="/images/logo.jpg" alt="Logo"
-                 style="width: 100%;
-                        height: 100%;
-                        object-fit: contain;
-                        border-radius: 50%;">
+          <div style="height: 44px; width: 44px; padding: 4px; border: 2px solid white; border-radius: 50%; background-color: white; display: flex; align-items: center; justify-content: center;">
+            <img src="/images/logo.jpg" alt="Logo" style="width:100%; height:100%; object-fit:contain; border-radius:50%;">
           </div>
           <span>आज का योग संदेश</span>
         </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
 
-     <!-- Modal Body with Tip (This part gets downloaded) -->
-<div class="modal-body text-center text-dark px-4 py-3" style="padding-bottom: 1rem;">
+      <div class="modal-body text-center text-dark px-4 py-3">
 
-  <div id="tipImageArea" class="bg-white text-dark"
-       style="padding: 1.5rem; border: 2px solid #28a745; border-radius: 0rem; max-width: 350px; margin: auto; box-shadow: 0 0 12px rgba(0,0,0,0.08);">
+        <div id="tipImageArea" class="bg-white text-dark"
+             style="padding: 1.5rem; border: 2px solid #28a745; border-radius: 0rem; max-width: 350px; margin: auto; box-shadow: 0 0 12px rgba(0,0,0,0.08);">
 
-    <!-- Logo + Heading -->
-    <div class="d-flex align-items-center justify-content-center gap-3 mb-3">
-      <div style="
-          width: 60px;
-          height: 60px;
-          padding: 5px;
-          border: 2px solid #28a745;
-          border-radius: 50%;
-          background-color: white;
-          display: flex;
-          align-items: center;
-          justify-content: center;">
-        <img src="/images/logo.jpg" alt="Logo"
-             style="width: 100%;
-                    height: 100%;
-                    object-fit: contain;
-                    border-radius: 50%;">
+          <div class="d-flex align-items-center justify-content-center gap-3 mb-3">
+            <div style="width:60px; height:60px; padding:5px; border:2px solid #28a745; border-radius:50%; background-color:white; display:flex; align-items:center; justify-content:center;">
+              <img src="/images/logo.jpg" style="width:100%; height:100%; object-fit:contain; border-radius:50%;">
+            </div>
+
+            <div>
+              <h5 class="m-0 fw-bold text-success">आज का योग संदेश</h5>
+              <div class="small text-dark">
+                <%= new Date().toLocaleDateString('hi-IN', { day: 'numeric', month: 'long', year: 'numeric' }) %>
+              </div>
+            </div>
+          </div>
+
+          <hr style="border-top:2px solid #28a745; margin-bottom:0.5rem;">
+
+          <p class="fs-5 mb-2 fst-italic" style="color:black;"><%= tipOfTheDay %></p>
+
+          <p class="text-center text-success fw-bold mb-0">- <%= user.name %></p>
+
+          <hr style="border-top:2px solid #28a745; margin-bottom:0.5rem; margin-top:0.5rem;">
+
+          <div class="mt-1 text-center text-primary fw-semibold">
+            <p class="text-danger fw-bold mb-0">BHARATIYA YOG SANSTHAN</p>
+            <a href="https://www.joinyog.in" target="_blank" class="text-decoration-none text-danger">
+              www.joinyog.in
+            </a>
+          </div>
+        </div>
+
       </div>
 
-      <div>
-      <h5 class="m-0 fw-bold text-success">आज का योग संदेश</h5>
-       <!-- Date -->
-    <div class="small text-dark">
-      <%= new Date().toLocaleDateString('hi-IN', { day: 'numeric', month: 'long', year: 'numeric' }) %>
-    </div>
-    </div>
-    </div>
-   
-
-    <!-- Divider -->
-    <hr style="border-top: 2px solid #28a745; margin-bottom: 0.5rem;">
-
-    <!-- Tip Text -->
-    <p class="fs-5 mb-2 fst-italic" style="color: black;"><%= tipOfTheDay %>
-     <p class="text-center text-success fw-bold" style="margin-bottom: 0;">
-      - <%= user.name %>
-     </p>
-    </p>   
-     <hr style="border-top: 2px solid #28a745; margin-bottom: 0.5rem; margin-top: 0;">
-
-    <!-- Website Footer -->
-    <div class="mt-1 text-center text-primary fw-semibold">
-      <p class="text-danger fw-bold mb-0">BHARATIYA YOG SANSTHAN</p>
-      <a href="https://www.joinyog.in" target="_blank" class="text-decoration-none text-danger">www.joinyog.in</a>
-    </div>
-  </div>
-
-</div>
-
-
-      <!-- Modal Footer Buttons -->
       <div class="modal-footer justify-content-center py-2">
         <button type="button" class="btn btn-success" id="downloadTipBtn">⬇️ Download</button>
         <button type="button" class="btn btn-outline-success" data-bs-dismiss="modal">🙏 धन्यवाद</button>
@@ -208,78 +217,88 @@
   </div>
 </div>
 
-
 <section class="container mt-1 text-center">
   <div class="dashboard-card">
 
-    <h2>👋 Welcome, <%= user.name %></h2>
+    <h2>🧘🏻 Yogi <%= user.name %></h2>
     <p class="mb-1">Your mobile: <strong><%= user.mobile %></strong></p>
 
-   <% if (typeof bmi !== 'undefined' && bmi) { %>
-  <p class="mb-2">
-    <strong>BMI:</strong> <%= bmi %> 
-    (<span class="<%= bmiCategory === 'Normal' ? 'text-success' : 'text-danger' %>"><%= bmiCategory %></span>)
-  </p>
+    <% if (typeof bmi !== 'undefined' && bmi) { %>
+      <p class="mb-2">
+        <strong>BMI:</strong> <%= bmi %>
+        (<span class="<%= bmiCategory === 'Normal' ? 'text-success' : 'text-danger' %>"><%= bmiCategory %></span>)
+      </p>
 
-  <!-- Visual Progress Bar for BMI -->
-  <div class="progress" style="height: 12px; max-width: 300px; margin: 0.5rem auto;">
-    <div class="progress-bar 
-      <% if(bmiCategory === 'Normal'){ %> bg-success <% } else { %> bg-danger <% } %>"
-      role="progressbar"
-      style="width: <%= Math.min((bmi / 40) * 100, 100).toFixed(2) %>%"
-      aria-valuenow="<%= bmi %>" aria-valuemin="0" aria-valuemax="40">
-    </div>
-  </div>
-<% } %>
+      <div class="progress" style="height: 12px; max-width: 300px; margin: 0.5rem auto;">
+        <div class="progress-bar 
+          <% if(bmiCategory === 'Normal'){ %> bg-success <% } else { %> bg-danger <% } %>"
+          role="progressbar"
+          style="width: <%= Math.min((bmi / 40) * 100, 100).toFixed(2) %>%"
+          aria-valuenow="<%= bmi %>" aria-valuemin="0" aria-valuemax="40">
+        </div>
+      </div>
+    <% } %>
+
+    <%
+  // If todaySteps is undefined or null, set it to 0
+  const stepsToday = (typeof todaySteps !== 'undefined' && todaySteps !== null) 
+                      ? todaySteps 
+                      : 0;
+%>
+
+<div class="steps-box p-2 mb-2 mt-2 rounded fw-bold text-white">
+  Today's Steps: 
+  <span class="fw-bold"><%= stepsToday.toLocaleString() %> 🚶</span>
+</div>
 
 
-    <div class="d-grid gap-3">
+    <!-- NEW: Compact 2-per-row Button Grid -->
+    <div class="btn-grid">
+
+        <!-- NEW BUTTONS -->
+      <a href="/paath/add" class="btn btn-primary shadow-sm">🚶‍♂️ Enter Steps</a>
 
       <% if (user.roles && user.roles.some(r =>
-            ['Kender Pramukh', 'Seh Kender Pramukh', 'Shikshak', 'Karyakarta'].includes(r)) || user.kender === '68c82ad93cec3c399e196373') { %>
-        <a href="/attendance/mark" class="btn btn-success btn-lg shadow-sm">📌 Mark Attendance</a>
+            ['Kender Pramukh', 'Seh Kender Pramukh', 'Shikshak', 'Karyakarta'].includes(r)) 
+            || user.kender === '68c82ad93cec3c399e196373') { %>
+        <a href="/attendance/mark" class="btn btn-success shadow-sm">✅ Attendance</a>
       <% } %>
 
-      <a href="/attendance/top10" class="btn btn-primary btn-lg shadow-sm">🏆 Top 10 Attendance</a>
+      <a href="/attendance/top10" class="btn btn-danger shadow-sm">🔝 Attendance</a>
 
-      <!-- 🌟 Update Personal Details Button -->
-      <a href="/saadhak/self-update"
-         class="btn btn-gradient btn-lg shadow-sm fw-bold text-white"
-         style="background: linear-gradient(135deg, #ff6a00, #ee0979);
-                border: none;
-                box-shadow: 0 4px 15px rgba(255, 105, 135, 0.3);
-                transition: transform 0.2s ease, box-shadow 0.2s ease;">
-        ✏️ Update Personal Details
-      </a>
+     
 
-      <a href="/calendar/today" class="btn btn-info btn-lg shadow-sm position-relative">
-        📅 Calendar Events
+      <a href="/calendar/today" class="btn btn-info shadow-sm position-relative">
+        📅 Birthday
         <% if (typeof eventCount !== 'undefined' && eventCount > 0) { %>
           <span class="badge-calendar"><%= eventCount %></span>
         <% } %>
       </a>
 
-      <a href="/auth/change-password" class="btn btn-warning btn-lg shadow-sm">🔐 Change Password</a>
-      <a href="/auth/logout" class="btn btn-danger btn-lg shadow-sm">🚪 Logout</a>
+       <a href="/saadhak/self-update"
+         class="btn text-white shadow-sm fw-bold"
+         style="background: linear-gradient(135deg, #ff6a00, #ee0979); border:none;">
+        ✏️ My Details
+      </a>
+
+      <a href="/auth/change-password" class="btn btn-warning shadow-sm">🔐 Password</a>
+      <a href="/auth/logout" class="btn btn-danger shadow-sm">🚪 Logout</a>
+    
+      
     </div>
 
   </div>
 </section>
 
-<!-- Scripts -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <script>
-  // Show Tip Modal on page load
   window.addEventListener("load", () => {
     const tipModal = new bootstrap.Modal(document.getElementById('tipModal'));
     tipModal.show();
   });
 
-  // Notifications
-  const notifications = [
-    "🎉 New Feature: Please Update Kender Creation Date under the menu Update Kender Details! or Edit Kender Details",
-  ];
+  const notifications = ["🎉 New Feature: Please Update Kender Creation Date under the menu Update Kender Details! or Edit Kender Details"];
   let notifIdx = 0;
   const notifText = document.getElementById("notificationText");
 
@@ -289,25 +308,23 @@
   }
 
   showNextNotification();
-  setInterval(showNextNotification, 16000); // Rotate every 8 seconds
+  setInterval(showNextNotification, 16000);
 
-  // High-quality Tip Image Download
   document.getElementById("downloadTipBtn").addEventListener("click", function () {
     const tipElement = document.getElementById("tipImageArea");
 
     html2canvas(tipElement, {
-      backgroundColor: '#ffffff',  // clean white background
-      scale: 4,                    // render at 4x resolution
-      useCORS: true                // handle logo images properly
+      backgroundColor: '#ffffff',
+      scale: 4,
+      useCORS: true
     }).then(canvas => {
       const link = document.createElement("a");
-      const today = new Date().toLocaleDateString('en-CA'); // Format: YYYY-MM-DD
+      const today = new Date().toLocaleDateString('en-CA');
       link.download = `Aaj-Ka-Sandesh-${today}.png`;
       link.href = canvas.toDataURL("image/png");
       link.click();
     });
   });
 </script>
-
 
 <%- include('./partials/footer') %>

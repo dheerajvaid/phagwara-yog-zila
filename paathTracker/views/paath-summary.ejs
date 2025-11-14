@@ -5,34 +5,34 @@
 
   <!-- 🌸 Title -->
   <div class="text-center mb-4">
-    <h2 class="fw-bold text-danger">🔥 समूह हनुमान चालीसा पाठ सारांश</h2>
-    <p class="text-muted mb-0">चयनित दिन के सभी साधकों द्वारा किए गए कुल पाठों का सारांश</p>
+    <h2 class="fw-bold text-danger">🔥 Daily Steps Tracking Summary</h2>
+    <p class="text-muted mb-0">Summary of total steps recorded by all members on the selected date</p>
   </div>
 
   <!-- 📅 Date Picker -->
   <div class="d-flex justify-content-center align-items-center mb-4">
-    <label for="summaryDate" class="me-2 fw-semibold text-secondary">📅 दिनांक चुनें:</label>
+    <label for="summaryDate" class="me-2 fw-semibold text-secondary">📅 Select Date:</label>
     <input type="date" id="summaryDate"
            class="form-control border-danger shadow-sm rounded-pill text-center fw-semibold"
            style="max-width: 200px;"
            value="<%= selectedDate || new Date().toISOString().slice(0, 10) %>">
   </div>
 
-  <!-- 🌞 Total Paath Card -->
+  <!-- 🌞 Total Steps Card -->
   <div class="card border-0 shadow-lg text-center mb-4 rounded-4 bg-light">
     <div class="card-body py-4">
-      <h5 class="fw-bold text-secondary mb-2">कुल पाठ</h5>
+      <h5 class="fw-bold text-secondary mb-2">Total Steps</h5>
       <h1 id="totalPaath" class="fw-bold text-success display-5 mb-2">
-        <%= totalToday %> <span class="fs-5 text-muted">पाठ</span>
+        <%= totalToday %> <span class="fs-5 text-muted">steps</span>
       </h1>
-      <p class="text-muted m-0">🙏 जय हनुमान ज्ञान गुन सागर 🙏</p>
+      <p class="text-muted m-0">💪 Keep moving, keep growing!</p>
     </div>
   </div>
 
   <!-- 👥 All Members Table -->
   <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
     <div class="card-header bg-danger text-white text-center fw-bold fs-5 py-3">
-      🔸 सभी साधक 🔸
+      🔸 All Members 🔸
     </div>
 
     <div class="table-responsive">
@@ -40,9 +40,9 @@
         <thead class="bg-light">
           <tr class="text-danger fw-semibold">
             <th style="width: 8%;">🏅</th>
-            <th style="width: 40%;">साधक नाम</th>
-            <th style="width: 32%;">📱 मोबाइल</th>
-            <th style="width: 20%;">📖 पाठ</th>
+            <th style="width: 40%;">Member Name</th>
+            <th style="width: 32%;">📱 Mobile</th>
+            <th style="width: 20%;">👣 Steps</th>
           </tr>
         </thead>
         <tbody>
@@ -64,7 +64,7 @@
             <% }) %>
           <% } else { %>
             <tr>
-              <td colspan="4" class="py-4 text-muted fs-6">अभी तक किसी ने पाठ दर्ज नहीं किया 🙏</td>
+              <td colspan="4" class="py-4 text-muted fs-6">No steps recorded for this date 👟</td>
             </tr>
           <% } %>
         </tbody>
@@ -75,10 +75,10 @@
   <!-- 🪔 Buttons -->
   <div class="text-center mt-4">
     <a href="/paath/add" class="btn btn-danger rounded-pill px-4 py-2 fw-bold shadow-sm me-2">
-      ➕ नया पाठ जोड़ें
+      ➕ Add Steps
     </a>
     <a href="/paath/list" class="btn btn-outline-danger rounded-pill px-4 py-2 fw-bold shadow-sm">
-      📜 मेरा इतिहास देखें
+      📜 View My Activity
     </a>
   </div>
 
@@ -112,8 +112,9 @@ document.getElementById('summaryDate').addEventListener('change', async function
   const res = await fetch(`/paath/summary?date=${date}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
   const data = await res.json();
 
-  // Update total paath
-  document.getElementById('totalPaath').innerHTML = `${data.totalToday} <span class="fs-5 text-muted">पाठ</span>`;
+  // Update total steps
+  document.getElementById('totalPaath').innerHTML =
+    `${data.totalToday} <span class="fs-5 text-muted">steps</span>`;
 
   // Update members table
   const tbody = document.querySelector('#membersTable tbody');
@@ -137,7 +138,8 @@ document.getElementById('summaryDate').addEventListener('change', async function
         </tr>`;
     });
   } else {
-    tbody.innerHTML = `<tr><td colspan="4" class="py-4 text-muted fs-6">अभी तक किसी ने पाठ दर्ज नहीं किया 🙏</td></tr>`;
+    tbody.innerHTML =
+      `<tr><td colspan="4" class="py-4 text-muted fs-6">No steps recorded 👟</td></tr>`;
   }
 });
 </script>

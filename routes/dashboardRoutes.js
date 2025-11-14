@@ -2,24 +2,30 @@
 const express = require("express");
 const router = express.Router();
 const { requireLogin } = require("../middleware/authMiddleware");
-const tips = require('../data/tips.json'); // if using JSON file
+const tips = require('../data/tips.json');
 const Saadhak = require("../models/Saadhak");
+const Paath = require("../paathTracker/models/paath.model");  // <-- add this line
 
 router.get("/dashboard", requireLogin, async (req, res) => {
   try {
     const user = req.session.user;
     const userId = req.session.user.id;
 
-    // Fetch full saadhak record from DB
+    // Fetch full saadhak record
     const userSaadhak = await Saadhak.findById(userId);
 
-    // Pick random tip
+    // Random tip
     const randomTip = tips[Math.floor(Math.random() * tips.length)];
 
     // Calculate BMI
     let bmi = null;
     let bmiCategory = '';
-    const heightM = ((userSaadhak.heightFeet || 0) * 12 + (userSaadhak.heightInches || 0)) * 2.54 / 100;
+
+    const heightM =
+      ((userSaadhak.heightFeet || 0) * 12 +
+        (userSaadhak.heightInches || 0)) *
+      2.54 / 100;
+
     if (userSaadhak.weightKg && heightM > 0) {
       bmi = userSaadhak.weightKg / (heightM * heightM);
       bmi = Math.round(bmi * 100) / 100;
@@ -30,12 +36,19 @@ router.get("/dashboard", requireLogin, async (req, res) => {
       else bmiCategory = 'Obese';
     }
 
+    // 🌞 NEW: Fetch today's steps (Paath)
+    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const paathToday = await Paath.findOne({ user: userId, date: today });
+    const todaySteps = paathToday ? paathToday.count : 0;
+
+    // Render page
     res.render("dashboard", {
       user,
       userSaadhak,
       tipOfTheDay: randomTip.text,
       bmi,
-      bmiCategory
+      bmiCategory,
+      todaySteps          // <-- send to EJS
     });
 
   } catch (err) {

@@ -30,20 +30,20 @@
 
 <div class="container mt-4 mb-5">
   <div class="text-center mb-4">
-    <h2 class="fw-bold text-danger mb-1">🏵 हनुमान चालीसा समूह पाठ प्रविष्टि</h2>
-    <p class="text-muted">अपने केंद्र के सभी साधकों के पाठ आज ही दर्ज करें 🙏</p>
+    <h2 class="fw-bold text-danger mb-1">🚶‍♂️ Step Tracker – Group Entry</h2>
+    <p class="text-muted">Record today’s step count of all members from your Kendra 🙏</p>
   </div>
 
   <!-- Date Selector -->
   <div class="card card-custom p-3 mb-4 bg-white">
     <div class="row align-items-center">
       <div class="col-md-6 mb-2 mb-md-0">
-        <label class="fw-bold text-secondary mb-1">📅 तिथि चुनें:</label>
+        <label class="fw-bold text-secondary mb-1">📅 Select Date:</label>
         <input type="date" id="groupDate" class="form-control form-control-lg shadow-sm" value="<%= today %>">
       </div>
       <div class="col-md-6 text-md-end text-center">
         <div class="total-card mt-2 mt-md-4">
-          <h5 class="mb-0 text-success fw-bold">कुल पाठ: <span id="totalCountTop">0</span></h5>
+          <h5 class="mb-0 text-success fw-bold">Total Steps: <span id="totalCountTop">0</span></h5>
         </div>
       </div>
     </div>
@@ -61,9 +61,9 @@
       <table class="table table-hover align-middle mb-0 text-center">
         <thead>
           <tr>
-            <th>नाम</th>
-            <th>मोबाइल</th>
-            <th>पाठ संख्या</th>
+            <th>Name</th>
+            <th>Mobile</th>
+            <th>Step Count</th>
           </tr>
         </thead>
         <tbody id="groupTableBody">
@@ -84,10 +84,10 @@
   <!-- Summary + Button -->
   <div class="text-center mt-4">
     <div class="total-card mb-3">
-      <h5 class="fw-bold text-success">कुल पाठ आज: <span id="totalCountBottom">0</span></h5>
+      <h5 class="fw-bold text-success">Total Steps Today: <span id="totalCountBottom">0</span></h5>
     </div><br>
     <button id="saveAllBtn" class="btn btn-lg btn-danger mt-2 rounded-pill px-4 fw-bold shadow-sm">
-      💾 सभी प्रविष्टियाँ सहेजें
+      💾 Save All Step Entries
     </button>
     <p id="saveMsg" class="mt-3 fw-semibold"></p>
   </div>
@@ -164,10 +164,10 @@ saveAllBtn.addEventListener("click", async () => {
     if (data.error) {
       message.innerHTML = `<span class="text-danger">⚠️ ${data.error}</span>`;
     } else {
-      message.innerHTML = `<span class="text-success">✅ ${data.message}. कुल: ${data.total}</span>`;
+      message.innerHTML = `<span class="text-success">✅ ${data.message}. Total Steps: ${data.total}</span>`;
     }
   } catch (err) {
-    message.innerHTML = `<span class="text-danger">⚠️ कुछ त्रुटि हुई।</span>`;
+    message.innerHTML = `<span class="text-danger">⚠️ An error occurred.</span>`;
   } finally {
     spinner.style.display = "none";
     calculateTotal();

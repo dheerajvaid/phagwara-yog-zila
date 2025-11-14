@@ -2,7 +2,7 @@
 <%- include('../views/partials/navbar') %>
 
 <div class="container mt-4 mb-5">
-  <h3 class="text-center text-danger fw-bold mb-3">🙏 Hanuman Chalisa Paath Entry</h3>
+  <h3 class="text-center text-danger fw-bold mb-3">🚶‍♂️ Step Entry</h3>
 
   <form id="paathForm" class="card p-3 shadow-sm">
     <div class="mb-3">
@@ -11,12 +11,12 @@
     </div>
 
     <div class="mb-3">
-      <label class="form-label fw-semibold">Number of Paath Done:</label>
+      <label class="form-label fw-semibold">Number of Steps:</label>
       <input type="number" id="paathCount" name="count" class="form-control" min="0" value="<%= count %>">
       <small class="text-muted">Enter 0 to delete entry for this date</small>
     </div>
 
-    <button type="submit" class="btn btn-danger w-100">💾 Save Paath</button>
+    <button type="submit" class="btn btn-danger w-100">💾 Save Steps</button>
   </form>
 
   <div id="statusMessage" class="text-center mt-3"></div>
@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("paathForm");
   const message = document.getElementById("statusMessage");
 
-  // 🌸 When date changes, fetch saved count
+  // 🌸 When date changes, fetch saved step count
   dateInput.addEventListener("change", async () => {
     const date = dateInput.value;
     const res = await fetch(`/paath/ajax/get?date=${date}`);
@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
     countInput.value = data.count || 0;
   });
 
-  // 🌸 Save or update paath
+  // 🌸 Save or update step entry
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const date = dateInput.value;
@@ -58,9 +58,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const spinner = document.getElementById('loadingSpinner');
      
-      setTimeout(() => {
-        if (spinner) spinner.style.display = 'none';
-      }, 2000);
+    setTimeout(() => {
+      if (spinner) spinner.style.display = 'none';
+    }, 2000);
   });
 
 });
