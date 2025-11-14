@@ -1,19 +1,91 @@
 <%- include('../partials/header') %>
 <%- include('../partials/navbar') %>
+
 <style>
-  .form-check {
-    margin-bottom: 10px; /* Adds vertical gap between options */
+  /* 🌟 Modern Quiz Container */
+  .quiz-box {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: 0px 4px 16px rgba(0,0,0,0.08);
+    border-left: 6px solid #e53935;
   }
 
+  /* 🌟 Question Section Box */
+  .question-container {
+    background: linear-gradient(135deg, #fffafa, #fff0f0);
+    border: 1px solid #ffdddd;
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0px 3px 12px rgba(0,0,0,0.05);
+    margin-bottom: 16px;
+  }
+
+  /* 🌟 Question Styling */
+  .question-text {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #c62828;
+    line-height: 1.7rem;
+    margin-bottom: 12px;
+  }
+
+  /* ✨ Contributor Badge */
+  .contributor-box {
+    background: #e3f2fd;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border-left: 5px solid #1565c0;
+    display: inline-block;
+    font-size: 0.9rem;
+    color: #0d47a1;
+  }
+
+  .contributor-name {
+    font-weight: 700;
+    color: #0d47a1;
+  }
+
+  /* 🔘 Modern Option Box */
+  .option-card {
+    display: flex;
+    align-items: center;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    border: 2px solid #d6d6d6;
+    border-radius: 10px;
+    transition: 0.25s;
+    cursor: pointer;
+    background: #ffffff;
+  }
+
+  /* Hover Effect */
+  .option-card:hover {
+    background: #f7faff;
+    border-color: #1565c0;
+  }
+
+  /* Hide old input circle visually */
   .form-check-input {
-    border: 2px solid #000; /* Makes option circle/border darker */
+    width: 18px;
+    height: 18px;
+    margin-right: 12px;
+    border: 2px solid #333;
   }
 
+  /* When selected */
   .form-check-input:checked {
-    background-color: #000; /* Fills selected circle darker */
-    border-color: #000;
+    background-color: #1565c0;
+    border-color: #1565c0;
+  }
+
+  /* Smooth progress bar */
+  .progress-bar {
+    transition: width 0.4s ease-in-out;
+    font-weight: 600;
   }
 </style>
+
 
 <div class="container mt-4">
   <div class="d-flex justify-content-between align-items-center">
@@ -30,28 +102,36 @@
 
   <form id="answerForm" action="/quiz/<%= sessionId %>/answer?idx=<%= current %>" method="POST">
     <div class="mb-4">
-      <h5 class="text-danger fw-bold"><%= question.text %></h5>
 
-      <% if (question.contributedBy?.name) { %>
-        <p class="text-primary fst-italic small mt-2">
-          <span class="text-dark">📝 Contributed by: </span><span class="text-danger"><%= question.contributedBy.name %></span>
-          <% if (question.contributedBy.designation) { %>
-            (<%= question.contributedBy.designation %>)
-          <% } %>
-        </p>
-      <% } %>
+      <!-- 🌟 NEW BEAUTIFUL QUESTION BOX -->
+      <div class="question-container">
+        <div class="question-text"><%= question.text %></div>
+
+        <% if (question.contributedBy?.name) { %>
+          <div class="contributor-box mt-2">
+            📝 Contributed by:
+            <span class="contributor-name"><%= question.contributedBy.name %></span>
+            <% if (question.contributedBy.designation) { %>
+              (<%= question.contributedBy.designation %>)
+            <% } %>
+          </div>
+        <% } %>
+      </div>
+      <!-- END QUESTION BOX -->
 
       <% question.options.forEach((opt, i) => { %>
-        <div class="form-check">
+        <label for="opt<%= i %>" class="option-card">
           <input class="form-check-input"
-                 type="<%= question.correctAnswers.length > 1 ? 'checkbox' : 'radio' %>"
-                 name="answer"
-                 value="<%= i %>"
-                 id="opt<%= i %>"
-                 <%= (Array.isArray(selectedAnswer) && selectedAnswer.includes(i)) || selectedAnswer == i ? 'checked' : '' %>>
-          <label class="form-check-label" for="opt<%= i %>"><%= opt %></label>
-        </div>
+                type="<%= question.correctAnswers.length > 1 ? 'checkbox' : 'radio' %>"
+                name="answer"
+                value="<%= i %>"
+                id="opt<%= i %>"
+                <%= (Array.isArray(selectedAnswer) && selectedAnswer.includes(i)) || selectedAnswer == i ? 'checked' : '' %> >
+          
+          <span><%= opt %></span>
+        </label>
       <% }) %>
+
     </div>
 
     <div class="d-flex justify-content-between">

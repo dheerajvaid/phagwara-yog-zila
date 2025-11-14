@@ -54,7 +54,7 @@ dotenv.config();
 // ---------------------------------------------
 // 🚀 FASTEST POSSIBLE SERVER START (Render Optimized)
 // ---------------------------------------------
-const port = process.env.PORT || 10000;
+const port = process.env.PORT || 3000;
 const host = "0.0.0.0";
 
 app.get("/healthz", (req, res) => res.status(200).send("OK")); // health check
