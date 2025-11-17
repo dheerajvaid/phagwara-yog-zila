@@ -53,8 +53,12 @@
   </div>
 
   <form action="/quiz/start" method="POST" class="p-4 border rounded bg-light shadow-sm" id="quizStartForm">
+
+    <!-- Hidden field to detect button clicked -->
+    <input type="hidden" name="actionType" id="actionType" value="start">
+
     <div class="mb-4">
-      <label for="numQuestions" class="form-label fw-semibold fs-5">प्रश्नों की संख्या:</label>
+      <label for="numQuestions" class="form-label fw-semibold fs-5">प्रश्नों की संख्या (5 से 20):</label>
       <input type="number" name="numQuestions" class="form-control form-control-lg" min="5" max="20" value="5" required>
     </div>
 
@@ -66,7 +70,6 @@
         <label class="form-check-label fw-bold" for="selectAll">✔️ सभी को चुनें / हटाएँ</label>
       </div>
 
-      <!-- ✅ Toggle boxes styled as selectable grid -->
       <div class="category-grid">
         <% categories.forEach(c => { %>
           <div class="category-box" data-category="<%= c %>"><%= c %></div>
@@ -76,8 +79,22 @@
     </div>
 
     <div class="d-grid mt-4">
-      <button type="submit" class="btn btn-success btn-lg">🚀 क्विज़ प्रारंभ करें</button>
+      <button type="submit" class="btn btn-success btn-lg"
+              onclick="document.getElementById('actionType').value='start'">
+        🚀 क्विज़ प्रारंभ करें
+      </button>
     </div>
+
+    <div class="d-grid mt-3">
+      <button type="submit"
+              formaction="/quiz/print"
+              formmethod="POST"
+              class="btn btn-outline-primary btn-lg"
+              onclick="document.getElementById('actionType').value='print'">
+        🖨️ प्रिंट क्विज़ (PDF)
+      </button>
+    </div>
+
   </form>
 </div>
 
@@ -100,11 +117,36 @@
 </div>
 
 <script>
+
+   const printBtn = document.querySelector('button[formaction="/quiz/print"]');
+
+    printBtn.addEventListener("click", function (e) {
+      e.preventDefault();   // stop normal submit
+
+      const form = printBtn.closest("form");
+
+      // 🔥 Manually apply the button’s action & method
+      form.action = printBtn.getAttribute("formaction");
+      form.method = printBtn.getAttribute("formmethod") || "POST";
+
+      // 🔥 Show spinner (optional)
+      const spinner = document.getElementById("loadingSpinner");
+      if (spinner) spinner.style.display = "block";
+
+      // 🔥 Hide spinner after 2 sec (your logic)
+      setTimeout(() => {
+        if (spinner) spinner.style.display = "none";
+      }, 2000);
+
+      // 🔥 Now submit correctly to /quiz/print
+      form.submit();
+    });
+
   // Toggle selection of category boxes
   document.querySelectorAll('.category-box').forEach(box => {
     box.addEventListener('click', () => {
       const val = box.dataset.category;
-      const checkbox = document.querySelector(`#cb_${CSS.escape(val)}`);
+      const checkbox = document.querySelector('#cb_' + CSS.escape(val));
       checkbox.checked = !checkbox.checked;
       box.classList.toggle('active');
     });
@@ -128,6 +170,9 @@
   // Validate form before submission
   document.getElementById('quizStartForm').addEventListener('submit', function (e) {
     const selected = document.querySelectorAll('.category-checkbox:checked');
+    const actionType = document.getElementById('actionType').value;
+
+    // Both Start Quiz & Print Quiz require at least 1 category
     if (selected.length === 0) {
       e.preventDefault();
       e.stopImmediatePropagation();
@@ -139,3 +184,4 @@
 </script>
 
 <%- include('../partials/footer') %>
+

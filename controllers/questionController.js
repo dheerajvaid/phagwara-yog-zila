@@ -60,23 +60,31 @@ exports.postAddQuestion = async (req, res) => {
 exports.getQuestionList = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
+    const selectedCategory = req.query.category || "";
     const limit = 20;
     const skip = (page - 1) * limit;
 
     const searchQuery = req.query.search?.trim() || "";
     const sortField = req.query.sort || "_id";
 
-    const searchFilter = {
-      $or: [
+    const searchFilter = {};
+
+    if (searchQuery) {
+      searchFilter.$or = [
         { text: new RegExp(searchQuery, "i") },
         { category: new RegExp(searchQuery, "i") },
         { options: { $elemMatch: { $regex: new RegExp(searchQuery, "i") } } },
         { "contributedBy.name": new RegExp(searchQuery, "i") },
         { "contributedBy.designation": new RegExp(searchQuery, "i") },
-      ],
-    };
+      ];
+    }
+
+    if (selectedCategory) {
+      searchFilter.category = selectedCategory; // <-- THIS IS THE MISSING PART
+    }
 
     const total = await Question.countDocuments(searchFilter);
+    const categories = await Question.distinct("category");
     const questions = await Question.find(searchFilter)
       .sort({ [sortField]: 1 })
       .skip(skip)
@@ -84,11 +92,13 @@ exports.getQuestionList = async (req, res) => {
 
     res.render("question/list", {
       title: "All Questions",
+      categories,
       questions,
       currentPage: page,
       totalPages: Math.ceil(total / limit),
       searchQuery,
       sortField,
+      selectedCategory,
     });
   } catch (err) {
     console.error("Error fetching questions:", err);

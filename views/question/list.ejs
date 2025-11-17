@@ -4,22 +4,46 @@
 <div class="container mt-4">
   <h4>📋 All Questions</h4>
 
-  <!-- Search and Sort Controls -->
-  <form method="GET" class="row g-2 mb-3">
-    <div class="col-md-4">
-      <input type="text" name="search" value="<%= searchQuery %>" class="form-control" placeholder="🔍 Search questions, options or category...">
-    </div>
-    <div class="col-md-2">
-      <select name="sort" class="form-select">
-        <option value="_id" <%= sortField === '_id' ? 'selected' : '' %>>Sort by Recent</option>
-        <option value="category" <%= sortField === 'category' ? 'selected' : '' %>>Sort by Category</option>
-        <option value="text" <%= sortField === 'text' ? 'selected' : '' %>>Sort by Question</option>
-      </select>
-    </div>
-    <div class="col-md-2">
-      <button type="submit" class="btn btn-primary w-100">🔍 Apply</button>
-    </div>
-  </form>
+ <!-- Search + Sort + Category Filter -->
+<form method="GET" class="row g-2 mb-3">
+
+  <!-- Search -->
+  <div class="col-md-4">
+    <input type="text" 
+           name="search" 
+           value="<%= searchQuery %>" 
+           class="form-control" 
+           placeholder="🔍 Search questions, options or category...">
+  </div>
+
+  <!-- Category Filter Dropdown -->
+  <div class="col-md-3">
+    <select name="category" class="form-select">
+      <option value="">📂 Filter by Category</option>
+      <% categories.forEach(cat => { %>
+        <option value="<%= cat %>" <%= selectedCategory === cat ? 'selected' : '' %>>
+          <%= cat %>
+        </option>
+      <% }) %>
+    </select>
+  </div>
+
+  <!-- Sort -->
+  <div class="col-md-2">
+    <select name="sort" class="form-select">
+      <option value="_id" <%= sortField === '_id' ? 'selected' : '' %>>Sort by Recent</option>
+      <option value="category" <%= sortField === 'category' ? 'selected' : '' %>>Sort by Category</option>
+      <option value="text" <%= sortField === 'text' ? 'selected' : '' %>>Sort by Question</option>
+    </select>
+  </div>
+
+  <!-- Apply button -->
+  <div class="col-md-2">
+    <button type="submit" class="btn btn-primary w-100">🔍 Apply</button>
+  </div>
+
+</form>
+
 
   <!-- Question Table -->
   <table class="table table-bordered table-striped mt-3">

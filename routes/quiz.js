@@ -8,5 +8,6 @@ router.get('/:sessionId', quizController.getQuizPage);
 router.post('/:sessionId/answer', quizController.postAnswer);
 router.post('/:sessionId/submit', quizController.submitQuiz);
 router.get('/:sessionId/submit', quizController.submitQuiz);
+router.post("/print", quizController.printQuiz);
 
 module.exports = router;
