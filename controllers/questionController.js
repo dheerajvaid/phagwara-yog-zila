@@ -1,8 +1,11 @@
 const Question = require("../models/Question");
 
 // Render the form to add a new question
-exports.getAddQuestionForm = (req, res) => {
+exports.getAddQuestionForm = async (req, res) => {
+  const categories = await Question.distinct("category"); // unique list
+
   res.render("question/add", {
+    categories,
     title: "Add New Question",
   });
 };
@@ -97,8 +100,14 @@ exports.getQuestionList = async (req, res) => {
 exports.getEditForm = async (req, res) => {
   try {
     const question = await Question.findById(req.params.id);
+    const categories = await Question.distinct("category");
+
     if (!question) return res.status(404).send("Question not found");
-    res.render("question/edit", { title: "Edit Question", question });
+    res.render("question/edit", {
+      categories,
+      title: "Edit Question",
+      question,
+    });
   } catch (err) {
     console.error("Error fetching question:", err);
     res.status(500).send("Internal Server Error");

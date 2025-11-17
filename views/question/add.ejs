@@ -30,8 +30,22 @@
 
       <div class="mb-3">
         <label for="category" class="form-label">Category / Tag</label>
-        <input type="text" class="form-control" name="category" id="category" placeholder="e.g., Yoga, Pranayama" required>
+
+        <!-- Combo Box: User can select OR type new -->
+        <input class="form-control mb-2" 
+              list="categoryList" 
+              name="category" 
+              id="category" 
+              placeholder="Type or select category" 
+              required>
+
+        <datalist id="categoryList">
+          <% categories.forEach(cat => { %>
+            <option value="<%= cat %>"></option>
+          <% }) %>
+        </datalist>
       </div>
+
 
       <hr class="my-4">
 

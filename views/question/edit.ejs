@@ -28,8 +28,23 @@
 
     <div class="mb-3">
       <label class="form-label">Category</label>
-      <input type="text" class="form-control" name="category" value="<%= question.category %>" required>
+
+      <!-- Combo Box: type or choose -->
+      <input class="form-control mb-2"
+            list="categoryList"
+            name="category"
+            id="category"
+            value="<%= question.category %>"
+            placeholder="Type or select category"
+            required>
+
+      <datalist id="categoryList">
+        <% categories.forEach(cat => { %>
+          <option value="<%= cat %>"></option>
+        <% }) %>
+      </datalist>
     </div>
+
 
     <hr class="my-4">
     <h6 class="text-muted">✍️ Contributor Information (optional)</h6>
