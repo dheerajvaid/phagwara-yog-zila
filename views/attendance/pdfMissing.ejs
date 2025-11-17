@@ -1,11 +1,10 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>Missing Attendance Report</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
+<style>
     body {
       font-family: 'Segoe UI', sans-serif;
       font-size: 18px;
@@ -44,12 +43,20 @@
       font-weight: 700;
     }
 
+    /* Wrapper for mobile horizontal scroll */
+    .table-wrapper {
+      width: 100%;
+      overflow-x: auto;
+    }
+
     table.data-table {
       width: 100%;
       border-collapse: collapse;
       font-size: 20px;
       font-weight: 700;
       margin-bottom: 10px;
+      table-layout: auto;
+      word-break: break-word;
     }
 
     table.data-table th, table.data-table td {
@@ -90,7 +97,37 @@
         print-color-adjust: exact;
       }
     }
-  </style>
+
+    /* ---------- MOBILE FIXES ---------- */
+    @media (max-width: 600px) {
+      body {
+        font-size: 14px;
+      }
+
+      table.data-table {
+        font-size: 14px;
+      }
+
+      table.data-table th, table.data-table td {
+        padding: 4px 6px;
+      }
+
+      h2 {
+        font-size: 20px;
+      }
+
+      .header-logo img {
+        height: 45px;
+      }
+    }
+
+    /* ---------- FIXED A4 PAGE SIZE ---------- */
+    @page {
+      size: A4 portrait;
+      margin: 10mm;
+    }
+</style>
+
 </head>
 <body>
 
@@ -115,52 +152,56 @@
     </tr>
   </table>
 
-  <% const rowsPerPage = 30; const groups = []; for (let i = 0; i < missing.length; i += rowsPerPage) { groups.push(missing.slice(i, i + rowsPerPage)); } %>
+  <% const rowsPerPage = 40; const groups = []; for (let i = 0; i < missing.length; i += rowsPerPage) { groups.push(missing.slice(i, i + rowsPerPage)); } %>
 
   <% groups.forEach((group, pageIndex) => { %>
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Name</th>
-          <th>Mobile</th>
-          <th>Kender</th>
-          <th>Last Attended</th>
-          <th>Days</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% group.forEach((s, i) => { %>
+
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
           <tr>
-            <td><%= pageIndex * rowsPerPage + i + 1 %></td>
-            <td><%= s.name %></td>
-            <td><%= s.mobile %></td>
-            <td><%= s.kenderName || '—' %></td>
-            <td class="<%= s.lastAttended ? 'attended' : 'never' %>">
-              <% if (s.lastAttended) {
-                   const d = new Date(s.lastAttended).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-                   const wd = new Date(s.lastAttended).toLocaleDateString('en-IN', { weekday: 'short' });
-              %>
-                <%= d %> (<%= wd %>)
-              <% } else { %>
-                Never Attended
-              <% } %>
-            </td>
-            <td>
-              <% if (s.lastAttended) { %>
-                <%= Math.floor((Date.now() - new Date(s.lastAttended).getTime()) / (1000 * 60 * 60 * 24)) %>
-              <% } else { %>
-                —
-              <% } %>
-            </td>
+            <th>#</th>
+            <th>Name</th>
+            <th>Mobile</th>
+            <th>Kender</th>
+            <th>Last Attended</th>
+            <th>Days</th>
           </tr>
-        <% }) %>
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          <% group.forEach((s, i) => { %>
+            <tr>
+              <td><%= pageIndex * rowsPerPage + i + 1 %></td>
+              <td><%= s.name %></td>
+              <td><%= s.mobile %></td>
+              <td><%= s.kenderName || '—' %></td>
+              <td class="<%= s.lastAttended ? 'attended' : 'never' %>">
+                <% if (s.lastAttended) {
+                     const d = new Date(s.lastAttended).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+                     const wd = new Date(s.lastAttended).toLocaleDateString('en-IN', { weekday: 'short' });
+                %>
+                  <%= d %> (<%= wd %>)
+                <% } else { %>
+                  Never Attended
+                <% } %>
+              </td>
+              <td>
+                <% if (s.lastAttended) { %>
+                  <%= Math.floor((Date.now() - new Date(s.lastAttended).getTime()) / (1000 * 60 * 60 * 24)) %>
+                <% } else { %>
+                  —
+                <% } %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
 
     <% if (pageIndex < groups.length - 1) { %>
       <div class="page-break"></div>
     <% } %>
+
   <% }) %>
 
   <div class="footer">
