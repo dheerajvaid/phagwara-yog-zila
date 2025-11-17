@@ -116,33 +116,62 @@
   </div>
 </div>
 
+<!-- Minimum Questions Modal -->
+<div class="modal fade" id="questionModal" tabindex="-1" aria-labelledby="questionModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="questionModalLabel">⚠️ न्यूनतम प्रश्न</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        प्रिंट के लिए कम से कम <strong>5 प्रश्न</strong> आवश्यक हैं।
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">ठीक है</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 
-   const printBtn = document.querySelector('button[formaction="/quiz/print"]');
+  const printBtn = document.querySelector('button[formaction="/quiz/print"]');
 
-    printBtn.addEventListener("click", function (e) {
-      e.preventDefault();   // stop normal submit
+  printBtn.addEventListener("click", function (e) {
+    e.preventDefault();   // stop default submit
 
-      const form = printBtn.closest("form");
+    const form = printBtn.closest("form");
 
-      // 🔥 Manually apply the button’s action & method
-      form.action = printBtn.getAttribute("formaction");
-      form.method = printBtn.getAttribute("formmethod") || "POST";
+    const selected = document.querySelectorAll('.category-checkbox:checked');
+    if (selected.length === 0) {
+      const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryModal'));
+      modal.show();
+      return;
+    }
 
-      // 🔥 Show spinner (optional)
-      const spinner = document.getElementById("loadingSpinner");
-      if (spinner) spinner.style.display = "block";
+    // 🔥 VALIDATE NUMBER OF QUESTIONS (MIN 5)
+    const numQ = document.querySelector('input[name="numQuestions"]').value;
+    if (numQ < 5) {
+      const qModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('questionModal'));
+      qModal.show();
+      return;
+    }
 
-      // 🔥 Hide spinner after 2 sec (your logic)
-      setTimeout(() => {
-        if (spinner) spinner.style.display = "none";
-      }, 2000);
+    form.action = printBtn.getAttribute("formaction");
+    form.method = printBtn.getAttribute("formmethod") || "POST";
 
-      // 🔥 Now submit correctly to /quiz/print
-      form.submit();
-    });
+    const spinner = document.getElementById("loadingSpinner");
+    if (spinner) spinner.style.display = "block";
 
-  // Toggle selection of category boxes
+    setTimeout(() => {
+      if (spinner) spinner.style.display = "none";
+    }, 2000);
+
+    form.submit();
+  });
+
+  // Toggle selection
   document.querySelectorAll('.category-box').forEach(box => {
     box.addEventListener('click', () => {
       const val = box.dataset.category;
@@ -152,36 +181,30 @@
     });
   });
 
-  // Select/Deselect All logic
+  // Select All
   document.getElementById('selectAll').addEventListener('change', function () {
     const allBoxes = document.querySelectorAll('.category-box');
     const allChecks = document.querySelectorAll('.category-checkbox');
 
     allChecks.forEach(cb => cb.checked = this.checked);
     allBoxes.forEach(box => {
-      if (this.checked) {
-        box.classList.add('active');
-      } else {
-        box.classList.remove('active');
-      }
+      if (this.checked) box.classList.add('active');
+      else box.classList.remove('active');
     });
   });
 
-  // Validate form before submission
+  // Start Quiz Validation
   document.getElementById('quizStartForm').addEventListener('submit', function (e) {
     const selected = document.querySelectorAll('.category-checkbox:checked');
-    const actionType = document.getElementById('actionType').value;
 
-    // Both Start Quiz & Print Quiz require at least 1 category
     if (selected.length === 0) {
       e.preventDefault();
       e.stopImmediatePropagation();
-
       const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryModal'));
       modal.show();
     }
   });
+
 </script>
 
 <%- include('../partials/footer') %>
-
