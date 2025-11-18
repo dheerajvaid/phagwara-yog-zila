@@ -1011,7 +1011,13 @@ exports.viewTop10Attendance = async (req, res) => {
     const prantId = user.prant;
     const zilaId = user.prant;
 
-    const includeRoles = [...kenderRoles, ...kenderTeamRoles, ...saadhakRoles];
+    const includeRoles = [
+      ...zilaRoles,
+      ...ksheterRoles,
+      ...kenderRoles,
+      ...kenderTeamRoles,
+      ...saadhakRoles,
+    ];
 
     const today = new Date();
     const selectedMonth = parseInt(req.query.month) || today.getMonth() + 1;
@@ -1040,18 +1046,10 @@ exports.viewTop10Attendance = async (req, res) => {
     let attendanceData = [];
     let noData = true;
 
-    const prantQuery = Array.isArray(req.query.prant)
-      ? req.query.prant[0]
-      : req.query.prant;
-    const zilaQuery = Array.isArray(req.query.zila)
-      ? req.query.zila[0]
-      : req.query.zila;
-    const ksheterQuery = Array.isArray(req.query.ksheter)
-      ? req.query.ksheter[0]
-      : req.query.ksheter;
-    const kenderQuery = Array.isArray(req.query.kender)
-      ? req.query.kender[0]
-      : req.query.kender;
+    const prantQuery = Array.isArray(req.query.prant) ? req.query.prant[0] : req.query.prant;
+    const zilaQuery = Array.isArray(req.query.zila) ? req.query.zila[0] : req.query.zila;
+    const ksheterQuery = Array.isArray(req.query.ksheter) ? req.query.ksheter[0] : req.query.ksheter;
+    const kenderQuery = Array.isArray(req.query.kender) ? req.query.kender[0] : req.query.kender;
 
     const scopeSelected =
       (prantQuery && prantQuery.trim() !== "") ||
@@ -1059,13 +1057,17 @@ exports.viewTop10Attendance = async (req, res) => {
       (ksheterQuery && ksheterQuery.trim() !== "") ||
       (kenderQuery && kenderQuery.trim() !== "");
 
+    // Helper: Detect Adhikari (Zila + Ksheter level)
+    const isAdhikari = (saadhak) =>
+      saadhak.role?.some((r) => zilaRoles.includes(r) || ksheterRoles.includes(r));
+
     if (scopeSelected) {
+      // Filter (kept variable name `role` as per your schema)
       let filter = { role: { $in: includeRoles } };
 
       if (prantQuery && prantQuery.trim() !== "") filter.prant = prantQuery;
       if (zilaQuery && zilaQuery.trim() !== "") filter.zila = zilaQuery;
-      if (ksheterQuery && ksheterQuery.trim() !== "")
-        filter.ksheter = ksheterQuery;
+      if (ksheterQuery && ksheterQuery.trim() !== "") filter.ksheter = ksheterQuery;
       if (kenderQuery && kenderQuery.trim() !== "") filter.kender = kenderQuery;
 
       const saadhaks = await Saadhak.find(filter)
@@ -1083,12 +1085,13 @@ exports.viewTop10Attendance = async (req, res) => {
         .select("saadhak kender date status")
         .lean();
 
-      const attendanceMap = {};
-      const kenderOperationalDaysMap = {};
+      // Build attendance map and kender operational days map (unchanged but ensure Sets)
+      const attendanceMap = {}; // { saadhakId: Set(dates) }
+      const kenderOperationalDaysMap = {}; // { kenderId: Set(dates) }
 
       for (const rec of attendanceRecords) {
         const saadhakId = rec.saadhak.toString();
-        const kenderId = rec.kender.toString();
+        const kenderId = rec.kender?.toString();
         const dateStr = rec.date.toISOString().split("T")[0];
 
         if (rec.status === "Present") {
@@ -1096,45 +1099,47 @@ exports.viewTop10Attendance = async (req, res) => {
           attendanceMap[saadhakId].add(dateStr);
         }
 
-        if (!kenderOperationalDaysMap[kenderId])
-          kenderOperationalDaysMap[kenderId] = new Set();
-        kenderOperationalDaysMap[kenderId].add(dateStr);
+        if (kenderId) {
+          if (!kenderOperationalDaysMap[kenderId]) kenderOperationalDaysMap[kenderId] = new Set();
+          kenderOperationalDaysMap[kenderId].add(dateStr);
+        }
       }
 
-      const kenderEligible = {};
+      // daysInMonth and threshold (same behavior as before)
       const daysInMonth =
-        selectedYear === today.getFullYear() &&
-        selectedMonth === today.getMonth() + 1
+        selectedYear === today.getFullYear() && selectedMonth === today.getMonth() + 1
           ? today.getDate()
           : end.getDate();
+
       const threshold = Math.ceil(daysInMonth * 0.65);
 
-      Object.entries(kenderOperationalDaysMap).forEach(
-        ([kenderId, datesSet]) => {
-          kenderEligible[kenderId] = datesSet.size >= threshold;
-        }
-      );
+      const kenderEligible = {};
+      Object.entries(kenderOperationalDaysMap).forEach(([kenderId, datesSet]) => {
+        kenderEligible[kenderId] = datesSet.size >= threshold;
+      });
 
-      const sortedData = saadhaks
+      // ----------------------------
+      // 1) Build sortedData for NON-Adhikari (saadhak tied to kender)
+      // ----------------------------
+      const sortedNonAdhikari = saadhaks
         .map((s) => {
+          if (isAdhikari(s)) return null; // only non-adhikari in this set
+
           const saadhakId = s._id.toString();
           const kenderId = s.kender?._id?.toString();
-
           if (!kenderId || !kenderEligible[kenderId]) return null;
 
           const presentDatesSet = attendanceMap[saadhakId] || new Set();
-          const operationalDatesSet =
-            kenderOperationalDaysMap[kenderId] || new Set();
-
-          const presentCount = presentDatesSet.size;
-          const totalOperationalDays = operationalDatesSet.size;
+          const presentCount = Number(presentDatesSet.size || 0);
+          const operationalDatesSet = kenderOperationalDaysMap[kenderId] || new Set();
+          const totalOperationalDays = Number(operationalDatesSet.size || 0);
 
           const attendancePercentage =
             totalOperationalDays > 0
-              ? ((presentCount / totalOperationalDays) * 100).toFixed(2)
-              : "0.00";
+              ? Number(((presentCount / totalOperationalDays) * 100).toFixed(2))
+              : 0.0;
 
-          const missedDays = totalOperationalDays - presentCount;
+          const missedDays = Number(Math.max(totalOperationalDays - presentCount, 0));
 
           return {
             _id: s._id,
@@ -1145,85 +1150,179 @@ exports.viewTop10Attendance = async (req, res) => {
             presentCount,
             totalOperationalDays,
             missedDays,
-            attendancePercentage: parseFloat(attendancePercentage),
+            attendancePercentage,
           };
         })
         .filter((s) => s && s.presentCount > 0)
         .sort((a, b) => {
-          if (b.presentCount !== a.presentCount)
-            return b.presentCount - a.presentCount;
+          // numeric-safe comparisons
+          if (b.presentCount !== a.presentCount) return b.presentCount - a.presentCount;
           if (a.missedDays !== b.missedDays) return a.missedDays - b.missedDays;
-          if (a.ksheter !== b.ksheter)
-            return a.ksheter.localeCompare(b.ksheter);
+          if (a.ksheter !== b.ksheter) return a.ksheter.localeCompare(b.ksheter);
           if (a.kender !== b.kender) return a.kender.localeCompare(b.kender);
           return a.name.localeCompare(b.name);
         });
 
+      // ----------------------------
+      // 2) Apply your exact Top-N selection logic ON NON-ADHIKARI set (unchanged)
+      // ----------------------------
       const topN = parseInt(req.query.top) || 10;
-      attendanceData = [];
+      let selectedSaadhaks = [];
 
-      if (sortedData.length > 0) {
+      if (sortedNonAdhikari.length > 0) {
         let currentMissed = 0;
 
-        while (attendanceData.length < topN) {
-          const toAdd = sortedData.filter(
-            (s) => s.missedDays === currentMissed
-          );
+        while (selectedSaadhaks.length < topN) {
+          const toAdd = sortedNonAdhikari.filter((s) => s.missedDays === currentMissed);
           if (toAdd.length === 0) {
             currentMissed++;
+            // safety break if nothing else to add
+            if (currentMissed > daysInMonth) break;
             continue;
           }
-          attendanceData.push(...toAdd);
-          if (attendanceData.length >= topN) break;
+          selectedSaadhaks.push(...toAdd);
+          if (selectedSaadhaks.length >= topN) break;
           currentMissed++;
         }
 
-        // Unique cleanup
+        // Unique cleanup (preserve original behavior)
         const seenIds = new Set();
-        attendanceData = attendanceData.filter((s) => {
+        selectedSaadhaks = selectedSaadhaks.filter((s) => {
           if (seenIds.has(s._id.toString())) return false;
           seenIds.add(s._id.toString());
           return true;
         });
 
-        // ✅ Add new logic: Include everyone with presentCount >= min of this list
-        const minPresent = Math.min(
-          ...attendanceData.map((s) => s.presentCount)
-        );
+        // Add everyone with presentCount >= minPresent (original extension)
+        const minPresent = Math.min(...selectedSaadhaks.map((s) => s.presentCount));
+        const extendedList = sortedNonAdhikari.filter((s) => s.presentCount >= minPresent);
 
-        const extendedList = sortedData.filter(
-          (s) => s.presentCount >= minPresent
-        );
-
-        // ✅ Combine both lists and keep only unique saadhaks
         const finalMap = new Map();
-        [...attendanceData, ...extendedList].forEach((s) => {
+        [...selectedSaadhaks, ...extendedList].forEach((s) => {
           finalMap.set(s._id.toString(), s);
         });
 
-        attendanceData = Array.from(finalMap.values());
+        selectedSaadhaks = Array.from(finalMap.values());
 
-        attendanceData.sort((a, b) => {
-          if (b.presentCount !== a.presentCount)
-            return b.presentCount - a.presentCount;
+        // Final sort (preserve original)
+        selectedSaadhaks.sort((a, b) => {
+          if (b.presentCount !== a.presentCount) return b.presentCount - a.presentCount;
           if (a.missedDays !== b.missedDays) return a.missedDays - b.missedDays;
-          if (a.ksheter !== b.ksheter)
-            return a.ksheter.localeCompare(b.ksheter);
+          if (a.ksheter !== b.ksheter) return a.ksheter.localeCompare(b.ksheter);
           if (a.kender !== b.kender) return a.kender.localeCompare(b.kender);
           return a.name.localeCompare(b.name);
         });
       }
 
+      // ----------------------------
+      // 3) Compute the minimum Saadhak attendance percentage from this final list
+      // ----------------------------
+      let minSaadhakPercentage = 0;
+      if (selectedSaadhaks.length > 0) {
+        minSaadhakPercentage = Math.min(...selectedSaadhaks.map((s) => Number(s.attendancePercentage || 0)));
+      } else {
+        minSaadhakPercentage = 0;
+      }
+
+      // ----------------------------
+      // NEW: Find maximum operational days among ALL kendras in scope
+      // ----------------------------
+      let maxOperationalDays = 0;
+      const allKenderOperationalValues = Object.values(kenderOperationalDaysMap).map((set) => set.size || 0);
+      if (allKenderOperationalValues.length > 0) {
+        maxOperationalDays = Math.max(...allKenderOperationalValues);
+      } else {
+        maxOperationalDays = daysInMonth; // fallback
+      }
+      maxOperationalDays = Number(maxOperationalDays || daysInMonth);
+
+      // ----------------------------
+      // 4) Evaluate Adhikari inclusion based on minSaadhakPercentage and set numeric fields
+      // ----------------------------
+      const adhikariList = saadhaks
+        .map((s) => {
+          if (!isAdhikari(s)) return null;
+
+          const saadhakId = s._id.toString();
+          const presentDatesSet = attendanceMap[saadhakId] || new Set();
+          const presentCount = Number(presentDatesSet.size || 0);
+
+          if (presentCount === 0) return null; // require at least one present day to be considered
+
+          // Use maxOperationalDays as denominator for Adhikari
+          const attendancePercentage =
+            maxOperationalDays > 0
+              ? Number(((presentCount / maxOperationalDays) * 100).toFixed(2))
+              : 0;
+
+          // Make missedDays comparable to non-adhikari by using same denominator
+          const missedDays = Number(Math.max(maxOperationalDays - presentCount, 0));
+
+          if (attendancePercentage < minSaadhakPercentage) return null;
+
+          return {
+            _id: s._id,
+            name: s.name,
+            kender: "Adhikari",
+            ksheter: "Adhikari",
+            attendance: [...presentDatesSet],
+            presentCount,
+            totalOperationalDays: Number(maxOperationalDays),
+            missedDays,
+            attendancePercentage,
+          };
+        })
+        .filter((x) => x !== null);
+
+      // ----------------------------
+      // 5) Merge selectedSaadhaks (non-adhikari) + adhikariList without duplicates
+      // ----------------------------
+      const combinedMap = new Map();
+      selectedSaadhaks.forEach((s) => combinedMap.set(s._id.toString(), s));
+      adhikariList.forEach((a) => combinedMap.set(a._id.toString(), a));
+
+      attendanceData = Array.from(combinedMap.values());
+
+      // Final sort: keep your original sorting order but with numeric-safe comparisons
+      attendanceData.sort((a, b) => {
+        // 1) presentCount numeric
+        if (b.presentCount !== a.presentCount) return b.presentCount - a.presentCount;
+
+        // 2) missedDays numeric (lower missedDays wins)
+        if (a.missedDays !== b.missedDays) return a.missedDays - b.missedDays;
+
+        // 3) ksheter alphabetical
+        if ((a.ksheter || "") !== (b.ksheter || "")) return (a.ksheter || "").localeCompare(b.ksheter || "");
+
+        // 4) kender alphabetical
+        if ((a.kender || "") !== (b.kender || "")) return (a.kender || "").localeCompare(b.kender || "");
+
+        // 5) name alphabetical
+        return (a.name || "").localeCompare(b.name || "");
+      });
+
       noData = attendanceData.length === 0;
     }
 
-    // ✅ Prepare Ksheter-wise and Kender-wise summary counts
+    // ---------------------------------------------
+    // SUMMARY BLOCK (UNCHANGED, SAFE)
+    // ---------------------------------------------
     const ksheterSummaryMap = {};
     const kenderSummaryMap = {};
 
     for (const saadhak of attendanceData) {
-      const ksheter = saadhak.ksheter || "Unknown Ksheter";
-      const kender = saadhak.kender || "Unknown Kender";
+      let ksheter = saadhak.ksheter || "Unknown Ksheter";
+      let kender = saadhak.kender || "Unknown Kender";
+
+      if (saadhak.role?.some((r) => zilaRoles.includes(r))) {
+        ksheter = "Adhikari";
+        kender = "Adhikari";
+      }
+
+      if (saadhak.role?.some((r) => ksheterRoles.includes(r))) {
+        ksheter = "Adhikari";
+        kender = "Adhikari";
+      }
 
       if (!ksheterSummaryMap[ksheter]) {
         ksheterSummaryMap[ksheter] = { total: 0, kendras: {} };
@@ -1260,8 +1359,6 @@ exports.viewTop10Attendance = async (req, res) => {
       selectedZila: res.locals.selectedZila,
       selectedKsheter: res.locals.selectedKsheter,
       selectedKender: res.locals.selectedKender,
-
-      // ✅ new summary data
       ksheterSummaryMap,
       kenderSummaryMap,
     });
@@ -1270,6 +1367,7 @@ exports.viewTop10Attendance = async (req, res) => {
     res.status(500).send("Server Error");
   }
 };
+
 
 exports.getMissingForm = async (req, res) => {
   const kendras = await Kender.find().sort({ name: 1 });

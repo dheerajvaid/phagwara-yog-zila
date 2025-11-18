@@ -112,7 +112,17 @@
         </tr>
       </thead>
       <tbody>
-        <% for (let ksheter in ksheterSummaryMap) { %>
+        <% 
+          const sortedKsheter = Object.keys(ksheterSummaryMap).sort((a, b) => {
+            const isA = a === 'Adhikari';
+            const isB = b === 'Adhikari';
+            if (isA && !isB) return -1;   // Adhikari on top
+            if (!isA && isB) return 1;
+            return a.localeCompare(b);
+          });
+        %>
+
+        <% sortedKsheter.forEach(ksheter => { %>
           <% let kendras = ksheterSummaryMap[ksheter].kendras; %>
           <% let first = true; %>
           <% for (let kender in kendras) { %>
@@ -125,8 +135,9 @@
               <td><%= kendras[kender] %></td>
             </tr>
           <% } %>
-        <% } %>
+        <% }); %>
       </tbody>
+
     </table>
   </div>
 
@@ -272,25 +283,45 @@ document.getElementById('exportPdfBtn')?.addEventListener('click', function () {
   const summaryHead = [['Ksheter', 'Kender', 'Saadhak Count']];
   const summaryBody = [];
 
-  for (let ksheter in ksheterSummaryMap) {
-    const kendras = ksheterSummaryMap[ksheter].kendras;
-    const total = ksheterSummaryMap[ksheter].total;
-    const kendrasKeys = Object.keys(kendras);
-    let first = true;
+ // Apply same sorting logic as screen (Adhikari first)
+const sortedKsheter = Object.keys(ksheterSummaryMap).sort((a, b) => {
+  const isA = a === 'Adhikari';
+  const isB = b === 'Adhikari';
+  if (isA && !isB) return -1;
+  if (!isA && isB) return 1;
+  return a.localeCompare(b);
+});
 
-    kendrasKeys.forEach(kender => {
-      const row = [];
-      if (first) {
-        row.push(`${ksheter} (${total})`);
-        first = false;
-      } else {
-        row.push('');
-      }
-      row.push(kender);
-      row.push(kendras[kender]);
-      summaryBody.push(row);
-    });
-  }
+// Build PDF table rows using sorted ksheter
+sortedKsheter.forEach(ksheter => {
+  const kendras = ksheterSummaryMap[ksheter].kendras;
+  const total = ksheterSummaryMap[ksheter].total;
+
+  // Sort Kenders alphabetically also (optional but cleaner)
+ // 🔥 Sort kenders by their saadhak count (highest → lowest)
+const kendrasKeys = Object.keys(kendras).sort((a, b) => {
+  return kendras[b] - kendras[a];
+});
+
+
+  let first = true;
+
+  kendrasKeys.forEach(kender => {
+    const row = [];
+    if (first) {
+      row.push(`${ksheter} (${total})`);
+      first = false;
+    } else {
+      row.push('');
+    }
+
+    row.push(kender);
+    row.push(kendras[kender]);
+
+    summaryBody.push(row);
+  });
+});
+
 
   doc.autoTable({
     head: summaryHead,
