@@ -25,13 +25,9 @@ exports.teamSummary = async (req, res) => {
   }
 
   // ✅ Fetch only relevant data (Prant filter applied)
-  const prantFilter = user.roles.includes("Admin")
-    ? {}
-    : { prant: user.prant };
+  const prantFilter = user.roles.includes("Admin") ? {} : { prant: user.prant };
 
-  const zilas = await Zila.find(
-    query.zila ? { _id: query.zila } : prantFilter
-  );
+  const zilas = await Zila.find(query.zila ? { _id: query.zila } : prantFilter);
   const ksheters = await Ksheter.find(
     query.ksheter ? { _id: query.ksheter } : prantFilter
   );
@@ -54,20 +50,22 @@ exports.teamSummary = async (req, res) => {
 
     summary[zilaName] = summary[zilaName] || {};
     summary[zilaName][ksheterName] = summary[zilaName][ksheterName] || {};
-    summary[zilaName][ksheterName][kenderName] =
-      summary[zilaName][ksheterName][kenderName] || {
-        Saadhak: 0,
-        Shikshak: 0,
-        Karyakarta: 0,
-      };
+    summary[zilaName][ksheterName][kenderName] = summary[zilaName][ksheterName][
+      kenderName
+    ] || {
+      Saadhak: 0,
+      Shikshak: 0,
+      Karyakarta: 0,
+    };
 
     ksheterTotals[zilaName] = ksheterTotals[zilaName] || {};
-    ksheterTotals[zilaName][ksheterName] =
-      ksheterTotals[zilaName][ksheterName] || {
-        Saadhak: 0,
-        Shikshak: 0,
-        Karyakarta: 0,
-      };
+    ksheterTotals[zilaName][ksheterName] = ksheterTotals[zilaName][
+      ksheterName
+    ] || {
+      Saadhak: 0,
+      Shikshak: 0,
+      Karyakarta: 0,
+    };
 
     zilaTotals[zilaName] = zilaTotals[zilaName] || {
       Saadhak: 0,
@@ -107,7 +105,7 @@ exports.attendanceSummary = async (req, res) => {
   const date = new Date(dateStr);
   const nextDate = new Date(date);
   nextDate.setDate(date.getDate() + 1);
-  const requestData = req
+  const requestData = req;
 
   const slogans = require("../data/slogans.json");
   const randomMessage = slogans[Math.floor(Math.random() * slogans.length)];
@@ -154,7 +152,6 @@ exports.attendanceSummary = async (req, res) => {
   // console.log(isKender);
   // console.log(isAdmin);
 
-
   // console.log("Zila Query: " + zilaQuery)
   // Base filter from role
   if (isAdmin) {
@@ -165,7 +162,7 @@ exports.attendanceSummary = async (req, res) => {
       ...(kenderQuery && { _id: kenderQuery }),
     });
   }
-  
+
   if (isPrant) {
     Object.assign(kenderFilter, {
       prant: user.prant,
@@ -222,8 +219,6 @@ exports.attendanceSummary = async (req, res) => {
         { path: "zila", model: "Zila", select: "name" },
       ],
     });
-
-    
 
   const summary = {};
   const ksheterTotals = {};
@@ -292,7 +287,62 @@ exports.attendanceSummary = async (req, res) => {
       });
     });
 
-    
+  // ===== ⭐ TOPPER COUNT CALCULATION (Selected Month Only) ⭐ =====
+
+  // Prepare start of month & selected date
+  const selectedDateObj = new Date(date);
+  const monthStart = new Date(
+    selectedDateObj.getFullYear(),
+    selectedDateObj.getMonth(),
+    1
+  );
+
+  // 1) Attendance of ONLY that month till selected date
+  const tillDateAttendance = await Attendance.aggregate([
+    {
+      $match: {
+        date: { $gte: monthStart, $lte: selectedDateObj },
+        status: "Present",
+        kender: { $in: relevantKenders.map((k) => k._id) },
+      },
+    },
+    {
+      $group: {
+        _id: { kender: "$kender", saadhak: "$saadhak" },
+        total: { $sum: 1 },
+      },
+    },
+  ]);
+
+  // 2) Build topper map: kenderId -> { max, count }
+  const kenderTopperCounts = {};
+
+  for (let k of tillDateAttendance) {
+    const kender = k._id.kender.toString();
+    const saadhakTotal = k.total;
+
+    if (!kenderTopperCounts[kender]) {
+      kenderTopperCounts[kender] = { max: saadhakTotal, count: 1 };
+    } else {
+      if (saadhakTotal > kenderTopperCounts[kender].max) {
+        kenderTopperCounts[kender].max = saadhakTotal;
+        kenderTopperCounts[kender].count = 1;
+      } else if (saadhakTotal === kenderTopperCounts[kender].max) {
+        kenderTopperCounts[kender].count++;
+      }
+    }
+  }
+
+  // 3) Convert _id → name for final display
+  const allKenderFullData = await Kender.find(kenderFilter).select("_id name");
+  const topperByName = {}; // Example: { "Model Town I T I": 2 }
+
+  allKenderFullData.forEach((k) => {
+    const entry = kenderTopperCounts[k._id.toString()];
+    topperByName[k.name] = entry ? entry.count : 0;
+  });
+
+  // console.log(topperByName);
 
   res.render("report/attendanceSummary", {
     summary: sortedSummary,
@@ -303,6 +353,7 @@ exports.attendanceSummary = async (req, res) => {
     userRole: user.roles[0],
     user,
     requestData,
+    topperByName,
   });
 };
 

@@ -1,14 +1,14 @@
 <%- include('../partials/header') %>
 <%- include('../partials/navbar') %>
 
-<div class="container mt-4">
+<div class="container mt-2">
   <!-- Heading -->
-  <h3 class="text-center mb-3 text-danger fw-bold fs-3">Attendance Summary Report</h3>
+  <h3 class="text-center mb-2 text-danger fw-bold fs-4">Attendance Summary Report</h3>
 
   <!-- Date Filter -->
-  <form method="GET" class="text-center mb-3">
-    <input type="date" name="date" value="<%= selectedDate %>" onchange="this.form.submit()" class="form-control d-inline w-auto fw-bold" />
-    <!-- Add hidden prant and zila -->
+  <form method="GET" class="text-center mb-2">
+    <input type="date" name="date" value="<%= selectedDate %>" onchange="this.form.submit()" class="form-control d-inline w-auto fw-semibold" style="padding:3px 6px; font-size:0.9rem;" />
+
   <% if (user?.prant) { %>
     <input type="hidden" name="prant" value="<%= user.prant %>">
   <% } else if (requestData.query.prant) { %>
@@ -23,115 +23,115 @@
   </form>
 
   <!-- Export Button -->
-  <div class="text-center mb-3">
-    <button id="exportSummaryBtn" class="btn btn-danger btn-sm fw-semibold shadow">📥 Download Summary</button>
+  <div class="text-center mb-2">
+    <button id="exportSummaryBtn" class="btn btn-danger btn-sm fw-semibold shadow" style="padding:4px 10px; font-size:0.85rem;">📥 Download Summary</button>
   </div>
 
   <!-- Exportable Area -->
-  <div id="summaryExportWrapper" class="bg-white p-3 border rounded shadow-sm position-relative page-border" style="max-width: 1000px; margin: auto;">
-    <div class="text-center fw-bold fs-5 text-danger rounded bg-warning-subtle">
-      Attendance Date:
-      <span class="text-black">
-        <%= new Date(selectedDate).toLocaleDateString('en-GB', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric'
-        }) %>
-        (<%= new Date(selectedDate).toLocaleDateString('en-IN', {
-          weekday: 'long'
-        }) %>)
+  <div id="summaryExportWrapper" class="bg-white p-2 border rounded shadow-sm position-relative page-border" style="max-width: 950px; margin: auto;">
+    <div class="text-center fw-bold fs-6 text-danger rounded bg-warning-subtle py-1">
+      <span class="text-black fs-6">
+        <%= new Date(selectedDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) %>
+        (<%= new Date(selectedDate).toLocaleDateString('en-IN', { weekday: 'short' }) %>)
       </span>
     </div>
-    <p class="bg-danger text-white fw-semibold text-center py-2 px-3 rounded">
+
+    <p class="bg-danger text-white fw-semibold text-center py-1 px-2 rounded" style="font-size:0.85rem;">
       <%= randomMessage %>
     </p>
+
     <!-- Watermark Logo -->
     <div class="watermark-logo"></div>
 
-    <% for (let zila in summary) {
-         const ksheters = Object.keys(summary[zila]);
-    %>
-    <div class="mb-4">
-     <div class="d-flex align-items-center justify-content-center mb-3">
-      <img src="/images/logo.jpg" alt="BYS Logo" style="height: 40px; margin-right: 10px;">
-      <h5 class="text-danger fw-bold fs-4 m-0"><%= zila %></h5>
+    <% for (let zila in summary) { const ksheters = Object.keys(summary[zila]); %>
+    <div class="mb-3">
+     <div class="d-flex align-items-center justify-content-center mb-2">
+      <img src="/images/logo.jpg" alt="BYS Logo" style="height: 32px; margin-right: 8px;">
+      <h5 class="text-danger fw-bold fs-5 m-0"><%= zila %></h5>
     </div>
 
-      <% ksheters.forEach((ksheter, index) => {
-           const isLast = index === ksheters.length - 1;
-           const ksheterTotal = ksheterTotals[zila] && ksheterTotals[zila][ksheter];
-           if (ksheterTotal > 0) {
-      %>
-      <div class="mb-4 ms-2 me-2">
+      <% ksheters.forEach((ksheter, index) => { const isLast = index === ksheters.length - 1; const ksheterTotal = ksheterTotals[zila] && ksheterTotals[zila][ksheter]; if (ksheterTotal > 0) { %>
+      <div class="mb-3 ms-1 me-1">
 
         <!-- Ksheter Name Table -->
-        <table class="table table-bordered table-sm text-center" style="width: 80%; margin: auto;">
-          <tr class="bg-danger text-white fw-bold">
-            <td class="fs-6 py-2 text-white"><%= ksheter %></td>
+        <table class="table table-bordered table-sm text-center" style="width: 95%; margin: auto;">
+          <tr class="bg-warning-subtle fw-bold">
+            <td class="py-1" style="font-size:0.9rem;"><%= ksheter %></td>
           </tr>
         </table>
 
-        <table class="table table-bordered table-sm fw-semibold" style="width: 95%; margin: auto;">
+        <table class="table table-bordered table-sm" style="width: 100%; margin: auto;">
           <thead class="table-light text-center">
-            <tr class="bg-warning-subtle text-dark">
-              <th style="width: 80%">Kender Name</th>
-              <th style="width: 15%">Count</th>
-            </tr>
+            <!-- <tr class="bg-warning-subtle text-dark">
+              <th style="width: 85%; font-size:0.85rem; padding:6px;">Kender Name</th>
+              <th style="width: 15%; font-size:0.85rem; padding:6px;">Count</th>
+            </tr> -->
           </thead>
           <tbody class="text-center">
             <% for (let kender in summary[zila][ksheter]) { %>
-             <% if (summary[zila][ksheter][kender] !== "unmarked") { %>  
+             <% if (summary[zila][ksheter][kender] !== "unmarked") { %>
             <tr>
-              <td class="text-start fs-6 fw-bold"><%= kender %></td>
-              <td class="fs-6">
+              <td class="text-start" style="font-size:0.85rem; padding:5px 6px;">
+    
+    <div><%= kender %></div>
+
+    <% let capCount = topperByName[kender] || 0; %>
+
+    <% if (capCount > 0) { %>
+      <div style="font-size:1rem; line-height:1.2; margin-top:2px;">
+        <% for (let i = 0; i < capCount; i++) { %>
+            🧢
+        <% } %>
+      </div>
+    <% } %>
+
+</td>
+
+
+              <td style="font-size:0.85rem; padding:5px 6px;">
                 <% if (summary[zila][ksheter][kender] === "unmarked") { %>
                   <span class="text-danger fst-italic fw-normal">TBM*</span>
                 <% } else { %>
-                  <span class="text-black fw-bold"><%= summary[zila][ksheter][kender] %></span>
+                  <span class="text-black"><%= summary[zila][ksheter][kender] %></span>
                 <% } %>
               </td>
             </tr>
             <% } %>
-              <% } %> 
+            <% } %>
+
             <!-- Ksheter Total -->
             <tr class="bg-danger text-white fw-bold text-center">
-              <td class="text-center text-white">
-                <% if (userRole === 'Admin' || userRole === 'Zila Pradhan' || userRole === 'Sangathan Mantri' || userRole === 'Cashier') { %>
+              <td class="text-center text-white" style="font-size:0.85rem; padding:5px 6px;">
+                <% if (userRole === 'Admin' || userRole === 'Zila Pradhan' || userRole === 'Zila Mantri' || userRole === 'Zila Sangathan Mantri' || userRole === 'Zila Cashier') { %>
                   Ksheter Total
                 <% } else if (userRole === 'Ksheter Pradhan' || userRole === 'Ksheter Mantri') { %>
                   Ksheter Total
                 <% } else { %>
                   Kender Total
                 <% } %>
-                </td>
-              <td class="text-white">
-                <%= ksheterTotals[zila] && ksheterTotals[zila][ksheter] !== undefined 
-                    ? ksheterTotals[zila][ksheter] 
-                    : 0 %>
+              </td>
+              <td class="text-white" style="font-size:0.85rem; padding:5px 6px;">
+                <%= ksheterTotals[zila] && ksheterTotals[zila][ksheter] !== undefined ? ksheterTotals[zila][ksheter] : 0 %>
               </td>
             </tr>
 
             <% if (isLast) { %>
-            
-            <tr style="height: 15px; border: none;">
+            <tr style="height: 10px; border: none;">
               <td colspan="2" style="border: none;"></td>
             </tr>
             <tr class="bg-danger text-white fw-bold text-center">
-              <td class="text-center text-white">
-                <% if (userRole === 'Admin' || userRole === 'Zila Pradhan' || userRole === 'Sangathan Mantri' || userRole === 'Cashier') { %>
+              <td class="text-center text-white" style="font-size:0.85rem; padding:5px 6px;">
+                <% if (userRole === 'Admin' || userRole === 'Zila Pradhan' || userRole === 'Zila Mantri' || userRole === 'Zila Sangathan Mantri' || userRole === 'Zila Cashier') { %>
                   Zila Total
                 <% } else if (userRole === 'Ksheter Pradhan' || userRole === 'Ksheter Mantri') { %>
                   Ksheter Total
                 <% } else { %>
                   Kender Total
                 <% } %>
-                </td>
-              <td class="text-white">
-                <%= zilaTotals[zila] !== undefined 
-                    ? zilaTotals[zila] 
-                    : 0 %>
               </td>
-
+              <td class="text-white" style="font-size:0.85rem; padding:5px 6px;">
+                <%= zilaTotals[zila] !== undefined ? zilaTotals[zila] : 0 %>
+              </td>
             </tr>
           <% } %>
           </tbody>
@@ -141,26 +141,21 @@
       <% }); %>
     </div>
     <% } %>
-    <p class="fst-italic text-danger text-end">*TBM - Attendance to be marked!</p>
-    <!-- Watermark Text -->
-    <div id="summaryWatermark" class="text-center small mt-3" style="display: none; font-size: 0.8rem;">
-      ~ Exported from Bhartiya Yog Sansthan (R) Attendance App
-    </div>
+
   </div>
 </div>
 
 <!-- STYLES -->
 <style>
   .page-border {
-    border: 3px solid #dc3545 !important;
-    padding: 12px;
-    box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+    border: 2px solid #dc3545 !important;
+    padding: 6px !important;
   }
 
   #summaryExportWrapper table td,
   #summaryExportWrapper table th {
-    font-size: 1.05rem;
-    padding: 10px 12px;
+    font-size: 0.9rem !important;
+    padding: 5px 6px !important;
     background-color: transparent !important;
     border: 1px solid #333 !important;
     position: relative;
@@ -172,8 +167,8 @@
     background-image: url('/images/logo.jpg');
     background-repeat: no-repeat;
     background-position: center;
-    background-size: 500px auto;
-    opacity: 0.12;
+    background-size: 420px auto;
+    opacity: 0.10;
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
     z-index: 0;
@@ -187,24 +182,24 @@
   @media screen and (max-width: 768px) {
     #summaryExportWrapper table td,
     #summaryExportWrapper table th {
-      font-size: 1rem;
-      padding: 8px;
+      font-size: 0.85rem !important;
+      padding: 4px !important;
     }
 
     .page-border {
-      padding: 8px;
+      padding: 5px !important;
     }
 
     h5 {
-      font-size: 1.25rem;
+      font-size: 1.1rem;
     }
 
     h6, .fs-6 {
-      font-size: 1.1rem !important;
+      font-size: 1rem !important;
     }
 
     .btn, input[type="date"] {
-      font-size: 1rem !important;
+      font-size: 0.85rem !important;
     }
   }
 </style>
