@@ -54,7 +54,7 @@ dotenv.config();
 // ---------------------------------------------
 // 🚀 FASTEST POSSIBLE SERVER START (Render Optimized)
 // ---------------------------------------------
-const port = process.env.PORT || 3000; // Render recommended fallback
+const port = process.env.PORT || 3000;
 const host = "0.0.0.0";
 
 app.get("/healthz", (req, res) => res.status(200).send("OK"));
@@ -125,17 +125,21 @@ mongoose
     });
 
     // ---------------------------------------------
-    // 📌 INJECT SCOPE DATA (prant/zila/ksheter/kender) — must be BEFORE routes
+    // 📌 INJECT SCOPE DATA (prant/zila/ksheter/kender)
+    // Must be BEFORE any routes that use scope data
     // ---------------------------------------------
     app.use(injectScopeData);
 
     // ---------------------------------------------
-    // 📌 DELAY HEAVY MIDDLEWARES (Render optimization)
+    // 📌 EVENT COUNT (Navbar badge)
+    // Must be BEFORE routes that render pages using it
     // ---------------------------------------------
-    setImmediate(() => {
-      app.use(setEventCount);
-      app.use(assignRoleLevel);
-    });
+    app.use(setEventCount);
+
+    // ---------------------------------------------
+    // 📌 ASSIGN ROLE LEVEL
+    // ---------------------------------------------
+    app.use(assignRoleLevel);
 
     // ---------------------------------------------
     // 📌 LOAD ROUTES
