@@ -209,8 +209,8 @@
 <script>
   document.getElementById('exportSummaryBtn').addEventListener('click', () => {
     const exportArea = document.getElementById('summaryExportWrapper');
-    const watermarkText = document.getElementById('summaryWatermark');
-    watermarkText.style.display = 'block';
+    // const watermarkText = document.getElementById('summaryWatermark');
+    // watermarkText.style.display = 'block';
 
     setTimeout(() => {
       html2canvas(exportArea, { scale: 4 }).then(canvas => {
@@ -218,7 +218,7 @@
         link.download = `attendance_summary_<%= selectedDate %>.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
-        watermarkText.style.display = 'none';
+        // watermarkText.style.display = 'none';
       });
     }, 300);
   });
