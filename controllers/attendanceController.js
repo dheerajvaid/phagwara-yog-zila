@@ -666,7 +666,6 @@ exports.viewAttendance = async (req, res) => {
     const { kender, month, year, sortBy } = req.query;
     const user = req.session.user;
     const userRoles = user.roles;
-    // console.log(req.session.user);
     const today = new Date();
     const selectedMonth = parseInt(req.query.month) || today.getMonth() + 1; // 1–12
     const selectedYear = parseInt(req.query.year) || today.getFullYear();
@@ -681,8 +680,6 @@ exports.viewAttendance = async (req, res) => {
     if (kender && month && year) {
       const start = new Date(`${selectedYear}-${selectedMonth}-01`);
       const end = new Date(selectedYear, selectedMonth, 0, 23, 59, 59); // last day of month
-
-      // console.log(user);
 
       if (
         roleType == "adhikari" &&
@@ -720,10 +717,9 @@ exports.viewAttendance = async (req, res) => {
         if (user.ksheter) kenderFilter.ksheter = user.ksheter;
         if (user.kender) kenderFilter.kender = user.kender;
       }
-      // console.log(kenderFilter);
 
       saadhaks = await Saadhak.find({ ...kenderFilter });
-      // console.log(saadhaks.length);
+
       let attendanceRecords;
 
       if (roleType === "adhikari") {
@@ -739,11 +735,11 @@ exports.viewAttendance = async (req, res) => {
                 saadhak: "$saadhak",
                 day: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
               },
-              firstRecord: { $first: "$$ROOT" }, // take first record per saadhak per day
+              firstRecord: { $first: "$$ROOT" }, 
             },
           },
           {
-            $replaceRoot: { newRoot: "$firstRecord" }, // unwrap
+            $replaceRoot: { newRoot: "$firstRecord" }, 
           },
           { $sort: { date: 1 } },
         ]);
@@ -753,7 +749,28 @@ exports.viewAttendance = async (req, res) => {
           date: { $gte: start, $lte: end },
         });
       }
-      // Map attendance by saadhakId
+
+      // 🔥 INCLUDE ADHIKARI WHO ATTENDED THIS KENDER BUT DON'T BELONG TO THIS KENDER
+      if (roleType !== "adhikari") {
+        const adhikariPresentIds = await Attendance.find({
+          kender,
+          date: { $gte: start, $lte: end }
+        }).distinct("saadhak");
+
+        const extraSaadhaks = await Saadhak.find({
+          _id: { $in: adhikariPresentIds }
+        });
+
+        const merged = new Map();
+        [...saadhaks, ...extraSaadhaks].forEach(s => {
+          merged.set(s._id.toString(), s);
+        });
+        saadhaks = Array.from(merged.values());
+      }
+      // 🔥 END OF EXTRA ADDITION
+
+
+      // Map attendance
       const attendanceMap = {};
       attendanceRecords.forEach((record) => {
         if (!attendanceMap[record.saadhak]) {
@@ -764,8 +781,7 @@ exports.viewAttendance = async (req, res) => {
         );
       });
 
-      // Prepare final data
-      // Prepare final data and filter out those with 0 days present
+      // Final data (remove 0-present people)
       attendanceData = saadhaks
         .map((s) => {
           const attendance = attendanceMap[s._id.toString()] || [];
@@ -778,7 +794,7 @@ exports.viewAttendance = async (req, res) => {
         })
         .filter((s) => s.presentCount > 0);
 
-      // Sorting logic
+      // Sorting
       if (sortBy === "count") {
         attendanceData.sort((a, b) => {
           if (b.presentCount === a.presentCount) {
@@ -787,20 +803,18 @@ exports.viewAttendance = async (req, res) => {
           return b.presentCount - a.presentCount;
         });
       } else {
-        // Default sort by name
         attendanceData.sort((a, b) => a.name.localeCompare(b.name));
       }
 
-      // Determine which days have at least one attendance
+      // Determine active days
       const activeDays = new Set();
       attendanceData.forEach((s) => {
         s.attendance.forEach((dateStr) => {
-          const day = parseInt(dateStr.split("-")[2]); // Extract day from YYYY-MM-DD
+          const day = parseInt(dateStr.split("-")[2]);
           activeDays.add(day);
         });
       });
 
-      // Convert Set to sorted array
       activeDaysArray = Array.from(activeDays).sort((a, b) => a - b);
 
       daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
@@ -834,6 +848,7 @@ exports.viewAttendance = async (req, res) => {
     res.status(500).send("Server Error");
   }
 };
+
 
 exports.viewKenderWiseAttendance = async (req, res) => {
   try {
