@@ -846,7 +846,9 @@ exports.viewKenderWiseAttendance = async (req, res) => {
     const start = new Date(selectedYear, selectedMonth - 1, 1);
     const end = new Date(selectedYear, selectedMonth, 0, 23, 59, 59);
 
-    // 🟡 Normalize filters
+    // -------------------------------
+    // 🔹 Normalize Filters
+    // -------------------------------
     const normalizeScopeValue = (value) => {
       if (!value) return "";
       if (Array.isArray(value)) return value[0] || "";
@@ -858,14 +860,11 @@ exports.viewKenderWiseAttendance = async (req, res) => {
     const ksheterQuery = normalizeScopeValue(req.query.ksheter).trim();
     const kenderQuery = normalizeScopeValue(req.query.kender).trim();
 
-    // If no query params, skip validation
+    // 🛡️ Require prant & zila ONLY when filters are used
     if (Object.keys(req.query).length > 0) {
-      // 🛡️ Check if both prant & zila are required
       if (!prantQuery || !zilaQuery) {
         const referer = req.get("Referer");
-        const backUrl = referer
-          ? referer.split("?")[0]
-          : "/attendance/view-kender";
+        const backUrl = referer ? referer.split("?")[0] : "/attendance/view-kender";
 
         return res.status(400).render("error/error-page", {
           title: "Invalid Request",
@@ -875,11 +874,9 @@ exports.viewKenderWiseAttendance = async (req, res) => {
       }
     }
 
-    // console.log("Prant:" + prantQuery);
-    // console.log("Zila:" + zilaQuery);
-    // console.log("Ksheter:" + ksheterQuery);
-    // console.log("Kender:" + kenderQuery);
-    // 🟩 Determine filter based on role and query
+    // -------------------------------
+    // 🔹 Build Kender Filter
+    // -------------------------------
     const kenderFilter = {};
 
     if (kenderQuery) {
@@ -896,21 +893,28 @@ exports.viewKenderWiseAttendance = async (req, res) => {
     } else {
       if (user.zila) kenderFilter.zila = user.zila;
       if (user.ksheter) kenderFilter.ksheter = user.ksheter;
-      if (user.prant) kenderFilter.prant = user.prant; // 🟢 Also restrict by user's prant if exists
+      if (user.prant) kenderFilter.prant = user.prant;
     }
 
-    // Set selected values for view rendering
     const selectedPrant = prantQuery || user.prant?.toString() || "";
     const selectedZila = zilaQuery || user.zila?.toString() || "";
     const selectedKsheter = ksheterQuery || user.ksheter?.toString() || "";
     const selectedKender = kenderQuery || user.kender?.toString() || "";
 
-    const allKenders = await Kender.find(kenderFilter).sort("name");
+    // -------------------------------
+    // 🔹 Fetch Kenders
+    // -------------------------------
+    const allKenders = await Kender.find(kenderFilter)
+      .populate("ksheter")
+      .sort("name");
 
     let attendanceData = [];
     let activeDaysArray = [];
     let kenderDateCountMap = {};
 
+    // -------------------------------
+    // 🔹 Load Attendance Only When Month+Year Selected
+    // -------------------------------
     if (req.query.month && req.query.year) {
       const kenderIds = allKenders.map((k) => k._id.toString());
 
@@ -919,50 +923,48 @@ exports.viewKenderWiseAttendance = async (req, res) => {
         date: { $gte: start, $lte: end },
       }).populate("kender");
 
-      // 🔁 Build kenderDateCountMap: kenderId -> { dateStr -> count }
+      // 🟢 Build kenderDateCountMap
       attendanceRecords.forEach((record) => {
         const kId = record.kender?._id?.toString();
         const dateStr = record.date.toISOString().split("T")[0];
 
         if (!kenderDateCountMap[kId]) kenderDateCountMap[kId] = {};
-        if (!kenderDateCountMap[kId][dateStr])
-          kenderDateCountMap[kId][dateStr] = 0;
+        if (!kenderDateCountMap[kId][dateStr]) kenderDateCountMap[kId][dateStr] = 0;
 
         kenderDateCountMap[kId][dateStr]++;
       });
 
-      // 📊 Build attendanceData with count per Kender
+      // -------------------------------
+      // 🔹 Prepare attendanceData
+      // -------------------------------
       attendanceData = allKenders
         .map((k) => {
           const attendanceObj = kenderDateCountMap[k._id.toString()] || {};
-          const attendanceDates = Object.keys(attendanceObj);
-          const presentCount = attendanceDates.reduce(
-            (sum, date) => sum + attendanceObj[date],
-            0
-          );
+          const presentCount = Object.values(attendanceObj).reduce((sum, v) => sum + v, 0);
 
           return {
             _id: k._id,
             name: k.name,
-            attendance: attendanceDates,
+            attendance: Object.keys(attendanceObj),
             presentCount,
+            ksheter: k.ksheter,
           };
         })
         .filter((k) => k.presentCount > 0);
 
-      // 🔢 Sorting
+      // Sorting
       if (sortBy === "count") {
         attendanceData.sort((a, b) => {
-          if (b.presentCount === a.presentCount) {
-            return a.name.localeCompare(b.name);
-          }
+          if (b.presentCount === a.presentCount) return a.name.localeCompare(b.name);
           return b.presentCount - a.presentCount;
         });
       } else {
         attendanceData.sort((a, b) => a.name.localeCompare(b.name));
       }
 
-      // 🗓️ Extract active day numbers (1–31)
+      // -------------------------------
+      // 🔹 Active Days (1–31)
+      // -------------------------------
       const activeDays = new Set();
       Object.values(kenderDateCountMap).forEach((dateMap) => {
         Object.keys(dateMap).forEach((dateStr) => {
@@ -974,9 +976,40 @@ exports.viewKenderWiseAttendance = async (req, res) => {
       activeDaysArray = Array.from(activeDays).sort((a, b) => a - b);
     }
 
-    const viewMode = req.query.view || "horizontal";
+    // We now remove vertical completely:
+    const viewMode = "horizontal";
 
-    // 🧠 Render
+    // -------------------------------
+    // 🔵 GROUP KENDERS BY KSHTER WITH TOTALS
+    // -------------------------------
+    const groupedByKsheter = {};
+    const ksheterDayTotals = {};
+
+    attendanceData.forEach((k) => {
+      const ksheterName = k.ksheter?.name || "Unknown";
+
+      if (!groupedByKsheter[ksheterName]) {
+        groupedByKsheter[ksheterName] = [];
+        ksheterDayTotals[ksheterName] = {};
+        activeDaysArray.forEach((d) => (ksheterDayTotals[ksheterName][d] = 0));
+      }
+
+      groupedByKsheter[ksheterName].push(k);
+
+      const kId = k._id.toString();
+
+      activeDaysArray.forEach((day) => {
+        const dateStr = `${selectedYear}-${String(selectedMonth).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+        const count =
+          (kenderDateCountMap[kId] && kenderDateCountMap[kId][dateStr]) || 0;
+
+        ksheterDayTotals[ksheterName][day] += count;
+      });
+    });
+
+    // -------------------------------
+    // 🔹 Render View
+    // -------------------------------
     res.render("attendance/view-kender", {
       allKenders,
       selectedMonth,
@@ -988,21 +1021,20 @@ exports.viewKenderWiseAttendance = async (req, res) => {
       zilaList: res.locals.zilaList,
       ksheterList: res.locals.ksheterList,
       kenderList: res.locals.kenderList,
-      selectedPrant: prantQuery || "",
-      selectedZila: zilaQuery || "",
-      selectedKsheter: ksheterQuery || "",
-      selectedKender: kenderQuery || "",
-      viewMode,
       selectedPrant,
       selectedZila,
       selectedKsheter,
       selectedKender,
+      viewMode,
+      groupedByKsheter,
+      ksheterDayTotals,
     });
   } catch (err) {
     console.error("Error loading Kender attendance:", err);
     res.status(500).send("Server Error");
   }
 };
+
 
 exports.viewTop10Attendance = async (req, res) => {
   try {

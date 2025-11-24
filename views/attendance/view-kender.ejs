@@ -4,7 +4,7 @@
 <style>
   .table-wrapper {
     overflow-x: auto;
-    max-height: 450px;
+    max-height: 650px;
     -webkit-overflow-scrolling: touch;
   }
 
@@ -45,6 +45,16 @@
   button.btn-primary {
     font-weight: 600;
     font-size: 0.9rem;
+  }
+
+  .ksheter-heading-row th {
+    padding: 0.5rem;
+  }
+
+  .divider-row td {
+    padding: 4px;
+    text-align: center;
+    font-weight: 700;
   }
 </style>
 
@@ -99,127 +109,104 @@
           📄 Export as PDF
         </button>
       </div>
-      <div class="mb-3 text-end">
-  <a href="?month=<%= encodeURIComponent(selectedMonth || '') %>
-&year=<%= encodeURIComponent(selectedYear || '') %>
-&sortBy=<%= encodeURIComponent(sortBy || '') %>
-&prant=<%= encodeURIComponent(selectedPrant || '') %>
-&zila=<%= encodeURIComponent(selectedZila || '') %>
-&ksheter=<%= encodeURIComponent(selectedKsheter || '') %>
-&kender=<%= encodeURIComponent(selectedKender || '') %>
-&view=<%= viewMode === 'vertical' ? 'horizontal' : 'vertical' %>"
-class="btn btn-outline-secondary btn-sm">
-    🔄 Switch to <%= viewMode === 'vertical' ? 'Horizontal' : 'Vertical' %> View
-</a>
 
-</div>
+      <!-- Calculate grand totals per date (unchanged behavior) -->
+      <% 
+        var kenderDayCount = {};
+        activeDays.forEach(day => kenderDayCount[day] = 0);
 
-  <% if (viewMode === 'horizontal') { %>
-  <!-- Existing Table: Kender as rows, Dates as columns -->
-  <!-- ✅ Keep your entire existing table code here without any change -->
-   
+        // Use attendanceData to compute grand totals (consistent with groupedByKsheter)
+        attendanceData.forEach(k => {
+          var kenderId = k._id.toString();
+          activeDays.forEach(day => {
+            var dateStr = `${selectedYear}-${String(selectedMonth).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+            var count = (kenderDateCountMap[kenderId] && kenderDateCountMap[kenderId][dateStr]) || 0;
+            kenderDayCount[day] += count;
+          });
+        });
+
+        // column span (1 for name column + activeDays.length date columns)
+        const colSpan = 1 + (activeDays ? activeDays.length : 0);
+      %>
+
       <div class="table-wrapper">
         <table class="table table-bordered table-hover shadow-sm text-center align-middle">
-         <thead class="bg-primary text-white">
-  <tr>
-    <th style="white-space: nowrap;">Kender⬇️ / Date ➡️</th>
-    <% activeDays.forEach(day => { %>
-      <th style="min-width: 28px; max-width: 32px; font-size: 0.75rem;"><%= day %></th>
-    <% }) %>
-  </tr>
+          <thead class="bg-primary text-white">
+            <tr>
+              <th style="white-space: nowrap;">Kender⬇️ / Date ➡️</th>
+              <% activeDays.forEach(day => { %>
+                <th style="min-width: 28px; max-width: 36px; font-size: 0.75rem;"><%= day %></th>
+              <% }) %>
+            </tr>
+          </thead>
 
-  <% 
-    // ✅ Only declare once — before the total row
-    var kenderDayCount = {};
-    activeDays.forEach(day => kenderDayCount[day] = 0);
-
-    attendanceData.forEach(k => {
-      var kenderId = k._id.toString();
-      activeDays.forEach(day => {
-        var dateStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        var count = (kenderDateCountMap[kenderId] && kenderDateCountMap[kenderId][dateStr]) || 0;
-        kenderDayCount[day] += count;
-      });
-    });
-  %>
-
-  
-</thead>
           <tbody>
-            <% attendanceData.forEach(k => { %>
-              <tr style="page-break-inside: avoid;">
-                <td class="fw-semibold text-start" style="white-space: nowrap;">
-                  <%= k.name %>
-                  <!-- <span class="badge bg-primary"><%= k.presentCount %></span> -->
-                </td>
-                <% activeDays.forEach(day => {
-                  const dateStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                  const count = (kenderDateCountMap[k._id.toString()] && kenderDateCountMap[k._id.toString()][dateStr]) || 0;
-                %>
-                  <td class="<%= count > 0 ? 'bg-success text-white fw-bold' : 'bg-light text-black' %>">
-                    <%= count > 0 ? count : '' %>
+            <% 
+              // iterate ksheter groups in sorted order
+              Object.keys(groupedByKsheter).sort().forEach(ksName => { 
+                const kenders = groupedByKsheter[ksName] || [];
+            %>
+
+              <!-- Ksheter Heading Row (H2-style) -->
+              <tr class="ksheter-heading-row">
+                <th colspan="<%= colSpan %>" class="bg-warning text-start fs-4 fw-bold">
+                  <%= ksName %>
+                </th>
+              </tr>
+
+              <% kenders.forEach(k => { %>
+                <tr style="page-break-inside: avoid;">
+                  <td class="fw-semibold text-start" style="white-space: nowrap;">
+                    <%= k.name %>
                   </td>
+
+                  <% activeDays.forEach(day => {
+                    const dateStr = `${selectedYear}-${String(selectedMonth).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+                    const count = (kenderDateCountMap[k._id.toString()] && kenderDateCountMap[k._id.toString()][dateStr]) || 0;
+                  %>
+                    <td class="<%= count > 0 ? 'bg-success text-white fw-bold' : 'bg-light text-black' %>">
+                      <%= count > 0 ? count : '' %>
+                    </td>
+                  <% }) %>
+                </tr>
+              <% }) %>
+
+              <!-- Ksheter TOTAL Row (date-wise totals) -->
+              <tr>
+                <th class="text-primary fw-bold bg-light">Total</th>
+                <% activeDays.forEach(day => { %>
+                  <th class="text-primary fw-bold bg-light border" style="border: 1px solid black;">
+                    <%= ksheterDayTotals[ksName] && ksheterDayTotals[ksName][day] > 0 ? ksheterDayTotals[ksName][day] : '' %>
+                  </th>
                 <% }) %>
               </tr>
+
+              <!-- Divider Row -->
+              <tr class="divider-row">
+                <td colspan="<%= colSpan %>" class="bg-secondary-subtle text-center fw-bold">
+                  ===========================================
+                </td>
+              </tr>
+
             <% }) %>
-            <!-- ✅ Total Present Row At Bottom -->
-  <tr>
-    <th class="text-primary fw-bold bg-light">Total Present</th>
-    <% activeDays.forEach(day => { %>
-      <th class="text-primary fw-bold bg-light border" style="border: 1px solid black;">
-        <%= kenderDayCount[day] > 0 ? kenderDayCount[day] : '' %>
-      </th>
-    <% }) %>
-  </tr>
+
+            <!-- GRAND Total Present Row At Bottom (unchanged) -->
+            <tr>
+              <th class="text-primary fw-bold bg-light">Total Present</th>
+              <% activeDays.forEach(day => { %>
+                <th class="text-primary fw-bold bg-light border" style="border: 1px solid black;">
+                  <%= kenderDayCount[day] > 0 ? kenderDayCount[day] : '' %>
+                </th>
+              <% }) %>
+            </tr>
           </tbody>
         </table>
       </div>
-<% } else { %>
-  <!-- New Table: Vertical View (Dates as rows, Kenders as columns) -->
-  <div class="table-wrapper">
-    <table class="table table-bordered table-hover shadow-sm text-center align-middle">
-      <thead class="bg-primary text-white">
-  <tr>
-    <th>Date ⬇️ / Kender ➡️</th>
-    <% attendanceData.forEach(k => { %>
-     <th style="
-  white-space: nowrap;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  font-size: 0.75rem;
-  padding: 5px 2px;
-">
-  <%= k.name %>
-</th>
-    <% }) %>
-  </tr>
-</thead>
-      <tbody>
-        <% activeDays.forEach(day => { %>
-          <tr>
-            <td><%= String(day).padStart(2, '0') %> <%= new Date(2000, selectedMonth - 1).toLocaleString('default', { month: 'short' }) %></td>
-            <% attendanceData.forEach(k => { 
-              const dateStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-              const count = (kenderDateCountMap[k._id.toString()] && kenderDateCountMap[k._id.toString()][dateStr]) || 0;
-            %>
-              <td class="<%= count > 0 ? 'bg-success text-white fw-bold' : 'bg-light text-black' %>">
-                <%= count > 0 ? count : '' %>
-              </td>
-            <% }) %>
-          </tr>
-        <% }) %>
-      </tbody>
-    </table>
-  </div>
-<% } %>
-
-
-
-
 
     <% } else if (selectedMonth && selectedYear) { %>
       <p class="text-muted text-center">No attendance found for selected month.</p>
     <% } %>
+
   </div>
 </div>
 
@@ -228,6 +215,8 @@ class="btn btn-outline-secondary btn-sm">
 <script>
   document.getElementById("exportPdfBtn")?.addEventListener("click", function () {
     const originalTable = document.querySelector(".table-wrapper table");
+    if (!originalTable) return;
+
     const cloneContainer = document.getElementById("pdfCloneContainer") || (() => {
       const div = document.createElement('div');
       div.id = 'pdfCloneContainer';
@@ -245,7 +234,7 @@ class="btn btn-outline-secondary btn-sm">
     wrapper.style.padding = '20px';
     wrapper.style.background = '#fff';
     wrapper.style.border = '3px solid #dc3545';
-    wrapper.style.maxWidth = '1400px';  // Wider to accommodate vertical view columns
+    wrapper.style.maxWidth = '1400px';
     wrapper.style.margin = '0 auto';
     wrapper.style.fontFamily = "'Segoe UI', 'Roboto', sans-serif";
 
@@ -260,7 +249,7 @@ class="btn btn-outline-secondary btn-sm">
     logo.style.marginBottom = '10px';
 
     const title = document.createElement('h4');
-    title.innerText = `Kender Attendance Report – <%= new Date(2000, selectedMonth - 1).toLocaleString('default', { month: 'long' }) %> <%= selectedYear %>`;
+    title.innerText = `Kender Attendance Report – ${new Date(2000, <%= selectedMonth - 1 %>).toLocaleString('default', { month: 'long' })} <%= selectedYear %>`;
     title.style.color = '#dc3545';
 
     headerDiv.appendChild(logo);
@@ -270,67 +259,36 @@ class="btn btn-outline-secondary btn-sm">
     wrapper.appendChild(clone);
     cloneContainer.appendChild(wrapper);
 
-    const viewMode = '<%= viewMode %>'; // From EJS
+    const dateCount = <%= activeDays.length %>;
 
-    const dateCount = <%= activeDays.length %>;  // Inject date count via EJS
+    // scale factor to fit wide tables into A4 landscape if needed
+    const scaleFactor = (dateCount >= 31) ? 0.70
+      : (dateCount > 28) ? 0.75
+      : (dateCount > 25) ? 0.80
+      : (dateCount > 20) ? 0.85
+      : 1;
 
-// Define a dynamic scale factor based on date count
-const scaleFactor = (dateCount >= 31)
-  ? 0.70
-  : (dateCount > 28)
-    ? 0.75
-    : (dateCount > 25)
-      ? 0.80
-      : (dateCount > 20)
-        ? 0.85
-        : 1;
-  
-     
-  wrapper.style.transform = `scale(${scaleFactor})`;
-  wrapper.style.transformOrigin = 'top left';
-  wrapper.style.width = `${100 / scaleFactor}%`;   // Compensate width after scaling
+    wrapper.style.transform = `scale(${scaleFactor})`;
+    wrapper.style.transformOrigin = 'top left';
+    wrapper.style.width = `${100 / scaleFactor}%`;
 
-
-  if (viewMode === 'vertical') {
-  clone.querySelectorAll('th').forEach(th => {
-    const content = th.innerText.trim().replace(/ /g, '\u00A0');  // Replace spaces with non-breaking spaces
-    th.innerHTML = '';
-
-    const rotDiv = document.createElement('div');
-    rotDiv.innerText = content;
-    rotDiv.style.transform = 'rotate(-90deg)';
-    rotDiv.style.transformOrigin = 'bottom left';
-    rotDiv.style.display = 'inline-block';
-    rotDiv.style.whiteSpace = 'nowrap';      
-    rotDiv.style.overflow = 'visible';
-    rotDiv.style.fontSize = '0.75rem';
-    rotDiv.style.lineHeight = '1';
-    rotDiv.style.margin = '0 auto';
-    rotDiv.style.padding = '0';
-    rotDiv.style.width = 'max-content';
-    rotDiv.style.height = 'max-content';
-
-    th.style.verticalAlign = 'bottom';
-    th.style.textAlign = 'center';
-    th.appendChild(rotDiv);
-  });
-}
     const opt = {
-      margin: [0.1, 0.1, 0.1, 0.1],
-      filename: `Kender_Attendance_<%= selectedMonth %>_<%= selectedYear %>_${viewMode}.pdf`,
+      margin: [0.15, 0.15, 0.15, 0.15],
+      filename: `Kender_Attendance_<%= selectedMonth %>_<%= selectedYear %>_horizontal.pdf`,
       image: { type: 'jpeg', quality: 1 },
       html2canvas: { scale: 3, scrollY: 0, useCORS: true },
       jsPDF: {
         unit: 'in',
         format: 'a4',
-         orientation: viewMode === 'vertical' ? 'portrait' : 'landscape'
+        orientation: 'landscape'
       }
     };
 
-    html2pdf().set(opt).from(wrapper).save();
+    html2pdf().set(opt).from(wrapper).save().finally(() => {
+      // cleanup
+      // optional: remove cloneContainer.innerHTML = '';
+    });
   });
 </script>
-
-
 
 <%- include('../partials/footer') %>
