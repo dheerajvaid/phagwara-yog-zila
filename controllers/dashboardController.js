@@ -133,7 +133,7 @@ exports.getFrontPageData = async (req, res) => {
       totalZilas: zilaList.length,
       totalKsheter: ksheterList.length,
       totalKenders: kenders.length,
-      totalSaadhaks: saadhaks.length,
+      totalSaadhaks: saadhaks.length,      
     });
   } catch (err) {
     console.error("Error loading dashboard:", err);

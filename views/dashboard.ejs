@@ -91,6 +91,21 @@
     margin: auto;
   }
 
+  .kender-tip-box {
+  background: #f8fff8;
+  border: 1px solid #28a745;   /* thin border on all sides */
+  border-left: 4px solid #28a745; /* thicker left border */
+  border-radius: 8px;
+  margin-top: 10px;
+  padding: 8px 10px; /* balanced padding (top-bottom & left-right) */
+}
+
+.kender-tip-box p {
+  font-size: 0.9rem;
+  color: #000;
+}
+
+
   .steps-box {
   background: linear-gradient(135deg, #00e3ae, #00b4d8, #0077b6);
   border-radius: 14px;
@@ -196,7 +211,43 @@
 
           <p class="text-center text-success fw-bold mb-0">- <%= user.name %></p>
 
-          <hr style="border-top:2px solid #28a745; margin-bottom:0.5rem; margin-top:0.5rem;">
+          <!-- Show Kender Info inside Tip Box -->
+<%
+  const kenderRoles = ['Kender Pramukh', 'Seh Kender Pramukh', 'Shikshak', 'Karyakarta', 'Saadhak'];
+  const isKenderUser = user.roles && user.roles.some(r => kenderRoles.includes(r));
+%>
+
+<% if (isKenderUser && kenderDetails) { %>
+  <div class="kender-tip-box mt-3 p-2 text-start">
+
+  <p class="fw-bold text-success mb-1">🏠 मेरा योग साधना केंद्र:</p>
+
+<table style="width:100%; border-collapse:collapse;">
+  <tr>
+    <td style="width:28%; font-weight:bold; vertical-align:top;">केंद्र नाम:</td>
+    <td><%= kenderDetails.name %></td>
+  </tr>
+
+  <tr>
+    <td style="font-weight:bold; vertical-align:top;">केंद्र पता:</td>
+    <td><%= kenderDetails.address %></td>
+  </tr>
+
+  <% if (kenderDetails.startTime) { %>
+  <tr>
+    <td style="font-weight:bold; vertical-align:top;">केंद्र समय:</td>
+    <td><%= kenderDetails.startTime %></td>
+  </tr>
+  <% } %>
+</table>
+
+  </div>
+<% } %>
+
+
+          
+
+          <!-- <hr style="border-top:2px solid #28a745; margin-bottom:0.5rem; margin-top:0.5rem;"> -->
 
           <div class="mt-1 text-center text-primary fw-semibold">
             <p class="text-danger fw-bold mb-0">BHARATIYA YOG SANSTHAN</p>
