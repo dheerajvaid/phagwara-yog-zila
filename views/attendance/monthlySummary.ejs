@@ -1,0 +1,240 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<style>
+  .attendance-container {
+    background: #ffffff;
+    padding: 12px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  }
+  .attendance-title {
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+  }
+  .btn-back, .btn-export {
+    border-radius: 20px;
+    padding: 5px 14px;
+    color: white !important;
+    transition: all 0.3s ease;
+    border: none;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+  }
+  .btn-back { background: #6c757d; }
+  .btn-back:hover { background: #5a6268; }
+  .btn-export { background: #198754; }
+  .btn-export:hover { background: #145c32; }
+
+  .attendance-table th, .attendance-table td {
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+    font-size: 0.78rem;
+    padding: 4px;
+  }
+  .attendance-table thead th {
+    background: #f8f9fa;
+    font-weight: 600;
+  }
+  .attendance-table tbody tr td:first-child {
+    text-align: left;
+    font-weight: 600;
+    color: #1a237e;
+  }
+  td.total-cell {
+    font-weight: 700;
+    background: #e8f5e9;
+    color: #1b5e20;
+  }
+  .sticky-top-actions {
+    background: #fff;
+    padding: 6px 0;
+    position: sticky;
+    top: 60px;
+    z-index: 50;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .bottom-actions { margin-top: 15px; text-align: center; }
+
+  .month-filter-group {
+    margin-bottom: 10px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .month-filter-group label {
+    font-weight: 600;
+    color: #37474f;
+    cursor: pointer;
+    font-size: 0.9rem;
+  }
+  .month-radio { accent-color: #1b5e20; cursor: pointer; }
+</style>
+
+<div class="container mt-3 attendance-container">
+
+  <!-- Sticky Header Buttons -->
+  <div class="sticky-top-actions">
+    <a onclick="history.back()" class="btn btn-back m-1">← Back</a>
+
+    <button id="downloadPdfBtn" class="btn btn-export m-1">📄 Export PDF</button>
+    <form id="exportExcelFormTop" method="POST" action="/attendance/export/excel/attendance-summary" style="display:inline;">
+      <input type="hidden" name="months" id="excelMonthsTop" value="12">
+      <button type="submit" class="btn btn-export m-1">📊 Export Excel</button>
+    </form>
+  </div>
+
+  <h5 class="attendance-title">📊 12-Month Attendance Summary</h5>
+
+  <!-- Month Filters -->
+  <div class="month-filter-group">
+    <label><input type="radio" name="monthFilter" class="month-radio" value="3"> 3 months</label>
+    <label><input type="radio" name="monthFilter" class="month-radio" value="6"> 6 months</label>
+    <label><input type="radio" name="monthFilter" class="month-radio" value="9"> 9 months</label>
+    <label><input type="radio" name="monthFilter" class="month-radio" value="12" checked> 12 months</label>
+  </div>
+
+  <!-- Attendance Table -->
+  <div class="table-responsive">
+    <table id="attendanceTable" class="table table-bordered table-sm attendance-table">
+      <thead>
+        <tr>
+          <th>Saadhak</th>
+          <% months.forEach(m => { %>
+            <th><%= m.date.toLocaleString("default", { month: "short" }) %><br><%= m.date.getFullYear() %></th>
+          <% }) %>
+          <th>Total</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% data.forEach(row => { %>
+          <tr>
+            <td><%= row.name %></td>
+            <% months.forEach(m => { %>
+              <td><%= row[m.key] %></td>
+            <% }) %>
+            <td class="total-cell"><%= row.total %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Bottom Buttons -->
+  <div class="bottom-actions">
+    <a onclick="history.back()" class="btn btn-back m-1">← Back</a>
+    <button id="downloadPdfBtn2" class="btn btn-export m-1">📄 Export PDF</button>
+
+    <form id="exportExcelFormBottom" method="POST" action="/attendance/export/excel/attendance-summary" style="display:inline;">
+      <input type="hidden" name="months" id="excelMonthsBottom" value="12">
+      <button type="submit" class="btn btn-export m-1">📊 Export Excel</button>
+    </form>
+  </div>
+</div>
+
+
+<!-- jsPDF + AutoTable -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+
+<script>
+  const originalMonths = <%- JSON.stringify(months) %>;
+  const tableData = <%- JSON.stringify(data) %>;
+
+  // ---------------- MONTH FILTER LOGIC ----------------
+  document.querySelectorAll("input[name='monthFilter']").forEach(r => {
+    r.addEventListener("change", function () {
+      const monthsToShow = parseInt(this.value);
+
+      document.querySelector(".attendance-title")
+        .innerText = `📊 ${monthsToShow}-Month Attendance Summary`;
+
+      document.getElementById("excelMonthsTop").value = monthsToShow;
+      document.getElementById("excelMonthsBottom").value = monthsToShow;
+
+      const table = document.getElementById("attendanceTable");
+      const headerCells = table.querySelectorAll("thead th");
+      const rows = table.querySelectorAll("tbody tr");
+
+      const totalCols = headerCells.length;
+      const monthCols = totalCols - 2;
+
+      rows.forEach(row => {
+        let newTotal = 0;
+
+        for (let i = 1; i <= monthCols; i++) {
+          const show = i > (monthCols - monthsToShow);
+
+          headerCells[i].style.display = show ? "" : "none";
+          row.children[i].style.display = show ? "" : "none";
+
+          if (show) {
+            newTotal += parseInt(row.children[i].innerText) || 0;
+          }
+        }
+
+        row.children[row.children.length - 1].innerText = newTotal;
+      });
+    });
+  });
+
+
+  // -------------------- PDF GENERATION --------------------
+  function generatePDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: "pt", format: "a4" });
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.text("BHARTIYA YOG SANSTHAN (Regd.)", 40, 40);
+
+    doc.setFontSize(12);
+    doc.text("Attendance Summary Report", 40, 60);
+
+    const table = document.getElementById("attendanceTable");
+    const headers = [...table.querySelectorAll("thead th")]
+      .filter(th => th.style.display !== "none")
+      .map(th => th.innerText.trim());
+
+    const body = [...table.querySelectorAll("tbody tr")].map(tr =>
+      [...tr.children]
+        .filter(td => td.style.display !== "none")
+        .map(td => td.innerText.trim())
+    );
+
+    doc.autoTable({
+      head: [headers],
+      body: body,
+      startY: 90,
+      margin: { left: 40, right: 40 },
+      styles: {
+        fontSize: 9,
+        cellPadding: 3,
+        halign: 'center',
+        valign: 'middle',
+      },
+      headStyles: {
+        fillColor: [25, 135, 84],
+        textColor: 255,
+        fontStyle: 'bold',
+      }
+    });
+
+    doc.save("Attendance_Summary.pdf");
+  }
+
+  document.getElementById("downloadPdfBtn").onclick = generatePDF;
+  document.getElementById("downloadPdfBtn2").onclick = generatePDF;
+</script>
+
+<%- include('../partials/footer') %>

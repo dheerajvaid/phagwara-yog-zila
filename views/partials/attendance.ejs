@@ -37,6 +37,10 @@ const isSaadhakOnly = user?.roles.some(role => saadhakRoles.includes(role));
      <hr class="menu-divider">
       <li><a class="dropdown-item" href="/attendance/top10">📋 TOP 10 Attendance</a></li>
      <hr class="menu-divider">
+      <a class="dropdown-item" href="/attendance/summary/monthly?kender=<%= user.kender %>" class="btn btn-primary btn-sm">
+        📋 3-12 Month Summary
+      </a>
+      <hr class="menu-divider">
       <% if (user.roles.includes('Kender Pramukh') || user.roles.includes('Seh Kender Pramukh')  || user.roles.includes('Karyakarta')  || user.roles.includes('Shikshak')) { %>
         <li><a class="dropdown-item" href="/kender/print-cards">📋 Print Monthly Attendance Cards</a></li>        
       <% } %>

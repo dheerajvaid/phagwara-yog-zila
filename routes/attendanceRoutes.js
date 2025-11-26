@@ -387,4 +387,10 @@ router.get(
   attendanceController.exportMissingExcel
 );
 
+router.get("/summary/monthly", requireLogin, canManage(saadhakManagerRoles), attendanceController.monthlyAttendanceSummary);
+
+router.post("/export/excel/attendance-summary", attendanceController.exportAttendanceExcel);
+
+
+
 module.exports = router;

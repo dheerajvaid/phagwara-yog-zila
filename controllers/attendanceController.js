@@ -9,6 +9,7 @@ const pdfExport = require("../utils/pdfExport");
 const roleConfig = require("../config/roles");
 const roles = roleConfig;
 const ExcelJS = require("exceljs");
+const mongoose = require("mongoose");
 
 const {
   adminRoles,
@@ -735,11 +736,11 @@ exports.viewAttendance = async (req, res) => {
                 saadhak: "$saadhak",
                 day: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
               },
-              firstRecord: { $first: "$$ROOT" }, 
+              firstRecord: { $first: "$$ROOT" },
             },
           },
           {
-            $replaceRoot: { newRoot: "$firstRecord" }, 
+            $replaceRoot: { newRoot: "$firstRecord" },
           },
           { $sort: { date: 1 } },
         ]);
@@ -754,21 +755,20 @@ exports.viewAttendance = async (req, res) => {
       if (roleType !== "adhikari") {
         const adhikariPresentIds = await Attendance.find({
           kender,
-          date: { $gte: start, $lte: end }
+          date: { $gte: start, $lte: end },
         }).distinct("saadhak");
 
         const extraSaadhaks = await Saadhak.find({
-          _id: { $in: adhikariPresentIds }
+          _id: { $in: adhikariPresentIds },
         });
 
         const merged = new Map();
-        [...saadhaks, ...extraSaadhaks].forEach(s => {
+        [...saadhaks, ...extraSaadhaks].forEach((s) => {
           merged.set(s._id.toString(), s);
         });
         saadhaks = Array.from(merged.values());
       }
       // 🔥 END OF EXTRA ADDITION
-
 
       // Map attendance
       const attendanceMap = {};
@@ -849,7 +849,6 @@ exports.viewAttendance = async (req, res) => {
   }
 };
 
-
 exports.viewKenderWiseAttendance = async (req, res) => {
   try {
     const user = req.session.user;
@@ -879,7 +878,9 @@ exports.viewKenderWiseAttendance = async (req, res) => {
     if (Object.keys(req.query).length > 0) {
       if (!prantQuery || !zilaQuery) {
         const referer = req.get("Referer");
-        const backUrl = referer ? referer.split("?")[0] : "/attendance/view-kender";
+        const backUrl = referer
+          ? referer.split("?")[0]
+          : "/attendance/view-kender";
 
         return res.status(400).render("error/error-page", {
           title: "Invalid Request",
@@ -944,7 +945,8 @@ exports.viewKenderWiseAttendance = async (req, res) => {
         const dateStr = record.date.toISOString().split("T")[0];
 
         if (!kenderDateCountMap[kId]) kenderDateCountMap[kId] = {};
-        if (!kenderDateCountMap[kId][dateStr]) kenderDateCountMap[kId][dateStr] = 0;
+        if (!kenderDateCountMap[kId][dateStr])
+          kenderDateCountMap[kId][dateStr] = 0;
 
         kenderDateCountMap[kId][dateStr]++;
       });
@@ -955,7 +957,10 @@ exports.viewKenderWiseAttendance = async (req, res) => {
       attendanceData = allKenders
         .map((k) => {
           const attendanceObj = kenderDateCountMap[k._id.toString()] || {};
-          const presentCount = Object.values(attendanceObj).reduce((sum, v) => sum + v, 0);
+          const presentCount = Object.values(attendanceObj).reduce(
+            (sum, v) => sum + v,
+            0
+          );
 
           return {
             _id: k._id,
@@ -970,7 +975,8 @@ exports.viewKenderWiseAttendance = async (req, res) => {
       // Sorting
       if (sortBy === "count") {
         attendanceData.sort((a, b) => {
-          if (b.presentCount === a.presentCount) return a.name.localeCompare(b.name);
+          if (b.presentCount === a.presentCount)
+            return a.name.localeCompare(b.name);
           return b.presentCount - a.presentCount;
         });
       } else {
@@ -1049,7 +1055,6 @@ exports.viewKenderWiseAttendance = async (req, res) => {
     res.status(500).send("Server Error");
   }
 };
-
 
 exports.viewTop10Attendance = async (req, res) => {
   try {
@@ -2414,3 +2419,276 @@ exports.exportMissingExcel = async (req, res) => {
     res.status(500).send("Error generating Excel file");
   }
 };
+
+exports.monthlyAttendanceSummary = async (req, res) => {
+  try {
+    const { kender } = req.query;
+    const today = new Date();
+
+    // Last 12 months range
+    const end = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+    const start = new Date(today.getFullYear(), today.getMonth() - 11, 1);
+
+    const summary = await Attendance.aggregate([
+      {
+        $match: {
+          kender: new mongoose.Types.ObjectId(kender),
+          date: { $gte: start, $lt: end },
+        },
+      },
+
+      // Extract year & month
+      {
+        $addFields: {
+          year: { $year: "$date" },
+          month: { $month: "$date" },
+        },
+      },
+
+      // Group by saadhak + month
+      {
+        $group: {
+          _id: {
+            saadhak: "$saadhak",
+            year: "$year",
+            month: "$month",
+          },
+          count: { $sum: 1 },
+        },
+      },
+
+      // Regroup by saadhak to pivot months
+      {
+        $group: {
+          _id: "$_id.saadhak",
+          months: {
+            $push: {
+              year: "$_id.year",
+              month: "$_id.month",
+              count: "$count",
+            },
+          },
+        },
+      },
+
+      // Lookup Saadhak details
+      {
+        $lookup: {
+          from: "saadhaks",
+          localField: "_id",
+          foreignField: "_id",
+          as: "saadhak",
+        },
+      },
+      { $unwind: "$saadhak" },
+    ]);
+
+    // -------------------------------------------------------
+    // CREATE 12 MONTH KEYS FIRST (today12)
+    // -------------------------------------------------------
+    const today12 = [];
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      today12.push({
+        key: `${d.getFullYear()}-${d.getMonth() + 1}`,
+        date: d,
+      });
+    }
+
+    // -------------------------------------------------------
+    // CONSTRUCT FINAL TABLE ROWS BASED ON 12 FIXED MONTHS
+    // -------------------------------------------------------
+    const data = summary.map((s) => {
+      const row = {
+        name: s.saadhak.name,
+        mobile: s.saadhak.mobile,
+      };
+
+      // Initialize all 12 months to 0
+      today12.forEach((m) => {
+        row[m.key] = 0;
+      });
+
+      // Fill real attendance values
+      s.months.forEach((m) => {
+        const key = `${m.year}-${m.month}`;
+        if (row[key] !== undefined) {
+          row[key] = m.count;
+        }
+      });
+
+      // Calculate total attendance for this saadhak
+      let total = 0;
+      today12.forEach((m) => {
+        total += row[m.key] || 0;
+      });
+      row.total = total;
+
+      return row;
+    });
+
+    // -------------------------------------------------------
+    // FIND MONTHS THAT HAVE ANY ATTENDANCE
+    // -------------------------------------------------------
+    const monthTotals = {};
+    today12.forEach((m) => (monthTotals[m.key] = 0));
+
+    data.forEach((row) => {
+      today12.forEach((m) => {
+        monthTotals[m.key] += row[m.key] || 0;
+      });
+    });
+
+    // Keep only months where total attendance > 0
+    const filteredMonths = today12.filter((m) => monthTotals[m.key] > 0);
+
+    // Sort months: oldest → newest
+    filteredMonths.sort((a, b) => a.date - b.date);
+
+    // -------------------------------------------------------
+    // SORT SAADHAKS ALPHABETICALLY
+    // -------------------------------------------------------
+    data.sort((a, b) => a.name.localeCompare(b.name));
+
+    // -------------------------------------------------------
+    // RENDER
+    // -------------------------------------------------------
+    res.render("attendance/monthlySummary", {
+      data,
+      months: filteredMonths,
+      today,
+    });
+    
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error generating summary");
+  }
+};
+
+exports.exportAttendanceExcel = async (req, res) => {
+  try {
+    const user = req.session.user;
+    const userRoles = user.roles;
+    const monthsToShow = parseInt(req.body.months) || 12;
+    const today = new Date();
+
+    // --- 1️⃣ Build kender filter based on user role ---
+    let kenderFilter = {};
+
+    if (userRoles.some(r => adminRoles.includes(r))) {
+      // admin sees all
+    } else if (userRoles.some(r => kenderRoles.includes(r))) {
+      kenderFilter.kender = new mongoose.Types.ObjectId(user.kender);
+    } else if (userRoles.some(r => ksheterRoles.includes(r))) {
+      const kenders = await Kender.find({ ksheter: new mongoose.Types.ObjectId(user.ksheter) }).select("_id");
+      kenderFilter.kender = { $in: kenders.map(k => new mongoose.Types.ObjectId(k._id)) };
+    } else if (userRoles.some(r => zilaRoles.includes(r))) {
+      const ksheters = await Ksheter.find({ zila: new mongoose.Types.ObjectId(user.zila) }).select("_id");
+      const kenders = await Kender.find({ ksheter: { $in: ksheters.map(k => new mongoose.Types.ObjectId(k._id)) } }).select("_id");
+      kenderFilter.kender = { $in: kenders.map(k => new mongoose.Types.ObjectId(k._id)) };
+    } else {
+      kenderFilter.kender = new mongoose.Types.ObjectId(user.kender);
+    }
+
+    // --- 2️⃣ Date range ---
+    const start = new Date(today.getFullYear(), today.getMonth() - 11, 1);
+    const end = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+
+    // --- 3️⃣ Aggregate Attendance ---
+    const summary = await Attendance.aggregate([
+      { $match: { ...kenderFilter, date: { $gte: start, $lt: end } } },
+      { $addFields: { year: { $year: "$date" }, month: { $month: "$date" } } },
+      { $group: { _id: { saadhak: "$saadhak", year: "$year", month: "$month" }, count: { $sum: 1 } } },
+      { $group: { _id: "$_id.saadhak", months: { $push: { year: "$_id.year", month: "$_id.month", count: "$count" } } } },
+      { $lookup: { from: "saadhaks", localField: "_id", foreignField: "_id", as: "saadhak" } },
+      { $unwind: "$saadhak" },
+    ]);
+
+    // --- 4️⃣ Build proper month key map (FIXED) ---
+    const monthKeys = [];
+    for (let i = 0; i < 12; i++) {
+      const dt = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      monthKeys.push(`${dt.getFullYear()}-${dt.getMonth() + 1}`);
+    }
+
+    const data = summary.map(s => {
+      const row = {
+        name: s.saadhak.name,
+        mobile: s.saadhak.mobile
+      };
+
+      // initialize with zeros
+      monthKeys.forEach(key => row[key] = 0);
+
+      // fill counted months
+      s.months.forEach(m => {
+        const key = `${m.year}-${m.month}`;
+        if (row[key] !== undefined) row[key] = m.count;
+      });
+
+      return row;
+    });
+
+    // --- SORT by Saadhak name (FIXED) ---
+    data.sort((a, b) => a.name.localeCompare(b.name));
+
+    // --- 5️⃣ Last N months labels ---
+    const lastMonths = [];
+    for (let i = monthsToShow - 1; i >= 0; i--) {
+      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      lastMonths.push({
+        key: `${d.getFullYear()}-${d.getMonth() + 1}`,
+        label: `${d.toLocaleString("default", { month: "short" })}-${d.getFullYear()}`,
+      });
+    }
+
+    // --- 6️⃣ Generate Excel ---
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Attendance Summary");
+
+    const headerRow = ["Saadhak"];
+    lastMonths.forEach(m => headerRow.push(m.label));
+    headerRow.push("Total");
+
+    const rowHeader = sheet.addRow(headerRow);
+
+    rowHeader.eachCell(cell => {
+      cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: "FF1B5E20" } };
+      cell.alignment = { vertical: 'middle', horizontal: 'center' };
+    });
+
+    data.forEach(saadhak => {
+      let total = 0;
+      const rowValues = [saadhak.name];
+
+      lastMonths.forEach(m => {
+        const val = saadhak[m.key] || 0;
+        rowValues.push(val);
+        total += val;
+      });
+
+      rowValues.push(total);
+      const row = sheet.addRow(rowValues);
+
+      row.getCell(rowValues.length).font = { bold: true, color: { argb: "FF1B5E20" } };
+    });
+
+    sheet.columns.forEach(col => col.width = 15);
+    sheet.getColumn(1).width = 25;
+
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader("Content-Disposition", `attachment; filename=Attendance_Summary_${Date.now()}.xlsx`);
+
+    await workbook.xlsx.write(res);
+    res.end();
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error generating Excel file");
+  }
+};
+
+
+
+
