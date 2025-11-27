@@ -150,41 +150,66 @@
   const tableData = <%- JSON.stringify(data) %>;
 
   // ---------------- MONTH FILTER LOGIC ----------------
-  document.querySelectorAll("input[name='monthFilter']").forEach(r => {
-    r.addEventListener("change", function () {
-      const monthsToShow = parseInt(this.value);
+ document.querySelectorAll("input[name='monthFilter']").forEach(r => {
+  r.addEventListener("change", function () {
+    const monthsToShow = parseInt(this.value);
 
-      document.querySelector(".attendance-title")
-        .innerText = `📊 ${monthsToShow}-Month Attendance Summary`;
+    document.querySelector(".attendance-title")
+      .innerText = `📊 ${monthsToShow}-Month Attendance Summary`;
 
-      document.getElementById("excelMonthsTop").value = monthsToShow;
-      document.getElementById("excelMonthsBottom").value = monthsToShow;
+    document.getElementById("excelMonthsTop").value = monthsToShow;
+    document.getElementById("excelMonthsBottom").value = monthsToShow;
 
-      const table = document.getElementById("attendanceTable");
-      const headerCells = table.querySelectorAll("thead th");
-      const rows = table.querySelectorAll("tbody tr");
+    const table = document.getElementById("attendanceTable");
+    const headerCells = table.querySelectorAll("thead th");
+    const rows = table.querySelectorAll("tbody tr");
 
-      const totalCols = headerCells.length;
-      const monthCols = totalCols - 2;
+    const totalCols = headerCells.length;
+    const totalFixedCols = 2;  // Saadhak + Total
+    const monthCols = totalCols - totalFixedCols;
+
+    // Calculate how many month columns to hide (older months on left)
+    const hideCount = monthCols - monthsToShow;
+
+    for (let i = 1; i <= monthCols; i++) {
+      const show = i > hideCount;
+
+      headerCells[i].style.display = show ? "" : "none";
 
       rows.forEach(row => {
-        let newTotal = 0;
-
-        for (let i = 1; i <= monthCols; i++) {
-          const show = i > (monthCols - monthsToShow);
-
-          headerCells[i].style.display = show ? "" : "none";
-          row.children[i].style.display = show ? "" : "none";
-
-          if (show) {
-            newTotal += parseInt(row.children[i].innerText) || 0;
-          }
-        }
-
-        row.children[row.children.length - 1].innerText = newTotal;
+        row.children[i].style.display = show ? "" : "none";
       });
+    }
+
+    // recalc totals after filtering
+    rows.forEach(row => {
+      let newTotal = 0;
+
+      for (let i = 1; i <= monthCols; i++) {
+        if (i > hideCount) {
+          newTotal += parseInt(row.children[i].innerText) || 0;
+        }
+      }
+
+      row.children[totalCols - 1].innerText = newTotal;
     });
+
+    hideZeroTotalRows();
   });
+});
+
+
+  function hideZeroTotalRows() {
+  const table = document.getElementById("attendanceTable");
+  const rows = table.querySelectorAll("tbody tr");
+
+  rows.forEach(row => {
+    const totalCell = row.lastElementChild;
+    const total = parseInt(totalCell.innerText) || 0;
+
+    row.style.display = total === 0 ? "none" : "";
+  });
+}
 
 
   // -------------------- PDF GENERATION --------------------
@@ -206,11 +231,14 @@
       .filter(th => th.style.display !== "none")
       .map(th => th.innerText.trim());
 
-    const body = [...table.querySelectorAll("tbody tr")].map(tr =>
-      [...tr.children]
-        .filter(td => td.style.display !== "none")
-        .map(td => td.innerText.trim())
-    );
+   const body = [...table.querySelectorAll("tbody tr")]
+  .filter(tr => tr.style.display !== "none")   // ignore hidden rows
+  .map(tr =>
+    [...tr.children]
+      .filter(td => td.style.display !== "none")
+      .map(td => td.innerText.trim())
+  );
+
 
     doc.autoTable({
       head: [headers],
@@ -233,8 +261,43 @@
     doc.save("Attendance_Summary.pdf");
   }
 
+
+  function setupExcelWithSpinner(formId, monthsInputId) {
+    const form = document.getElementById(formId);
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault(); // stop auto submit
+
+      // 🔥 Show spinner immediately
+      const spinner = document.getElementById('loadingSpinner');
+      if (spinner) spinner.style.display = 'block';
+
+      // ⏳ Hide spinner automatically after 2s + submit form
+      setTimeout(() => {
+  if (spinner) spinner.style.display = 'none';
+
+  // 🔥 Remove rows with total = 0 so Excel gets filtered data
+  const rows = document.querySelectorAll("#attendanceTable tbody tr");
+  rows.forEach(row => {
+    const total = parseInt(row.lastElementChild.innerText) || 0;
+    if (total === 0) row.remove();  // Remove before submit
+  });
+
+  form.submit();
+}, 2000);
+
+    });
+  }
+
+  // Attach for both forms
+  setupExcelWithSpinner("exportExcelFormTop", "excelMonthsTop");
+  setupExcelWithSpinner("exportExcelFormBottom", "excelMonthsBottom");
+
   document.getElementById("downloadPdfBtn").onclick = generatePDF;
   document.getElementById("downloadPdfBtn2").onclick = generatePDF;
+
+  hideZeroTotalRows();
+
 </script>
 
 <%- include('../partials/footer') %>

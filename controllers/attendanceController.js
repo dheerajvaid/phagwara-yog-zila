@@ -2565,6 +2565,7 @@ exports.monthlyAttendanceSummary = async (req, res) => {
   }
 };
 
+// --- FIXED EXCEL EXPORT CONTROLLER ---
 exports.exportAttendanceExcel = async (req, res) => {
   try {
     const user = req.session.user;
@@ -2590,7 +2591,7 @@ exports.exportAttendanceExcel = async (req, res) => {
       kenderFilter.kender = new mongoose.Types.ObjectId(user.kender);
     }
 
-    // --- 2️⃣ Date range ---
+    // --- 2️⃣ Date Range ---
     const start = new Date(today.getFullYear(), today.getMonth() - 11, 1);
     const end = new Date(today.getFullYear(), today.getMonth() + 1, 1);
 
@@ -2604,45 +2605,51 @@ exports.exportAttendanceExcel = async (req, res) => {
       { $unwind: "$saadhak" },
     ]);
 
-    // --- 4️⃣ Build proper month key map (FIXED) ---
-    const monthKeys = [];
-    for (let i = 0; i < 12; i++) {
+    // --- 4️⃣ Month Keys (ascending: old → new) ---
+    let monthKeys = [];
+    for (let i = monthsToShow - 1; i >= 0; i--) {
       const dt = new Date(today.getFullYear(), today.getMonth() - i, 1);
       monthKeys.push(`${dt.getFullYear()}-${dt.getMonth() + 1}`);
     }
 
-    const data = summary.map(s => {
+    // --- Build data rows ---
+    let data = summary.map(s => {
       const row = {
         name: s.saadhak.name,
-        mobile: s.saadhak.mobile
+        mobile: s.saadhak.mobile,
+        total: 0
       };
 
-      // initialize with zeros
       monthKeys.forEach(key => row[key] = 0);
 
-      // fill counted months
       s.months.forEach(m => {
         const key = `${m.year}-${m.month}`;
-        if (row[key] !== undefined) row[key] = m.count;
+        if (row[key] !== undefined) {
+          row[key] = m.count;
+          row.total += m.count;
+        }
       });
 
       return row;
     });
 
-    // --- SORT by Saadhak name (FIXED) ---
+    // --- 4.1️⃣ FIXED: Remove zero-total rows (correct place) ---
+    data = data.filter(r => r.total > 0);
+
+    // --- Sorting (unchanged) ---
     data.sort((a, b) => a.name.localeCompare(b.name));
 
-    // --- 5️⃣ Last N months labels ---
-    const lastMonths = [];
-    for (let i = monthsToShow - 1; i >= 0; i--) {
-      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
-      lastMonths.push({
-        key: `${d.getFullYear()}-${d.getMonth() + 1}`,
-        label: `${d.toLocaleString("default", { month: "short" })}-${d.getFullYear()}`,
-      });
-    }
+    // --- Month Labels ---
+    const lastMonths = monthKeys.map(key => {
+      const [year, month] = key.split("-");
+      const dt = new Date(year, month - 1, 1);
+      return {
+        key,
+        label: `${dt.toLocaleString("default", { month: "short" })}-${year}`
+      };
+    });
 
-    // --- 6️⃣ Generate Excel ---
+    // --- 6️⃣ Excel generation ---
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet("Attendance Summary");
 
@@ -2651,7 +2658,6 @@ exports.exportAttendanceExcel = async (req, res) => {
     headerRow.push("Total");
 
     const rowHeader = sheet.addRow(headerRow);
-
     rowHeader.eachCell(cell => {
       cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: "FF1B5E20" } };
@@ -2659,19 +2665,12 @@ exports.exportAttendanceExcel = async (req, res) => {
     });
 
     data.forEach(saadhak => {
-      let total = 0;
       const rowValues = [saadhak.name];
 
-      lastMonths.forEach(m => {
-        const val = saadhak[m.key] || 0;
-        rowValues.push(val);
-        total += val;
-      });
+      lastMonths.forEach(m => rowValues.push(saadhak[m.key] || 0));
 
-      rowValues.push(total);
-      const row = sheet.addRow(rowValues);
-
-      row.getCell(rowValues.length).font = { bold: true, color: { argb: "FF1B5E20" } };
+      rowValues.push(saadhak.total);
+      sheet.addRow(rowValues);
     });
 
     sheet.columns.forEach(col => col.width = 15);
@@ -2688,7 +2687,3 @@ exports.exportAttendanceExcel = async (req, res) => {
     res.status(500).send("Error generating Excel file");
   }
 };
-
-
-
-
