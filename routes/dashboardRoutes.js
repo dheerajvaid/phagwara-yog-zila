@@ -11,7 +11,7 @@ router.get("/dashboard", requireLogin, async (req, res) => {
   try {
     const user = req.session.user;
     const userId = req.session.user.id;
-
+    
     // Fetch full saadhak record
     const userSaadhak = await Saadhak.findById(userId);
 
@@ -48,12 +48,13 @@ router.get("/dashboard", requireLogin, async (req, res) => {
     if (req.session.user && req.session.user.kender) {
       kenderDetails = await Kender.findById(req.session.user.kender).lean();
     }
-    // console.log(user);
+    console.log(userId);
     // console.log(kenderDetails);
 
     // Render page
     res.render("dashboard", {
       user,
+      userId,
       userSaadhak,
       tipOfTheDay: randomTip.text,
       bmi,

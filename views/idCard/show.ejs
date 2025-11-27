@@ -1,0 +1,48 @@
+<link rel="stylesheet" href="/css/idcard.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<div class="id-card-wrapper">
+  <div id="card" class="id-card-horizontal">
+
+    <div class="left-block">
+      <img src="/images/logo-nbg.png" class="org-logo">
+      <div class="tagline">जीओ और जीवन दो</div>
+    </div>
+
+    <div class="right-block">
+
+      <div class="org-title">भारतीय योग संस्थान (पंजी.)</div>
+      <div class="zila-title">
+        <%= user.zilaName || "Phagwara Zila" %>
+      </div>
+
+      <div class="info-box">
+        <div class="info-label">👤 NAME</div>
+        <div class="info-value"><%= user.name.toUpperCase() %></div>
+
+        <div class="divider"></div>
+
+        <div class="info-label">🎀 DESIGNATION</div>
+        <div class="info-value"><%= user.roles.join(", ") %></div>
+
+        <div class="divider"></div>
+
+        <div class="info-label">📲 MOBILE</div>
+<div class="info-value">
+  <%= user.mobile.replace(/(\d{5})(\d{5})/, '$1-$2') %>
+</div>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<div class="download-container">
+  <button class="btn btn-primary download-btn" onclick="downloadCard()">
+    Download ID Card
+  </button>
+</div>
+
+<script src="/js/idcard-download.js"></script>

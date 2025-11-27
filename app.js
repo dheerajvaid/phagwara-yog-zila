@@ -177,6 +177,8 @@ mongoose
     app.use("/wishes", wishesRoutes);
     app.use("/paath", paathRoutes);
     app.use("/paath", paathGroupRoutes);
+    app.use('/idcard', require('./routes/idCard'));
+
 
     console.log("✅ All middlewares & routes loaded safely");
   })

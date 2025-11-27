@@ -31,4 +31,4 @@ const saadhakSchema = new mongoose.Schema({
   heightInches: Number,    // e.g. 6
 }, { timestamps: true });
 
-module.exports = mongoose.model('Saadhak', saadhakSchema);
+module.exports = mongoose.models.Saadhak || mongoose.model("Saadhak", saadhakSchema);

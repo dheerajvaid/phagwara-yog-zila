@@ -1,0 +1,132 @@
+/* Full wrapper to center card */
+.id-card-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+}
+
+/* Perfect CR80 Card Dimensions (print-ready) */
+.id-card-horizontal {
+  width: 8.56cm;
+  height: 5.4cm;
+  background: #fff7eb; /* warmer creamy white, more vivid */
+  border-radius: 16px;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25); /* slightly stronger for depth */
+  border: 2px solid #8b4513; /* sharper warm border */
+
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* Glossy overlay */
+.id-card-horizontal::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.18); /* slightly more sheen */
+  pointer-events: none;
+  border-radius: 16px;
+}
+
+/* Left side strip */
+.left-block {
+  width: 35%;
+  background: #fbe9d0; /* vibrant warm beige */
+  padding: 2px;
+  text-align: center;
+  border-right: 2px solid #8b4513; 
+}
+
+.org-logo {
+  width: 100px;
+  margin-top: 45px;
+}
+
+.tagline {
+  margin-top: 12px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #8b4513; /* rich dark brown, full opacity */
+  text-shadow: 0px 1px 1px rgba(255, 255, 255, 0.6);
+}
+
+/* Right panel */
+.right-block {
+  width: 65%;
+  padding: 12px 15px;
+  color: #5a2e1a; /* darker, sharp brown for high contrast */
+}
+
+/* Title styling */
+.org-title {
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+  color: #9b4d1f; /* darker caramel/golden, full opacity */
+}
+
+.zila-title {
+  font-size: 12px;
+  opacity: 1;
+  margin-bottom: 12px;
+  color: #9b4d1f; /* brighter warm gold */
+  text-align: center;
+  font-weight: 600;
+}
+
+/* Information Box */
+.info-box {
+  background: #fff2e0; /* slightly warmer cream for contrast */
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #8b4513;
+}
+
+.info-label {
+  font-size: 10px;
+  opacity: 1;
+  color: #7a3e1f; /* rich brown for readability */
+  font-weight: 600;
+}
+
+.info-value {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: #4a1f0f; /* very dark brown, almost black for sharp contrast */
+}
+
+.divider {
+  border-bottom: 1px solid #8b4513;
+  margin: 6px 0;
+}
+
+/* Download button alignment */
+.download-container {
+  text-align: center;
+  margin-top: 20px;
+}
+
+/* --- Print adjustments --- */
+@media print {
+  body {
+    margin: 0;
+  }
+  .id-card-wrapper {
+    margin-top: 0;
+    justify-content: flex-start;
+  }
+  .download-container {
+    display: none; /* hide buttons in print */
+  }
+  .id-card-horizontal {
+    box-shadow: none; /* remove screen shadow for print */
+    border: 1px solid #e0c9a7; 
+  }
+}
