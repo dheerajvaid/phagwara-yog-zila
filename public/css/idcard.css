@@ -52,7 +52,7 @@
   margin-top: 8px;
   font-size: 12px;
   font-weight: bold;
-  color: #8b4513; /* rich dark brown, full opacity */
+  color: #4a1f0f; /* rich dark brown, full opacity */
   text-shadow: 0px 1px 1px rgba(255, 255, 255, 0.6);
 }
 
@@ -68,13 +68,13 @@
   font-size: 15px;
   font-weight: 700;
   text-align: center;
-  color: #9b4d1f; /* darker caramel/golden, full opacity */
+  color: #4a1f0f; /* darker caramel/golden, full opacity */
 }
 
 .zila-title {
-  font-size: 12px;
+  font-size: 10px;
   opacity: 1;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   color: #9b4d1f; /* brighter warm gold */
   text-align: center;
   font-weight: 600;
@@ -89,8 +89,8 @@
 }
 
 .info-label {
-  font-size: 10px;
-  opacity: 1;
+  font-size: 8px;
+  opacity: 0.8;
   color: #7a3e1f; /* rich brown for readability */
   font-weight: 600;
 }
@@ -98,13 +98,13 @@
 .info-value {
   font-size: 13px;
   font-weight: 700;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
   color: #4a1f0f; /* very dark brown, almost black for sharp contrast */
 }
 
 .divider {
   border-bottom: 1px solid #8b4513;
-  margin: 4px 0;
+  margin: 2px 0;
 }
 
 /* Download button alignment */

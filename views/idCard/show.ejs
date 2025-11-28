@@ -15,9 +15,29 @@
     <div class="right-block">
 
       <div class="org-title">भारतीय योग संस्थान (पंजी.)</div>
-      <div class="zila-title">
-        <%= kenderName || ksheterName || zilaName || prantName ||  "Karo Yog Raho Nirog" %>
-      </div>
+      <div class="zila-title" style="line-height: 1.1;">
+
+  <% if (kenderName) { %>
+    <div><%= kenderName %></div>
+  <% } %>
+
+  <% if (ksheterName) { %>
+    <div><%= ksheterName %></div>
+  <% } %>
+
+  <% if (zilaName) { %>
+    <div><%= zilaName %></div>
+  <% } %>
+
+  <% if (prantName) { %>
+    <div><%= prantName %></div>
+  <% } %>
+
+  <% if (!kenderName && !ksheterName && !zilaName && !prantName) { %>
+    <div>Karo Yog Raho Nirog</div>
+  <% } %>
+
+</div>
 
       <div class="info-box">
         <div class="info-label">👤 NAME</div>
