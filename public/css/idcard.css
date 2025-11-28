@@ -37,15 +37,16 @@
 /* Left side strip */
 .left-block {
   width: 25%;
-  background: #fbe9d0; /* vibrant warm beige */
+  background: #fbe9d0;
   padding: 2px;
   text-align: center;
   border-right: 2px solid #8b4513; 
+  position: relative;
 }
 
 .org-logo {
   width: 60px;
-  margin-top: 45px;
+  margin-top: 10px; /* earlier 45px */
 }
 
 .tagline {
@@ -100,6 +101,40 @@
   font-weight: 700;
   margin-bottom: 1px;
   color: #4a1f0f; /* very dark brown, almost black for sharp contrast */
+}
+
+/* Photo box */
+.photo-box {
+  width: 70px;  
+  height: 70px;
+  border: 2px solid #8b4513;
+  /* border-radius: 8px; */
+  margin: 10px auto 0 auto;
+  background: #fff7eb;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.photo-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Hide default file picker */
+#photoInput {
+  display: none;
+}
+
+/* Fake button for picking image */
+.photo-upload-btn {
+  margin-top: 5px;
+  font-size: 10px;
+  cursor: pointer;
+  color: #4a1f0f;
+  text-decoration: underline;
 }
 
 .divider {

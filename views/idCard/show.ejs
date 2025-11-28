@@ -8,8 +8,15 @@
   <div id="card" class="id-card-horizontal">
 
     <div class="left-block">
+
       <img src="/images/logo-nbg.png" class="org-logo">
       <div class="tagline">जीओ और जीवन दो</div>
+
+      <!-- Photo Box ONLY -->
+      <div class="photo-box" id="photoPreview">
+        <span style="font-size:10px; color:#7a3e1f;">Photo</span>
+      </div>
+
     </div>
 
     <div class="right-block">
@@ -17,27 +24,27 @@
       <div class="org-title">भारतीय योग संस्थान (पंजी.)</div>
       <div class="zila-title" style="line-height: 1.1;">
 
-  <% if (kenderName) { %>
-    <div><%= kenderName %></div>
-  <% } %>
+        <% if (kenderName) { %>
+          <div><%= kenderName %></div>
+        <% } %>
 
-  <% if (ksheterName) { %>
-    <div><%= ksheterName %></div>
-  <% } %>
+        <% if (ksheterName) { %>
+          <div><%= ksheterName %></div>
+        <% } %>
 
-  <% if (zilaName) { %>
-    <div><%= zilaName %></div>
-  <% } %>
+        <% if (zilaName) { %>
+          <div><%= zilaName %></div>
+        <% } %>
 
-  <% if (prantName) { %>
-    <div><%= prantName %></div>
-  <% } %>
+        <% if (prantName) { %>
+          <div><%= prantName %></div>
+        <% } %>
 
-  <% if (!kenderName && !ksheterName && !zilaName && !prantName) { %>
-    <div>Karo Yog Raho Nirog</div>
-  <% } %>
+        <% if (!kenderName && !ksheterName && !zilaName && !prantName) { %>
+          <div>Karo Yog Raho Nirog</div>
+        <% } %>
 
-</div>
+      </div>
 
       <div class="info-box">
         <div class="info-label">👤 NAME</div>
@@ -51,9 +58,9 @@
         <div class="divider"></div>
 
         <div class="info-label">📲 MOBILE</div>
-<div class="info-value">
-  <%= user.mobile.replace(/(\d{5})(\d{5})/, '$1-$2') %>
-</div>
+        <div class="info-value">
+          <%= user.mobile.replace(/(\d{5})(\d{5})/, '$1-$2') %>
+        </div>
 
       </div>
 
@@ -62,12 +69,37 @@
   </div>
 </div>
 
+<!-- UPLOAD BUTTON OUTSIDE THE CARD -->
 <div class="download-container">
+  
+  <!-- 📸 Upload Photo Button -->
+  <label for="photoInput" class="btn btn-warning" style="margin-right: 10px;">
+    Upload Photo
+  </label>
+
+  <!-- Hidden input -->
+  <input type="file" accept="image/*" id="photoInput" style="display:none">
+
+  <!-- ⬇ Download Button -->
   <button class="btn btn-primary download-btn" onclick="downloadCard()">
     Download ID Card
   </button>
 </div>
 
 <script src="/js/idcard-download.js"></script>
+
+<script>
+document.getElementById('photoInput').addEventListener('change', function (event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    document.getElementById('photoPreview').innerHTML =
+      `<img src="${e.target.result}">`;
+  };
+  reader.readAsDataURL(file);
+});
+</script>
 
 <%- include('../partials/footer') %>
