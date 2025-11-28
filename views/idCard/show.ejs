@@ -2,51 +2,42 @@
 <%- include('../partials/navbar') %>
 
 <link rel="stylesheet" href="/css/idcard.css">
+
+<!-- html2canvas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<!-- jsPDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <div class="id-card-wrapper">
   <div id="card" class="id-card-horizontal">
 
     <div class="left-block">
-
-      <img src="/images/logo-nbg.png" class="org-logo">
+      <img src="/images/logo-nbg.png" class="org-logo" loading="lazy">
       <div class="tagline">जीओ और जीवन दो</div>
 
-      <!-- Photo Box ONLY -->
       <div class="photo-box" id="photoPreview">
         <span style="font-size:10px; color:#7a3e1f;">Photo</span>
       </div>
-
     </div>
 
     <div class="right-block">
 
       <div class="org-title">भारतीय योग संस्थान (पंजी.)</div>
-      <div class="zila-title" style="line-height: 1.1;">
 
-        <% if (kenderName) { %>
-          <div><%= kenderName %></div>
-        <% } %>
-
-        <% if (ksheterName) { %>
-          <div><%= ksheterName %></div>
-        <% } %>
-
-        <% if (zilaName) { %>
-          <div><%= zilaName %></div>
-        <% } %>
-
-        <% if (prantName) { %>
-          <div><%= prantName %></div>
-        <% } %>
+      <div class="zila-title" style="line-height: 1.05;">
+        <% if (kenderName) { %><div><%= kenderName %></div><% } %>
+        <% if (ksheterName) { %><div><%= ksheterName %></div><% } %>
+        <% if (zilaName) { %><div><%= zilaName %></div><% } %>
+        <% if (prantName) { %><div><%= prantName %></div><% } %>
 
         <% if (!kenderName && !ksheterName && !zilaName && !prantName) { %>
           <div>Karo Yog Raho Nirog</div>
         <% } %>
-
       </div>
 
       <div class="info-box">
+
         <div class="info-label">👤 NAME</div>
         <div class="info-value"><%= user.name.toUpperCase() %></div>
 
@@ -63,32 +54,35 @@
         </div>
 
       </div>
-
     </div>
-
   </div>
 </div>
 
-<!-- UPLOAD BUTTON OUTSIDE THE CARD -->
+<!-- Upload + Download Container -->
 <div class="download-container">
-  
-  <!-- 📸 Upload Photo Button -->
+
   <label for="photoInput" class="btn btn-warning" style="margin-right: 10px;">
     Upload Photo
   </label>
 
-  <!-- Hidden input -->
   <input type="file" accept="image/*" id="photoInput" style="display:none">
 
-  <!-- ⬇ Download Button -->
-  <button class="btn btn-primary download-btn" onclick="downloadCard()">
-    Download ID Card
+  <!-- Separate buttons for PNG and PDF -->
+  <button class="btn btn-success download-btn" onclick="downloadPNG()">
+    Download PNG
   </button>
+
+  <button class="btn btn-primary download-btn" onclick="downloadPDF()">
+    Download PDF
+  </button>
+
+  <p style="font-size: 12px; margin-top:6px; color:#444;">
+    🖨 <b>Note:</b> Print the PDF at <b>100% / Actual Size</b> for correct ID card size.
+  </p>
 </div>
 
-<script src="/js/idcard-download.js"></script>
-
 <script>
+// === Photo Preview Script ===
 document.getElementById('photoInput').addEventListener('change', function (event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -96,10 +90,61 @@ document.getElementById('photoInput').addEventListener('change', function (event
   const reader = new FileReader();
   reader.onload = function (e) {
     document.getElementById('photoPreview').innerHTML =
-      `<img src="${e.target.result}">`;
+      `<img src="${e.target.result}"
+         style="width:100%; height:100%; object-fit:cover;
+                image-rendering:crisp-edges;
+                filter:contrast(1.15) brightness(0.98);">`;
   };
   reader.readAsDataURL(file);
 });
+
+// --- Shared function to render card ---
+async function renderCardCanvas() {
+  const card = document.querySelector("#card");
+  const originalRatio = window.devicePixelRatio;
+  window.devicePixelRatio = 4;
+
+  const canvas = await html2canvas(card, {
+    scale: 5,
+    logging: false,
+    useCORS: true,
+    allowTaint: false,
+    backgroundColor: null,
+    removeContainer: true
+  });
+
+  window.devicePixelRatio = originalRatio;
+  return canvas;
+}
+
+// --- Download PNG ---
+async function downloadPNG() {
+  const canvas = await renderCardCanvas();
+  const pngData = canvas.toDataURL("image/png", 1.0);
+  const link = document.createElement("a");
+  link.download = "id-card.png";
+  link.href = pngData;
+  link.click();
+}
+
+// --- Download PDF ---
+async function downloadPDF() {
+  const canvas = await renderCardCanvas();
+  const { jsPDF } = window.jspdf;
+
+  const pdfWidthCm = 8.56;
+  const pdfHeightCm = 5.40;
+
+  const pdf = new jsPDF({
+    orientation: "landscape",
+    unit: "cm",
+    format: [pdfWidthCm, pdfHeightCm]
+  });
+
+  const jpegData = canvas.toDataURL("image/jpeg", 1.0);
+  pdf.addImage(jpegData, "JPEG", 0, 0, pdfWidthCm, pdfHeightCm, "", "FAST");
+  pdf.save("id-card.pdf");
+}
 </script>
 
 <%- include('../partials/footer') %>
