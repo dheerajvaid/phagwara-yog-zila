@@ -1,3 +1,6 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
 <link rel="stylesheet" href="/css/idcard.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
@@ -13,7 +16,7 @@
 
       <div class="org-title">भारतीय योग संस्थान (पंजी.)</div>
       <div class="zila-title">
-        <%= user.zilaName || "Phagwara Zila" %>
+        <%= kenderName || ksheterName || zilaName || prantName ||  "Karo Yog Raho Nirog" %>
       </div>
 
       <div class="info-box">
@@ -46,3 +49,5 @@
 </div>
 
 <script src="/js/idcard-download.js"></script>
+
+<%- include('../partials/footer') %>

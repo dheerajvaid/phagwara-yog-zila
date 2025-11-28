@@ -48,7 +48,7 @@ router.get("/dashboard", requireLogin, async (req, res) => {
     if (req.session.user && req.session.user.kender) {
       kenderDetails = await Kender.findById(req.session.user.kender).lean();
     }
-    console.log(userId);
+    // console.log(userId);
     // console.log(kenderDetails);
 
     // Render page

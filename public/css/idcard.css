@@ -2,7 +2,7 @@
 .id-card-wrapper {
   display: flex;
   justify-content: center;
-  margin-top: 40px;
+  margin-top: 20px;
 }
 
 /* Perfect CR80 Card Dimensions (print-ready) */
@@ -10,7 +10,7 @@
   width: 8.56cm;
   height: 5.4cm;
   background: #fff7eb; /* warmer creamy white, more vivid */
-  border-radius: 16px;
+  /* border-radius: 16px; */
   display: flex;
   overflow: hidden;
   position: relative;
@@ -36,7 +36,7 @@
 
 /* Left side strip */
 .left-block {
-  width: 35%;
+  width: 25%;
   background: #fbe9d0; /* vibrant warm beige */
   padding: 2px;
   text-align: center;
@@ -44,12 +44,12 @@
 }
 
 .org-logo {
-  width: 100px;
+  width: 60px;
   margin-top: 45px;
 }
 
 .tagline {
-  margin-top: 12px;
+  margin-top: 8px;
   font-size: 12px;
   font-weight: bold;
   color: #8b4513; /* rich dark brown, full opacity */
@@ -58,8 +58,8 @@
 
 /* Right panel */
 .right-block {
-  width: 65%;
-  padding: 12px 15px;
+  width: 75%;
+  padding: 6px 6px;
   color: #5a2e1a; /* darker, sharp brown for high contrast */
 }
 
@@ -74,7 +74,7 @@
 .zila-title {
   font-size: 12px;
   opacity: 1;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   color: #9b4d1f; /* brighter warm gold */
   text-align: center;
   font-weight: 600;
@@ -83,7 +83,7 @@
 /* Information Box */
 .info-box {
   background: #fff2e0; /* slightly warmer cream for contrast */
-  padding: 10px;
+  padding: 6px;
   border-radius: 10px;
   border: 1px solid #8b4513;
 }
@@ -98,13 +98,13 @@
 .info-value {
   font-size: 13px;
   font-weight: 700;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
   color: #4a1f0f; /* very dark brown, almost black for sharp contrast */
 }
 
 .divider {
   border-bottom: 1px solid #8b4513;
-  margin: 6px 0;
+  margin: 4px 0;
 }
 
 /* Download button alignment */
