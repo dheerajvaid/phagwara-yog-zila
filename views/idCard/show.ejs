@@ -280,7 +280,7 @@
 
   <!-- Download Buttons -->
   <div class="download-buttons" style="display:flex; gap:10px; margin-top:5px; flex-wrap:wrap; justify-content:center;">
-    <button class="btn btn-success download-btn btn-sm" onclick="downloadPNG()">Download PNG</button>
+    <button class="btn btn-success download-btn btn-sm" onclick="downloadPNG()">Download IMG</button>
     <button class="btn btn-primary download-btn btn-sm" onclick="downloadPDF()">Download PDF</button>
   </div>
 
@@ -541,54 +541,102 @@
     reader.readAsDataURL(file);
   });
 
-  // ------------------ Render Card Canvas (kept core logic but small improvement for swatches) ------------------
-  async function renderCardCanvas(){
-    const card = document.querySelector("#card");
-    const originalRatio = window.devicePixelRatio;
-    // preserve sharpness: temporarily ensure background color is applied for html2canvas
-    window.devicePixelRatio = 4;
+  // ------------------ Render Card Canvas (Ultra HD) ------------------
+async function renderCardCanvas() {
+  const card = document.querySelector("#card");
 
-    const canvas = await html2canvas(card,{
-      scale:5,
-      logging:false,
-      useCORS:true,
-      allowTaint:false,
-      backgroundColor: null,
-      removeContainer:true
-    });
+  const originalDPR = window.devicePixelRatio;
+  const safeDPR = Math.min(originalDPR * 4, 6);   // SAFE for iPhone
 
-    window.devicePixelRatio = originalRatio;
-    return canvas;
-  }
+  // Temporarily boost internal resolution
+  Object.defineProperty(window, "devicePixelRatio", {
+    get: () => safeDPR
+  });
 
-  // ------------------ Download PNG ------------------
-  async function downloadPNG(){
-    const canvas = await renderCardCanvas();
-    const pngData = canvas.toDataURL("image/png",1.0);
+  const canvas = await html2canvas(card, {
+    scale: safeDPR,
+    logging: false,
+    useCORS: true,
+    backgroundColor: null
+  });
+
+  // Restore original DPI
+  Object.defineProperty(window, "devicePixelRatio", {
+    get: () => originalDPR
+  });
+
+  return canvas;
+}
+
+
+// ------------------ Download PNG (All Devices, iPhone FIXED) ------------------
+async function downloadPNG() {
+  const canvas = await renderCardCanvas();
+
+  canvas.toBlob((blob) => {
+    const url = URL.createObjectURL(blob);
+
     const link = document.createElement("a");
+    link.href = url;
     link.download = "id-card.png";
-    link.href = pngData;
+
+    // For iPhone: must append to DOM
+    document.body.appendChild(link);
     link.click();
-  }
+    document.body.removeChild(link);
 
-  // ------------------ Download PDF ------------------
-  async function downloadPDF(){
-    const canvas = await renderCardCanvas();
-    const { jsPDF } = window.jspdf;
-    const pdfWidthCm = 8.56;
-    const pdfHeightCm = 5.40;
-    const pdf = new jsPDF({orientation:"landscape", unit:"cm", format:[pdfWidthCm,pdfHeightCm]});
+    URL.revokeObjectURL(url);
+  }, "image/png", 1.0);
 
-    canvas.toBlob(async function(blob){
-      const reader = new FileReader();
-      reader.onload = function(){
-        const jpegData = reader.result;
-        pdf.addImage(jpegData,"JPEG",0,0,pdfWidthCm,pdfHeightCm,"","FAST");
-        pdf.save("id-card.pdf");
-      };
-      reader.readAsDataURL(blob);
-    },"image/jpeg",1.0);
-  }
+   const spinner = document.getElementById('loadingSpinner');
+     
+      setTimeout(() => {
+        if (spinner) spinner.style.display = 'none';
+      }, 1000);
+}
+
+
+// ------------------ Download PDF (All Devices, iPhone FIXED + HD) ------------------
+async function downloadPDF() {
+  const canvas = await renderCardCanvas();
+  const { jsPDF } = window.jspdf;
+
+  const pdf = new jsPDF({
+    orientation: "landscape",
+    unit: "cm",
+    format: [8.56, 5.40]
+  });
+
+  canvas.toBlob((blob) => {
+    const reader = new FileReader();
+    reader.onload = function () {
+      const imageData = reader.result;
+
+      pdf.addImage(imageData, "JPEG", 0, 0, 8.56, 5.40, "", "FAST");
+
+      // FIX FOR iPHONE — cannot use pdf.save()
+      const pdfBlob = pdf.output("blob");
+      const url = URL.createObjectURL(pdfBlob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "id-card.pdf";
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      URL.revokeObjectURL(url);
+    };
+    reader.readAsDataURL(blob);
+  }, "image/jpeg", 1.0);
+
+  const spinner = document.getElementById('loadingSpinner');
+     
+      setTimeout(() => {
+        if (spinner) spinner.style.display = 'none';
+      }, 1000);
+}
 
   // Accessibility: allow keyboard selection of themes (left/right arrow navigation)
   (function addKeyboardSupport(){
