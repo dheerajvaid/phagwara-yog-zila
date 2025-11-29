@@ -2,7 +2,23 @@
 <%- include('../partials/navbar') %>
 
 <style>
-  /* ----------- CSS for High Visibility ID Card ----------- */
+  /* -------------------- Themeable CSS Variables -------------------- */
+  :root{
+    /* default theme (matches your original) */
+    --primary: #3a120f;     /* used for heavy accents / dark backgrounds */
+    --light: #fff4e0;       /* main card background */
+    --panel: #fce5d0;       /* info panel / left block bg */
+    --text-strong: #4d1f12; /* main text */
+    --text-muted: #5a1f0f;  /* labels */
+    --border: #3a120f;      /* borders */
+    --org-title-bg: #3a120f;
+    --org-title-color: #fff2e0;
+    --photo-bg: #fff4e0;
+    --tagline-color: #3a120f;
+    --shadow-rgba: 0,0,0,0.3;
+  }
+
+  /* ----------- CSS for High Visibility ID Card (uses CSS variables) ----------- */
   .id-card-wrapper {
     display: flex;
     justify-content: center;
@@ -17,9 +33,9 @@
     display: flex;
     overflow: hidden;
     position: relative;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-    border: 3px solid #3a120f;
-    background: #fff4e0;
+    box-shadow: 0 8px 20px rgba(var(--shadow-rgba));
+    border: 3px solid var(--border);
+    background: var(--light);
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
     text-rendering: optimizeLegibility;
@@ -30,16 +46,16 @@
     content: "";
     position: absolute;
     inset: 0;
-    background: rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.06);
     pointer-events: none;
   }
 
   .left-block {
     width: 25%;
-    background: #fce5d0;
+    background: var(--panel);
     padding: 4px 2px;
     text-align: center;
-    border-right: 3px solid #3a120f;
+    border-right: 3px solid var(--border);
     filter: contrast(110%);
   }
 
@@ -54,23 +70,23 @@
     margin-top: 4px;
     font-size: 11px;
     font-weight: 800;
-    color: #3a120f;
-    text-shadow: 0 1px 2px rgba(255,255,255,0.5);
+    color: var(--tagline-color);
+    text-shadow: 0 1px 2px rgba(255,255,255,0.35);
     text-rendering: geometricPrecision;
   }
 
   .right-block {
     width: 75%;
     padding: 8px;
-    color: #4d1f12;
+    color: var(--text-strong);
   }
 
   .org-title {
     font-size: 16px;
     font-weight: 800;
     text-align: center;
-    color: #fff2e0;
-    background-color: #3a120f;
+    color: var(--org-title-color);
+    background-color: var(--org-title-bg);
     letter-spacing: 0.4px;
     padding: 2px 0;
   }
@@ -79,33 +95,34 @@
     font-size: 11px;
     font-weight: 700;
     text-align: center;
-    color: #3a120f;
+    color: var(--text-strong);
     margin-bottom: 6px;
+    line-height:1.05;
   }
 
   .info-box {
-    background: #fce5d0;
+    background: var(--panel);
     padding: 4px;
     border-radius: 10px;
-    border: 2px solid #3a120f;
+    border: 2px solid var(--border);
   }
 
   .info-label {
     font-size: 8px;
-    opacity: 0.9;
-    color: #5a1f0f;
+    opacity: 0.95;
+    color: var(--text-muted);
     font-weight: 700;
   }
 
   .info-value {
     font-size: 13.5px;
     font-weight: 800;
-    color: #3a120f;
+    color: var(--text-strong);
     margin-bottom: 1px;
   }
 
   .divider {
-    border-bottom: 1.5px solid #3a120f;
+    border-bottom: 1.5px solid var(--border);
     margin: 1.5px 0;
     filter: contrast(120%);
   }
@@ -113,9 +130,9 @@
   .photo-box {
     width: 72px;
     height: 72px;
-    border: 2px solid #3a120f;
+    border: 2px solid var(--border);
     margin: 8px auto;
-    background: #fff4e0;
+    background: var(--photo-bg);
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -137,6 +154,49 @@
     margin-top: 25px;
   }
 
+  /* Theme picker container (swatches) */
+  .theme-picker {
+    display:flex;
+    gap:10px;
+    align-items:center;
+    justify-content:center;
+    flex-wrap:wrap;
+    margin-bottom:6px;
+  }
+
+  .theme-swatch {
+    width:18px;
+    height: 18px;
+    border-radius:50%;
+    border:2px solid rgba(0,0,0,0.12);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    cursor:pointer;
+    display:inline-block;
+    flex: 0 0 auto;
+    transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+    position:relative;
+  }
+  .theme-swatch:hover{ transform: translateY(-4px); box-shadow: 0 6px 12px rgba(0,0,0,0.18); }
+  .theme-swatch.active {
+    border-color: #fff;
+    box-shadow: 0 8px 18px rgba(0,0,0,0.28);
+    transform: translateY(-6px) scale(1.06);
+  }
+  .theme-swatch::after{
+    content: "";
+    position:absolute;
+    inset: 0;
+    border-radius: 50%;
+    mix-blend-mode: multiply;
+  }
+
+  .theme-label {
+    font-size:12px;
+    text-align:center;
+    color:#333;
+    margin-top:4px;
+  }
+
   @media print {
     body { margin:0; }
     .id-card-wrapper { margin-top:0; justify-content:flex-start; }
@@ -148,6 +208,11 @@
       print-color-adjust:exact;
     }
   }
+
+  /* small helpers */
+  .swatches-row { display:flex; gap:8px; align-items:center; justify-content:center; flex-wrap:wrap; }
+  .picker-title { font-size:13px; font-weight:700; color:#333; margin-bottom:6px; text-align:center; }
+  .btn.sm { padding:6px 10px; font-size:13px; }
 </style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -157,10 +222,10 @@
   <div id="card" class="id-card-horizontal">
     <!-- LEFT BLOCK -->
     <div class="left-block">
-      <img src="/images/logo-nbg.png" class="org-logo" loading="lazy">
+      <img src="/images/logo-nbg.png" class="org-logo" loading="lazy" alt="logo">
       <div class="tagline">जीओ और जीवन दो</div>
-      <div class="photo-box" id="photoPreview">
-        <span style="font-size:10px; color:#7a3e1f;">Photo</span>
+      <div class="photo-box" id="photoPreview" aria-label="photo preview">
+        <span style="font-size:10px; color:var(--tagline-color);">Photo</span>
       </div>
     </div>
     <!-- RIGHT BLOCK -->
@@ -182,7 +247,7 @@
           <div>Karo Yog Raho Nirog</div>
         <% } %>
       </div>
-      <div class="info-box">
+      <div class="info-box" role="region" aria-label="identity details">
         <div class="info-label">👤 NAME</div>
         <div class="info-value"><%= user.name.toUpperCase() %></div>
         <div class="divider"></div>
@@ -196,26 +261,273 @@
   </div>
 </div>
 
+<!-- THEME PICKER + ACTIONS -->
 <div class="download-container" style="display:flex; flex-direction:column; align-items:center; gap:10px;">
+
+  <!-- Theme Picker Title -->
+  <div style="width:100%; max-width:420px; padding:6px 8px; background:transparent;">
+    <div class="picker-title">Choose Theme — <small style="font-weight:600; color:#666">Dark swatches</small></div>
+
+    <!-- Swatches Row -->
+    <div class="theme-picker" id="themePicker" aria-label="Theme swatches">
+      <!-- JS will inject swatches -->
+    </div>
+  </div>
+
   <!-- Upload Photo -->
-  <label for="photoInput" class="btn btn-warning">Upload Photo</label>
+  <label for="photoInput" class="btn btn-warning btn-sm">Upload Photo</label>
   <input type="file" accept="image/*" id="photoInput">
 
   <!-- Download Buttons -->
   <div class="download-buttons" style="display:flex; gap:10px; margin-top:5px; flex-wrap:wrap; justify-content:center;">
-    <button class="btn btn-success download-btn" onclick="downloadPNG()">Download PNG</button>
-    <button class="btn btn-primary download-btn" onclick="downloadPDF()">Download PDF</button>
+    <button class="btn btn-success download-btn btn-sm" onclick="downloadPNG()">Download PNG</button>
+    <button class="btn btn-primary download-btn btn-sm" onclick="downloadPDF()">Download PDF</button>
   </div>
 
   <!-- Note -->
-  <p style="font-size:12px; margin-top:6px; color:#444; text-align:center;">
-    🖨 <b>Note:</b> Print PDF at <b>100% / Actual Size</b> for correct ID card size.
+  <p style="font-size:12px; margin-top:6px; color:#444; text-align:center; max-width:520px;">
+    🖨 <b>Note:</b> Print PDF at <b>100% / Actual Size</b for correct ID card size. Selected theme persists in this browser.
   </p>
 </div>
 
-
 <script>
-  // === Photo Preview ===
+  // ------------------ Theme definitions ------------------
+  const THEMES = [
+    {
+      id: 'deep-brown',
+      name: 'Deep Brown',
+      swatch: ['#4b1b17', '#2d0f0d'], // primary visual for swatch
+      vars: {
+        '--primary': '#3a120f',
+        '--light': '#fff4e0',
+        '--panel': '#fce5d0',
+        '--text-strong': '#4d1f12',
+        '--text-muted': '#5a1f0f',
+        '--border': '#3a120f',
+        '--org-title-bg': '#3a120f',
+        '--org-title-color': '#fff2e0',
+        '--photo-bg': '#fff4e0',
+        '--tagline-color': '#3a120f',
+        '--shadow-rgba': '0,0,0,0.28'
+      }
+    },
+    {
+      id: 'charcoal-teal',
+      name: 'Charcoal Teal',
+      swatch: ['#1f2b2b', '#0f4d4d'],
+      vars: {
+        '--primary': '#0f3b38',
+        '--light': '#eaf6f5',
+        '--panel': '#dff3f2',
+        '--text-strong': '#073a39',
+        '--text-muted': '#0b5a57',
+        '--border': '#083a38',
+        '--org-title-bg': '#083a38',
+        '--org-title-color': '#f0fffe',
+        '--photo-bg': '#eaf6f5',
+        '--tagline-color': '#073a39',
+        '--shadow-rgba': '0,0,0,0.25'
+      }
+    },
+    {
+      id: 'midnight-indigo',
+      name: 'Midnight Indigo',
+      swatch: ['#0b1b33', '#1b2a55'],
+      vars: {
+        '--primary': '#16213e',
+        '--light': '#e9edf8',
+        '--panel': '#e4e9fb',
+        '--text-strong': '#16213e',
+        '--text-muted': '#263b6a',
+        '--border': '#16213e',
+        '--org-title-bg': '#16213e',
+        '--org-title-color': '#f8f9ff',
+        '--photo-bg': '#e9edf8',
+        '--tagline-color': '#16213e',
+        '--shadow-rgba': '2,7,20,0.36'
+      }
+    },
+    {
+      id: 'forest-olive',
+      name: 'Forest Olive',
+      swatch: ['#172819', '#2a3b21'],
+      vars: {
+        '--primary': '#21311f',
+        '--light': '#f1f6ec',
+        '--panel': '#eaf3e4',
+        '--text-strong': '#20321f',
+        '--text-muted': '#32512f',
+        '--border': '#21311f',
+        '--org-title-bg': '#21311f',
+        '--org-title-color': '#f6fff3',
+        '--photo-bg': '#f1f6ec',
+        '--tagline-color': '#20321f',
+        '--shadow-rgba': '0,0,0,0.26'
+      }
+    },
+    {
+      id: 'plum-espresso',
+      name: 'Plum Espresso',
+      swatch: ['#2f1226', '#3f1d34'],
+      vars: {
+        '--primary': '#3b1228',
+        '--light': '#fff1f6',
+        '--panel': '#fdeaf2',
+        '--text-strong': '#4a172e',
+        '--text-muted': '#6a2a46',
+        '--border': '#3b1228',
+        '--org-title-bg': '#3b1228',
+        '--org-title-color': '#fff5f8',
+        '--photo-bg': '#fff1f6',
+        '--tagline-color': '#4a172e',
+        '--shadow-rgba': '0,0,0,0.28'
+      }
+    },
+    {
+      id: 'slate-graphite',
+      name: 'Slate Graphite',
+      swatch: ['#2b2f33', '#1d2224'],
+      vars: {
+        '--primary': '#1f2629',
+        '--light': '#f4f6f7',
+        '--panel': '#eef2f3',
+        '--text-strong': '#22292b',
+        '--text-muted': '#3a4446',
+        '--border': '#1f2629',
+        '--org-title-bg': '#1f2629',
+        '--org-title-color': '#eef7f8',
+        '--photo-bg': '#f4f6f7',
+        '--tagline-color': '#22292b',
+        '--shadow-rgba': '0,0,0,0.30'
+      }
+    },
+    {
+      id: 'wine-oxide',
+      name: 'Wine Oxide',
+      swatch: ['#3a1416', '#5c1a1d'],
+      vars: {
+        '--primary': '#4a1215',
+        '--light': '#fff0f0',
+        '--panel': '#fdeeee',
+        '--text-strong': '#4a1215',
+        '--text-muted': '#6d1e23',
+        '--border': '#4a1215',
+        '--org-title-bg': '#4a1215',
+        '--org-title-color': '#fff2f2',
+        '--photo-bg': '#fff0f0',
+        '--tagline-color': '#4a1215',
+        '--shadow-rgba': '0,0,0,0.28'
+      }
+    },
+    {
+      id: 'umber-sienna',
+      name: 'Umber Sienna',
+      swatch: ['#3b2312', '#6b3f24'],
+      vars: {
+        '--primary': '#5a2e18',
+        '--light': '#fff7ef',
+        '--panel': '#fff1e4',
+        '--text-strong': '#5a2e18',
+        '--text-muted': '#7a4022',
+        '--border': '#5a2e18',
+        '--org-title-bg': '#5a2e18',
+        '--org-title-color': '#fff6f0',
+        '--photo-bg': '#fff7ef',
+        '--tagline-color': '#5a2e18',
+        '--shadow-rgba': '0,0,0,0.29'
+      }
+    },
+    {
+      id: 'pebble-onyx',
+      name: 'Pebble Onyx',
+      swatch: ['#222428', '#3a3d41'],
+      vars: {
+        '--primary': '#2b2f33',
+        '--light': '#f9fafb',
+        '--panel': '#f2f4f5',
+        '--text-strong': '#23272a',
+        '--text-muted': '#4a4f52',
+        '--border': '#2b2f33',
+        '--org-title-bg': '#2b2f33',
+        '--org-title-color': '#fbfcfd',
+        '--photo-bg': '#f9fafb',
+        '--tagline-color': '#23272a',
+        '--shadow-rgba': '0,0,0,0.23'
+      }
+    },
+    {
+      id: 'emerald-ink',
+      name: 'Emerald Ink',
+      swatch: ['#062b24', '#0d4d3f'],
+      vars: {
+        '--primary': '#063a2e',
+        '--light': '#eaf9f0',
+        '--panel': '#e6fbf1',
+        '--text-strong': '#053a2e',
+        '--text-muted': '#0f6b58',
+        '--border': '#063a2e',
+        '--org-title-bg': '#063a2e',
+        '--org-title-color': '#f2fff8',
+        '--photo-bg': '#eaf9f0',
+        '--tagline-color': '#053a2e',
+        '--shadow-rgba': '0,0,0,0.24'
+      }
+    }
+  ];
+
+  // ------------------ Render swatches into DOM ------------------
+  const picker = document.getElementById('themePicker');
+
+  THEMES.forEach((theme, idx) => {
+    const sw = document.createElement('button');
+    sw.className = 'theme-swatch';
+    sw.setAttribute('data-theme-id', theme.id);
+    sw.setAttribute('aria-label', theme.name + ' theme');
+    // style swatch: create a gradient using theme.swatch
+    sw.style.background = `linear-gradient(135deg, ${theme.swatch[0]} 0%, ${theme.swatch[1] || theme.swatch[0]} 100%)`;
+
+    sw.addEventListener('click', () => applyTheme(theme.id));
+    picker.appendChild(sw);
+  });
+
+  // ------------------ Theme application logic ------------------
+  function applyTheme(themeId, save = true){
+    const theme = THEMES.find(t => t.id === themeId);
+    if(!theme) return;
+    const root = document.documentElement;
+
+    // Apply each variable
+    for(const [k,v] of Object.entries(theme.vars)){
+      root.style.setProperty(k, v);
+    }
+
+    // manage active class on swatches
+    document.querySelectorAll('.theme-swatch').forEach(s => {
+      s.classList.toggle('active', s.getAttribute('data-theme-id') === themeId);
+    });
+
+    // save selection
+    if(save && window.localStorage){
+      localStorage.setItem('bys_idcard_theme', themeId);
+    }
+  }
+
+  // ------------------ Load persisted theme or default ------------------
+  (function loadPersistedTheme(){
+    try{
+      const saved = localStorage.getItem('bys_idcard_theme');
+      const defaultId = THEMES[0].id;
+      const toApply = saved || defaultId;
+      applyTheme(toApply, false);
+      // If no saved, still mark default active
+      if(!saved) applyTheme(defaultId, true);
+    } catch(e){
+      // ignore storage errors
+      applyTheme(THEMES[0].id, false);
+    }
+  })();
+
+  // ------------------ Photo Preview (kept as-is) ------------------
   document.getElementById('photoInput').addEventListener('change', function(event){
     const file = event.target.files[0];
     if(!file) return;
@@ -229,10 +541,11 @@
     reader.readAsDataURL(file);
   });
 
-  // === Render Card Canvas ===
+  // ------------------ Render Card Canvas (kept core logic but small improvement for swatches) ------------------
   async function renderCardCanvas(){
     const card = document.querySelector("#card");
     const originalRatio = window.devicePixelRatio;
+    // preserve sharpness: temporarily ensure background color is applied for html2canvas
     window.devicePixelRatio = 4;
 
     const canvas = await html2canvas(card,{
@@ -240,7 +553,7 @@
       logging:false,
       useCORS:true,
       allowTaint:false,
-      backgroundColor:null,
+      backgroundColor: null,
       removeContainer:true
     });
 
@@ -248,7 +561,7 @@
     return canvas;
   }
 
-  // === Download PNG ===
+  // ------------------ Download PNG ------------------
   async function downloadPNG(){
     const canvas = await renderCardCanvas();
     const pngData = canvas.toDataURL("image/png",1.0);
@@ -258,7 +571,7 @@
     link.click();
   }
 
-  // === Download PDF ===
+  // ------------------ Download PDF ------------------
   async function downloadPDF(){
     const canvas = await renderCardCanvas();
     const { jsPDF } = window.jspdf;
@@ -276,6 +589,30 @@
       reader.readAsDataURL(blob);
     },"image/jpeg",1.0);
   }
+
+  // Accessibility: allow keyboard selection of themes (left/right arrow navigation)
+  (function addKeyboardSupport(){
+    const swatches = Array.from(document.querySelectorAll('.theme-swatch'));
+    if(!swatches.length) return;
+    let focusedIndex = swatches.findIndex(s => s.classList.contains('active'));
+    if(focusedIndex < 0) focusedIndex = 0;
+    swatches.forEach((s, i) => {
+      s.tabIndex = 0;
+      s.addEventListener('keydown', (ev) => {
+        if(ev.key === 'ArrowRight' || ev.key === 'ArrowDown'){
+          const next = (i + 1) % swatches.length;
+          swatches[next].focus();
+        } else if(ev.key === 'ArrowLeft' || ev.key === 'ArrowUp'){
+          const prev = (i - 1 + swatches.length) % swatches.length;
+          swatches[prev].focus();
+        } else if(ev.key === 'Enter' || ev.key === ' '){
+          s.click();
+          ev.preventDefault();
+        }
+      });
+    });
+  })();
+
 </script>
 
 <%- include('../partials/footer') %>
