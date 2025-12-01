@@ -5,13 +5,37 @@ const saadhakController = require("../controllers/saadhakController");
 const { requireLogin } = require("../middleware/authMiddleware");
 const { canManage } = require("../middleware/roleMiddleware");
 const { checkSaadhakOwnership } = require("../middleware/ownershipMiddleware");
+const uploadSaadhakPhoto = require('../middleware/saadhakUpload'); // now this is a function
 
 // ✅ Role groups from config
-const { adminRoles, prantRoles, zilaRoles, ksheterRoles, kenderRoles, kenderTeamRoles, saadhakRoles } = require("../config/roles");
+const {
+  adminRoles,
+  prantRoles,
+  zilaRoles,
+  ksheterRoles,
+  kenderRoles,
+  kenderTeamRoles,
+  saadhakRoles,
+} = require("../config/roles");
 
 // ✅ Unified allowed roles for Saadhak management
-const allowedRoles = [...adminRoles, ...prantRoles, ...zilaRoles, ...ksheterRoles, ...kenderRoles, ...kenderTeamRoles];
-const ALL_ROLES = [...adminRoles, ...prantRoles, ...zilaRoles, ...ksheterRoles, ...kenderRoles, ...kenderTeamRoles, ...saadhakRoles];
+const allowedRoles = [
+  ...adminRoles,
+  ...prantRoles,
+  ...zilaRoles,
+  ...ksheterRoles,
+  ...kenderRoles,
+  ...kenderTeamRoles,
+];
+const ALL_ROLES = [
+  ...adminRoles,
+  ...prantRoles,
+  ...zilaRoles,
+  ...ksheterRoles,
+  ...kenderRoles,
+  ...kenderTeamRoles,
+  ...saadhakRoles,
+];
 
 // Manage all Saadhaks
 router.get(
@@ -61,22 +85,36 @@ router.get(
   saadhakController.deleteSaadhak
 );
 
-router.get('/saadhak/check-mobile', async (req, res) => {
+router.get("/saadhak/check-mobile", async (req, res) => {
   try {
     const mobile = req.query.mobile;
-    if (!mobile) return res.status(400).json({ error: 'Mobile number is required' });
-    
+    if (!mobile)
+      return res.status(400).json({ error: "Mobile number is required" });
+
     const saadhak = await Saadhak.findOne({ mobile });
     res.json({ exists: !!saadhak });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: "Server error" });
   }
 });
 
 // routes/saadhak.js
-router.get('/saadhak/self-update', requireLogin, canManage(ALL_ROLES), saadhakController.getSelfUpdateForm);
-router.post('/saadhak/self-update', requireLogin, canManage(ALL_ROLES), saadhakController.postSelfUpdate);
+router.get(
+  "/saadhak/self-update",
+  requireLogin,
+  canManage(ALL_ROLES),
+  saadhakController.getSelfUpdateForm
+);
+router.post(
+  "/saadhak/self-update",
+  requireLogin,
+  canManage(ALL_ROLES),
+  saadhakController.postSelfUpdate
+);
+
+
+router.post('/saadhak/upload-photo/:id', requireLogin, uploadSaadhakPhoto, saadhakController.uploadPhotoAjax);
 
 
 module.exports = router;

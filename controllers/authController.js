@@ -14,6 +14,8 @@ function setSessionUser(req, saadhak) {
     zila: saadhak.zila,
     ksheter: saadhak.ksheter,
     kender: saadhak.kender,
+    photoUrl: saadhak.photoUrl,
+    photoPublicId: saadhak.photoPublicId,    
   };
 }
 

@@ -4,6 +4,7 @@ const Zila = require("../models/Zila");
 const Ksheter = require("../models/Ksheter");
 const Kender = require("../models/Kender");
 const roleConfig = require("../config/roles");
+const { cloudinary } = require("../utils/cloudinary");
 
 const {
   validateMobile,
@@ -262,7 +263,7 @@ exports.createSaadhak = async (req, res) => {
       );
     }
 
-    console.log(typeof(prant));
+    console.log(typeof prant);
     console.log(prant);
 
     // Determine prantId cleanly
@@ -419,7 +420,6 @@ exports.listSaadhaks = async (req, res) => {
     res.status(500).send("Server Error");
   }
 };
-
 
 // ✅ Show Edit Form (Updated with unified role logic)
 exports.showEditForm = async (req, res) => {
@@ -854,16 +854,39 @@ exports.updateSaadhak = async (req, res) => {
   }
 };
 
-// ✅ Handle Delete
+// controllers/saadhakController.js
+
 exports.deleteSaadhak = async (req, res) => {
   try {
     const user = req.session.user;
-    
+
     if (user.id == req.params.id) {
       return res.render("error/unauthorized");
     }
 
+    // First find the Saadhak
+    const saadhak = await Saadhak.findById(req.params.id);
+    if (!saadhak) {
+      return res.status(404).send("Saadhak not found");
+    }
+
+    // Delete Cloudinary image if exists
+    if (saadhak.photoPublicId) {
+      try {
+        await cloudinary.uploader.destroy(saadhak.photoPublicId, {
+          resource_type: "image",
+        });
+      } catch (e) {
+        console.error(
+          "Failed to delete Cloudinary image on saadhak removal:",
+          e
+        );
+      }
+    }
+
+    // Now delete from DB
     await Saadhak.findByIdAndDelete(req.params.id);
+
     res.redirect("/saadhak/manage");
   } catch (err) {
     console.error("❌ Error deleting Saadhak:", err);
@@ -993,5 +1016,74 @@ exports.postSelfUpdate = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.redirect("/saadhak/self-update?error=Unable to update details");
+  }
+};
+
+// const { cloudinary } = require('../utils/cloudinary');
+
+exports.uploadPhotoAjax = async (req, res) => {
+  try {
+    const saadhakId = req.params.id;
+
+    if (!req.file) {
+      return res
+        .status(400)
+        .json({ success: false, message: "No file uploaded" });
+    }
+
+    // New file info from multer-storage-cloudinary
+    const newUrl = req.file.path; // full secure URL
+    const newPublicId = req.file.filename; // public_id (e.g. "saadhak_photos/abc123")
+
+    // Find existing Saadhak
+    const saadhak = await Saadhak.findById(saadhakId);
+    if (!saadhak) {
+      // Optional: cleanup newly uploaded image because no saadhak exists
+      try {
+        await cloudinary.uploader.destroy(newPublicId, {
+          resource_type: "image",
+        });
+      } catch (e) {
+        console.warn("cleanup failed", e);
+      }
+      return res
+        .status(404)
+        .json({ success: false, message: "Saadhak not found" });
+    }
+
+    // If there's an existing photoPublicId and it's different from newly uploaded one -> delete it
+    if (saadhak.photoPublicId && saadhak.photoPublicId !== newPublicId) {
+      try {
+        await cloudinary.uploader.destroy(saadhak.photoPublicId, {
+          resource_type: "image",
+        });
+        // optionally log: console.log("Deleted old Cloudinary image:", saadhak.photoPublicId);
+      } catch (delErr) {
+        // Don't fail the whole request if delete fails — log and continue
+        console.error(
+          "Failed to delete old Cloudinary image:",
+          saadhak.photoPublicId,
+          delErr
+        );
+      }
+    }
+
+    // Save new info to DB
+    saadhak.photoUrl = newUrl;
+    saadhak.photoPublicId = newPublicId;
+    await saadhak.save();
+
+    req.session.user.photoUrl = saadhak.photoUrl;
+    req.session.user.photoPublicId = saadhak.photoPublicId;
+
+    return res.json({
+      success: true,
+      message: "Photo uploaded and previous image (if any) removed",
+      photoUrl: saadhak.photoUrl,
+      photoPublicId: saadhak.photoPublicId,
+    });
+  } catch (err) {
+    console.error("uploadPhotoAjax error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 };

@@ -11,7 +11,7 @@ exports.showIdCard = async (req, res) => {
       return res.status(401).send("You are not logged in.");
     }
 
-    // Ensure roles is always an array
+    // --- Ensure roles stays an array ---
     const safeUser = {
       id: user.id,
       name: user.name || "",
@@ -21,7 +21,9 @@ exports.showIdCard = async (req, res) => {
       zila: user.zila || "",
       ksheter: user.ksheter || "",
       kender: user.kender || "",
-      roleLevel: user.roleLevel || ""
+      roleLevel: user.roleLevel || "",
+      photoUrl: user.photoUrl || "",
+      photoPublicId: user.photoPublicId || "",
     };
 
     // --- FETCH TITLES BASED ON USER LEVEL ---
@@ -30,35 +32,36 @@ exports.showIdCard = async (req, res) => {
     let ksheterName = "";
     let kenderName = "";
 
+    // Fetch in reverse hierarchy so no wrong undefined errors
+
     if (safeUser.kender) {
-      const k = await Kender.findById(safeUser.kender);
-      kenderName = k ? k.name : "";
+      const k = await Kender.findById(safeUser.kender).lean();
+      if (k) kenderName = k.name;
     }
 
     if (safeUser.ksheter) {
-      const ks = await Ksheter.findById(safeUser.ksheter);
-      ksheterName = ks ? ks.name : "";
+      const ks = await Ksheter.findById(safeUser.ksheter).lean();
+      if (ks) ksheterName = ks.name;
     }
 
     if (safeUser.zila) {
-      const z = await Zila.findById(safeUser.zila);
-      zilaName = z ? z.name : "";
+      const z = await Zila.findById(safeUser.zila).lean();
+      if (z) zilaName = z.name;
     }
 
     if (safeUser.prant) {
-      const p = await Prant.findById(safeUser.prant);
-      prantName = p ? p.name : "";
+      const p = await Prant.findById(safeUser.prant).lean();
+      if (p) prantName = p.name;
     }
 
-    // --- SEND TO EJS ---
-    res.render("idCard/show", {
+    // --- SEND TO VIEW ---
+    return res.render("idCard/show", {
       user: safeUser,
       prantName,
       zilaName,
       ksheterName,
-      kenderName
+      kenderName,
     });
-
   } catch (err) {
     console.log("ID CARD ERROR:", err);
     res.status(500).send("Error generating ID Card");
