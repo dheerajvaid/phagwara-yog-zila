@@ -85,10 +85,21 @@ const isSaadhakOnly = user?.roles.some(role => saadhakRoles.includes(role));
 
 <nav class="navbar navbar-expand-lg navbar-dark navbar-gradient sticky-top shadow-sm">
   <div class="container-fluid">
+
+   
+
+    <!-- HOME Logo -->
     <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="/">
       <img src="/images/logo-nbg.png" alt="BYS Logo" style="height: 28px;" />
       HOME
     </a>
+
+     <!-- User Photo at Start -->
+    <% if (user && user.photoUrl) { %>
+      <a class="navbar-brand d-flex align-items-center me-2" href="/profile">
+        <img src="<%= user.photoUrl %>" alt="Profile" class="rounded-circle" style="height: 32px; width: 32px; object-fit: cover; border: 2px solid #fff;">
+      </a>
+    <% } %>
 
     <% if (user) { %>
       <a href="/calendar/today" class="calendar-icon-mobile d-lg-none text-decoration-none text-warning" title="Birthday & Anniversary">
@@ -131,6 +142,7 @@ const isSaadhakOnly = user?.roles.some(role => saadhakRoles.includes(role));
         <!-- <%- include('sharpMind') %> -->
           <li class="nav-item"><a class="nav-link" href="/quiz/start">❓ Quiz</a></li>
         <% if (!user || isAdmin || isZilaLevel || isKsheterLevel || isKenderLevel || isSaadhakOnly) { %>
+          <li class="nav-item"><a class="nav-link" href="/dashboard">🗳️ DASHBOARD</a></li>
           <li class="nav-item"><a class="nav-link" href="/yog-samagri/report">🛍️ Yog Samagri</a></li>
            <%- include('wishes') %>    
           <% } %> 
@@ -196,7 +208,7 @@ const isSaadhakOnly = user?.roles.some(role => saadhakRoles.includes(role));
               <li><a class="dropdown-item" href="/paath/summary">Steps Summary</a></li>
             </ul>
           </li>
-          <li class="nav-item"><a class="nav-link" href="/dashboard">🗳️ DASHBOARD</a></li>
+          
           <li class="nav-item"><a class="nav-link" href="/auth/change-password">🔑 Change Password</a></li>
           <li class="nav-item"><a class="nav-link text-danger" href="/auth/logout">🚪 Logout</a></li>
 

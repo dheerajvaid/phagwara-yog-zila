@@ -17,6 +17,23 @@
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
   }
 
+   /* Dashboard button hover effect */
+  .btn-purple {
+    background-color: #6f42c1;
+   
+  }
+
+  .btn-purple:hover {
+    background-color: #5a32a3; /* slightly darker purple */
+   
+    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+  }
+
+  .btn-purple:active {
+    
+    box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+  }
+
   /* 📊 Stat Cards */
   .stat-card {
     border-radius: 0.9rem;
@@ -118,6 +135,11 @@
 <!-- 🌐 Explore + Login/Logout -->
 <div class="top-bar">
   <a href="/explore" class="btn btn-primary fw-semibold shadow-sm">🌐 Explore BYS</a>
+
+ <% if (user) { %>
+  <a href="/dashboard" class="btn btn-purple text-white fw-semibold shadow-sm">📊 Dashboard</a>
+<% } %>
+
   <% if (!user) { %>
     <a href="/auth/login" class="btn btn-danger text-white fw-semibold shadow-sm">🔑 Login</a>
   <% } else { %>
