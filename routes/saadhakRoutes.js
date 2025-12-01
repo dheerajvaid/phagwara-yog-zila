@@ -114,7 +114,26 @@ router.post(
 );
 
 
-router.post('/saadhak/upload-photo/:id', requireLogin, uploadSaadhakPhoto, saadhakController.uploadPhotoAjax);
+router.post(
+  '/saadhak/upload-photo/:id', 
+  requireLogin, 
+  (req, res, next) => {
+    uploadSaadhakPhoto(req, res, function(err) {
+      if (err) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.json({ 
+            success: false, 
+            message: 'File too large. Maximum allowed size is 200KB.' 
+          });
+        }
+        return res.json({ success: false, message: err.message });
+      }
+      next();
+    });
+  },
+  saadhakController.uploadPhotoAjax
+);
+
 
 
 module.exports = router;

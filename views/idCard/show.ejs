@@ -559,6 +559,14 @@ document.getElementById('photoInput').addEventListener('change', async function(
     const file = event.target.files[0];
     if (!file) return;
 
+    const maxSize = 200 * 1024; // 200KB in bytes
+
+    if (file.size > maxSize) {
+        alert("File is too large! Maximum allowed size is 200KB.");
+        event.target.value = ""; // reset file input
+        return;
+    }
+
     const spinner = document.getElementById('loadingSpinner'); // your spinner element
 
     // --- Show Spinner ---

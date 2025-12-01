@@ -1,4 +1,3 @@
-// middleware/saadhakUpload.js
 const multer = require("multer");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const { cloudinary } = require("../utils/cloudinary");
@@ -13,7 +12,10 @@ const saadhakStorage = new CloudinaryStorage({
   },
 });
 
-// ---------------- MULTER UPLOADER (single photo) ----------------
-const uploadSaadhakPhoto = multer({ storage: saadhakStorage }).single("photo");
+// ---------------- MULTER UPLOADER (single photo, 200KB limit) ----------------
+const uploadSaadhakPhoto = multer({ 
+  storage: saadhakStorage,
+  limits: { fileSize: 200 * 1024 } // 200 KB
+}).single("photo");
 
 module.exports = uploadSaadhakPhoto;
