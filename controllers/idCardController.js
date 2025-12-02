@@ -55,7 +55,7 @@ exports.showIdCard = async (req, res) => {
     }
 
     // --- SEND TO VIEW ---
-    return res.render("idCard/show", {
+    return res.render("idcard/show", {
       user: safeUser,
       prantName,
       zilaName,
