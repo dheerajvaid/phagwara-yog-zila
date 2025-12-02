@@ -1,0 +1,189 @@
+<%- include('../partials/navbar') %>
+<%- include('../partials/header') %>
+
+<link rel="stylesheet" href="/css/id-card.css">
+
+<!-- -------------------- FILTER & DOWNLOAD SECTION -------------------- -->
+<div class="download-container" style="margin-bottom:20px; padding:10px 15px; background:#f9f9f9; border:1px solid #ddd; border-radius:8px; display:flex; flex-wrap:wrap; align-items:center; gap:15px; justify-content:space-between;">
+  
+  <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+    <label for="filterSelect" style="font-weight:600; color:#3a120f;">Filter Cards:</label>
+    <select id="filterSelect" class="form-select form-select-sm" style="min-width:150px;">
+      <option value="all">All ID Cards</option>
+      <option value="withImage">Cards with Image</option>
+      <option value="noImage">Cards without Image</option>
+    </select>
+  </div>
+
+  <div style="display:flex; align-items:center; gap:5px;">
+    <input type="checkbox" id="selectAllCards" style="transform:scale(1.2); cursor:pointer;" />
+    <label for="selectAllCards" style="font-weight:600; cursor:pointer;">Select / Deselect All</label>
+  </div>
+
+  <div>
+    <button class="btn btn-primary" style="padding:6px 16px; font-weight:600;" onclick="generateA4PDF()">Download Selected PDF</button>
+  </div>
+</div>
+
+<!-- -------------------- CARDS CONTAINER -------------------- -->
+<div id="cardsContainer" style="padding:20px; display:flex; flex-wrap:wrap; gap:20px;">
+  <% users.forEach(u => { %>
+    <div class="card-wrapper" data-has-image="<%= u.photoUrl || u.photo ? 'yes' : 'no' %>">
+      <div style="position:relative;">
+        <!-- Individual card selection checkbox -->
+        <input type="checkbox" class="card-checkbox" style="position:absolute; top:5px; left:5px; z-index:10; transform:scale(1.2); cursor:pointer;">
+        <%- include("./singleCardPartial", { 
+          user: u, 
+          kenderName: u.kenderName, 
+          ksheterName: u.ksheterName, 
+          zilaName: u.zilaName, 
+          prantName: u.prantName 
+        }) %>
+      </div>
+    </div>
+  <% }) %>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+  // -------------------- FILTER LOGIC --------------------
+  const filterSelect = document.getElementById('filterSelect');
+  const selectAllCheckbox = document.getElementById('selectAllCards');
+  const cardsContainer = document.getElementById('cardsContainer');
+
+  filterSelect.addEventListener('change', () => {
+    const value = filterSelect.value;
+    const cards = cardsContainer.querySelectorAll('.card-wrapper');
+
+    cards.forEach(card => {
+      const hasImage = card.dataset.hasImage === 'yes';
+      if (value === 'all') card.style.display = 'inline-block';
+      else if (value === 'withImage') card.style.display = hasImage ? 'inline-block' : 'none';
+      else if (value === 'noImage') card.style.display = !hasImage ? 'inline-block' : 'none';
+    });
+
+    // Reset "Select All" checkbox
+    selectAllCheckbox.checked = false;
+  });
+
+  selectAllCheckbox.addEventListener('change', () => {
+    const checkboxes = cardsContainer.querySelectorAll('.card-checkbox');
+    checkboxes.forEach(cb => {
+      if(cb.closest('.card-wrapper').style.display !== 'none') {
+        cb.checked = selectAllCheckbox.checked;
+      }
+    });
+  });
+
+  // -------------------- PDF GENERATION --------------------
+  async function generateA4PDF() {
+    const { jsPDF } = window.jspdf;
+    if (!jsPDF) return alert("jsPDF failed to load.");
+
+    const spinner = document.getElementById('loadingSpinner');
+    if (spinner) spinner.style.display = 'block'; // show spinner
+
+    const selectedCards = Array.from(cardsContainer.querySelectorAll('.card-wrapper'))
+      .filter(card => card.querySelector('.card-checkbox').checked && card.style.display !== 'none');
+
+    if(selectedCards.length === 0) {
+      alert("Please select at least one card.");
+      if(spinner) spinner.style.display = 'none';
+      return;
+    }
+
+    const pdf = new jsPDF({
+      orientation: "portrait",
+      unit: "cm",
+      format: "a4"
+    });
+
+    const cardWidth = 8.56;
+    const cardHeight = 5.40;
+    const gap = 0.4;
+    const columns = 2; // 2 cards per row
+    const rows = 5;    // 5 rows per page
+
+    let x = gap, y = gap;
+
+    for (let i = 0; i < selectedCards.length; i++) {
+      const card = selectedCards[i];
+
+      // Wait for all images inside the card to load
+      const imgs = card.querySelectorAll('img');
+      for (let img of imgs) {
+        if (!img.complete) await img.decode();
+      }
+
+      // Hide UI elements meant only for screen (like checkboxes)
+      card.classList.add('pdf-hide');
+
+      const canvas = await html2canvas(card, { 
+        scale: 4,       // High-quality for print
+        useCORS: true,
+        allowTaint: false
+      });
+
+      card.classList.remove('pdf-hide'); // restore visibility
+      const imgData = canvas.toDataURL("image/jpeg", 1.0);
+
+      pdf.addImage(imgData, "JPEG", x, y, cardWidth, cardHeight);
+
+      // Move to next column
+      x += cardWidth + gap;
+
+      // Move to next row if column limit reached
+      if ((i + 1) % columns === 0) {
+        x = gap;
+        y += cardHeight + gap;
+      }
+
+      // Page break if page is full
+      if ((i + 1) % (columns * rows) === 0) {
+        pdf.addPage();
+        x = gap;
+        y = gap;
+      }
+    }
+
+    pdf.save("ID-Cards-Selected.pdf");
+
+    if (spinner) spinner.style.display = 'none'; // hide spinner
+  }
+</script>
+
+<style>
+  /* -------------------- BEAUTIFY FILTER SECTION -------------------- */
+  .download-container select.form-select-sm {
+    border-radius:6px;
+    border:1px solid #ccc;
+    padding:2px 8px;
+  }
+
+  .download-container button.btn-primary {
+    background:#3a120f;
+    border:none;
+    transition:all 0.2s ease;
+  }
+
+  .download-container button.btn-primary:hover {
+    background:#5a1f0f;
+  }
+
+  .download-container input[type="checkbox"] {
+    cursor:pointer;
+  }
+
+  .download-container label {
+    cursor:pointer;
+  }
+
+  /* Hide checkboxes in PDF */
+  .pdf-hide input[type="checkbox"] {
+    display:none !important;
+  }
+</style>
+
+<%- include('../partials/footer') %>

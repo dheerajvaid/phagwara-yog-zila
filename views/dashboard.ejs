@@ -84,10 +84,10 @@
 
   #tipImageArea {
     background: white;
-    padding: 1.5rem 1rem;
+    padding: 1.5rem 0.5rem;
     border-radius: 1rem;
     border: 1px solid #dee2e6;
-    max-width: 340px;
+    max-width: 380px;
     margin: auto;
   }
 
@@ -97,7 +97,7 @@
   border-left: 4px solid #28a745; /* thicker left border */
   border-radius: 8px;
   margin-top: 10px;
-  padding: 8px 10px; /* balanced padding (top-bottom & left-right) */
+  padding: 4px 4px; /* balanced padding (top-bottom & left-right) */
 }
 
 .kender-tip-box p {
@@ -190,7 +190,9 @@
       <div class="modal-body text-center text-dark px-4 py-3">
 
         <div id="tipImageArea" class="bg-white text-dark"
-             style="padding: 1.5rem; border: 2px solid #28a745; border-radius: 0rem; max-width: 350px; margin: auto; box-shadow: 0 0 12px rgba(0,0,0,0.08);">
+             style="padding: 0.5rem; border: 2px solid #28a745; border-radius: 0rem; max-width: 350px; margin: auto; box-shadow: 0 0 12px rgba(0,0,0,0.08);">
+
+           
 
           <div class="d-flex align-items-center justify-content-center gap-3 mb-3">
             <div style="width:60px; height:60px; padding:5px; border:2px solid #28a745; border-radius:50%; background-color:white; display:flex; align-items:center; justify-content:center;">
@@ -198,6 +200,10 @@
             </div>
 
             <div>
+              <div class="text-center text-primary fw-semibold">
+            <p class="text-danger fw-bold mb-1 mt-0">BHARATIYA YOG SANSTHAN</p>
+                      
+          </div>
               <h5 class="m-0 fw-bold text-success">आज का योग संदेश</h5>
               <div class="small text-dark">
                 <%= new Date().toLocaleDateString('hi-IN', { day: 'numeric', month: 'long', year: 'numeric' }) %>
@@ -218,39 +224,25 @@
 %>
 
 <% if (isKenderUser && kenderDetails) { %>
-  <div class="kender-tip-box mt-3 p-2 text-start">
+  <div class="kender-tip-box mt-3 p-3 rounded shadow-sm"
+       style="background:#f8fff4; border-left:5px solid #28a745; line-height:1.35;">
 
-  <p class="fw-bold text-success mb-1">🏠 मेरा योग साधना केंद्र:</p>
+    <div class="fw-bold"><%= kenderDetails.name %></div>
 
-<table style="width:100%; border-collapse:collapse;">
-  <tr>
-    <td style="width:28%; font-weight:bold; vertical-align:top;">केंद्र नाम:</td>
-    <td><%= kenderDetails.name %></td>
-  </tr>
+    <div><%= kenderDetails.address %></div>
 
-  <tr>
-    <td style="font-weight:bold; vertical-align:top;">केंद्र पता:</td>
-    <td><%= kenderDetails.address %></td>
-  </tr>
-
-  <% if (kenderDetails.startTime) { %>
-  <tr>
-    <td style="font-weight:bold; vertical-align:top;">केंद्र समय:</td>
-    <td><%= kenderDetails.startTime %></td>
-  </tr>
-  <% } %>
-</table>
+    <% if (kenderDetails.startTime) { %>
+      <div>Start⏰: <%= kenderDetails.startTime %></div>
+    <% } %>
 
   </div>
 <% } %>
-
-
-          
+        
 
           <!-- <hr style="border-top:2px solid #28a745; margin-bottom:0.5rem; margin-top:0.5rem;"> -->
 
           <div class="mt-1 text-center text-primary fw-semibold">
-            <p class="text-danger fw-bold mb-0">BHARATIYA YOG SANSTHAN</p>
+            
             <a href="https://www.joinyog.in" target="_blank" class="text-decoration-none text-danger">
               www.joinyog.in
             </a>
@@ -339,9 +331,15 @@
     </div>
 
     <a href="/idcard/<%= userId %>" class="btn btn-primary w-100 mt-2">
-        Generate ID Card
+        Generate My ID Card
     </a>
 
+    <% if (user.roles && user.roles.some(r =>
+            ['Kender Pramukh', 'Seh Kender Pramukh'].includes(r))) { %>
+    <a href="/idcard/kender/<%= user.kender %>" class="btn btn-dark w-100 mt-2">
+      Generate All Kender ID Cards
+    </a>
+    <% } %>
 
   </div>
 </section>

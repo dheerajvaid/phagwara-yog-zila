@@ -1,0 +1,224 @@
+/* -------------------- Themeable CSS Variables -------------------- */
+:root{
+  --primary: #3a120f;
+  --light: #fff4e0;
+  --panel: #fce5d0;
+  --text-strong: #4d1f12;
+  --text-muted: #5a1f0f;
+  --border: #3a120f;
+  --org-title-bg: #3a120f;
+  --org-title-color: #fff2e0;
+  --photo-bg: #fff4e0;
+  --tagline-color: #3a120f;
+  --shadow-rgba: 0,0,0,0.3;
+}
+
+/* -------------------- ID CARD MAIN WRAPPER -------------------- */
+.id-card-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* -------------------- CARD LAYOUT -------------------- */
+.id-card-horizontal {
+  width: 8.56cm;
+  height: 5.40cm;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 8px 20px rgba(var(--shadow-rgba));
+  border: 3px solid var(--border);
+  background: var(--light);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+.id-card-horizontal::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.06);
+  pointer-events: none;
+}
+
+/* -------------------- LEFT SIDE -------------------- */
+.left-block {
+  width: 25%;
+  background: var(--panel);
+  padding: 4px 2px;
+  text-align: center;
+  border-right: 3px solid var(--border);
+  filter: contrast(110%);
+}
+
+.org-logo {
+  width: 65px;
+  margin-top: 5px;
+  image-rendering: crisp-edges;
+  filter: contrast(1.3) brightness(0.9);
+}
+
+.tagline {
+  margin-top: 2px;
+  padding: 0px 4px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--tagline-color);
+  text-shadow: 0 1px 2px rgba(255,255,255,0.35);
+  text-rendering: geometricPrecision;
+}
+
+/* -------------------- RIGHT SIDE -------------------- */
+.right-block {
+  width: 75%;
+  padding: 8px;
+  color: var(--text-strong);
+}
+
+.org-title {
+  font-size: 16px;
+  font-weight: 800;
+  text-align: center;
+  color: var(--org-title-color);
+  background-color: var(--org-title-bg);
+  letter-spacing: 0.4px;
+  padding: 2px 0;
+}
+
+.zila-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--text-strong);
+  margin-bottom: 6px;
+  line-height:1.05;
+}
+
+/* -------------------- INFO BOX -------------------- */
+.info-box {
+  background: var(--panel);
+  padding: 4px;
+  border-radius: 10px;
+  border: 2px solid var(--border);
+}
+
+.info-label {
+  font-size: 8px;
+  opacity: 0.95;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.info-value {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--text-strong);
+  margin-bottom: 1px;
+}
+
+.divider {
+  border-bottom: 1.5px solid var(--border);
+  margin: 1.5px 0;
+  filter: contrast(120%);
+}
+
+/* -------------------- PHOTO BOX -------------------- */
+.photo-box {
+  width: 72px;
+  height: 92.57px;
+  border: 2px solid var(--border);
+  margin: 4px auto;
+  background: var(--photo-bg);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: contrast(115%);
+}
+
+.photo-box img,
+.preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.preview-img {
+  filter: contrast(1.18) brightness(0.95);
+}
+
+/* -------------------- SMALLS -------------------- */
+.placeholder-text { font-size: 10px; color: var(--tagline-color); }
+#photoInput { display:none; }
+
+.download-container { text-align:center; margin-top:25px; }
+
+/* -------------------- THEME SWATCHES -------------------- */
+.theme-picker {
+  display:flex;
+  gap:10px;
+  align-items:center;
+  justify-content:center;
+  flex-wrap:wrap;
+  margin-bottom:6px;
+}
+
+.theme-swatch {
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  border:2px solid rgba(0,0,0,0.12);
+  box-shadow:0 2px 6px rgba(0,0,0,0.12);
+  cursor:pointer;
+  transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+}
+
+.theme-swatch:hover { transform:translateY(-4px); box-shadow:0 6px 12px rgba(0,0,0,0.18); }
+
+.theme-swatch.active {
+  border-color:#fff;
+  box-shadow:0 8px 18px rgba(0,0,0,0.28);
+  transform:translateY(-6px) scale(1.06);
+}
+
+.theme-label { font-size:12px; text-align:center; color:#333; margin-top:4px; }
+
+/* Hide checkboxes and other UI elements during PDF generation */
+.pdf-hide .card-checkbox {
+  display: none !important;
+}
+
+
+/* -------------------- PRINT MODE -------------------- */
+@media print {
+  body { margin:0; }
+  .id-card-wrapper { margin-top:0; justify-content:flex-start; }
+  .download-container { display:none; }
+  .id-card-horizontal { box-shadow:none; border:2px solid #e0c9a7; }
+}
+
+.swatches-row { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+.picker-title { font-size:13px; font-weight:700; text-align:center; margin-bottom:6px; color:#333; }
+.btn.sm { padding:6px 10px; font-size:13px; }
+
+/* -------------------- PDF CARD WRAPPER -------------------- */
+/* This wrapper is only used for PDF export to handle vertical 2x5 layout */
+.card-wrapper {
+  width: 8.56cm;    /* match card width */
+  height: 5.40cm;   /* match card height */
+  flex: none;       /* prevent flex auto-resize */
+  display: inline-block; /* helps html2canvas capture correctly */
+}
+
+/* Optional: hide ::after pseudo-element for PDF to prevent duplication */
+@media print {
+  .id-card-horizontal::after {
+    display: none;
+  }
+}

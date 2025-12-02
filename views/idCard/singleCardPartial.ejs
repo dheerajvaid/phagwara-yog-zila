@@ -1,0 +1,88 @@
+<!-- OUTER HORIZONTAL CARD -->
+<div class="id-card-horizontal">
+
+  <!-- LEFT BLOCK -->
+  <div class="left-block">
+
+    <!-- LOGO -->
+    <img src="/images/logo-nbg.png" class="org-logo" loading="lazy" alt="logo">
+
+    <!-- TAGLINE -->
+    <div class="tagline">जीओ और जीवन दो</div>
+
+    <!-- PHOTO BOX -->
+    <div class="photo-box" id="photoPreview">
+      <% if (user.photoUrl || user.photo) { %>
+        <img
+          src="<%= user.photoUrl || user.photo %>"
+          alt="Photo"
+          style="width:100%; height:100%; object-fit:cover; image-rendering:crisp-edges;"
+        >
+      <% } else { %>
+        <span style="font-size:10px; color:var(--tagline-color);">Photo</span>
+      <% } %>
+    </div>
+
+  </div>
+
+  <!-- RIGHT BLOCK -->
+  <div class="right-block">
+
+    <!-- ORGANISATION TITLE -->
+    <div class="org-title">भारतीय योग संस्थान (पंजी.)</div>
+
+    <!-- LOCATION AREA -->
+    <div class="zila-title" style="line-height:1.05;">
+
+      <% if (kenderName) { %><div><%= kenderName %></div><% } %>
+      <% if (ksheterName) { %><div><%= ksheterName %></div><% } %>
+
+      <% 
+        let locationNames = [];
+        if (zilaName) locationNames.push(zilaName);
+        if (prantName) locationNames.push(prantName);
+      %>
+
+      <% if (locationNames.length > 0) { %>
+        <div><%= locationNames.join(', ') %></div>
+      <% } %>
+
+      <% if (!kenderName && !ksheterName && !zilaName && !prantName) { %>
+        <div>Karo Yog Raho Nirog</div>
+      <% } %>
+
+    </div>
+
+    <!-- INFORMATION BOX -->
+    <div class="info-box" role="region" aria-label="identity details">
+
+      <!-- NAME -->
+      <div class="info-label">👤 NAME</div>
+      <div class="info-value"><%= user.name.toUpperCase() %></div>
+      <div class="divider"></div>
+
+      <!-- ROLES -->
+      <div class="info-label">🎀 DESIGNATION</div>
+      <div class="info-value">
+        <% if (user.role && user.role.length) { %>
+          <%= user.role.join(", ") %>
+        <% } else { %>
+          -
+        <% } %>
+      </div>
+      <div class="divider"></div>
+
+      <!-- MOBILE -->
+      <div class="info-label">📲 MOBILE</div>
+      <div class="info-value">
+        <% if (user.mobile) { %>
+          <%= user.mobile.replace(/(\d{5})(\d{5})/, '$1-$2') %>
+        <% } else { %>
+          -
+        <% } %>
+      </div>
+
+    </div>
+  </div>
+
+</div>

@@ -1087,3 +1087,63 @@ exports.uploadPhotoAjax = async (req, res) => {
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+exports.downloadKenderIdcards = async (req, res) => {
+  try {
+    const kenderId = req.params.id;
+
+    // ---------------------------
+    // 1️⃣ Fetch Kender → Ksheter → Zila → Prant
+    // ---------------------------
+    const kenderData = await Kender.findById(kenderId)
+      .populate({
+        path: "ksheter",
+        populate: {
+          path: "zila",
+          populate: {
+            path: "prant"
+          }
+        }
+      })
+      .lean();
+
+    if (!kenderData) {
+      return res.send("Kender not found");
+    }
+
+    const ksheterName = kenderData.ksheter?.name || "";
+    const zilaName = kenderData.ksheter?.zila?.name || "";
+    const prantName = kenderData.ksheter?.zila?.prant?.name || "";
+
+    // ---------------------------
+    // 2️⃣ Fetch all users of this Kender
+    // ---------------------------
+    const users = await Saadhak.find({ kender: kenderId })
+      .populate("kender", "name")
+      .populate("ksheter", "name")
+      .sort({ name: 1 })
+      .lean();
+
+    // ---------------------------
+    // 3️⃣ Attach names for EJS
+    // ---------------------------
+    const usersWithNames = users.map(u => ({
+      ...u,
+      kenderName: u.kender?.name || "",
+      ksheterName: ksheterName,
+      zilaName: zilaName,
+      prantName: prantName
+    }));
+
+    // ---------------------------
+    // 4️⃣ Render EJS
+    // ---------------------------
+    res.render("idcard/multiple", { users: usersWithNames });
+
+  } catch (err) {
+    console.error(err);
+    res.send("Error generating ID cards");
+  }
+};
+
+
