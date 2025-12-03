@@ -1019,8 +1019,6 @@ exports.postSelfUpdate = async (req, res) => {
   }
 };
 
-// const { cloudinary } = require('../utils/cloudinary');
-
 exports.uploadPhotoAjax = async (req, res) => {
   try {
     const saadhakId = req.params.id;
@@ -1146,4 +1144,65 @@ exports.downloadKenderIdcards = async (req, res) => {
   }
 };
 
+exports.downloadZilaIdcards = async (req, res) => {
+  try {
+    const zilaId = req.params.id;
+
+    // --------------------------------
+    // 1️⃣ Fetch Zila → Prant
+    // --------------------------------
+    const zilaData = await Zila.findById(zilaId)
+      .populate("prant")
+      .lean();
+
+    if (!zilaData) {
+      return res.send("Zila not found");
+    }
+
+    const zilaName = zilaData.name || "";
+    const prantName = zilaData.prant?.name || "";
+
+    // ---------------------------------------------------
+    // 2️⃣ Identify roles to include (Zila + Ksheter roles)
+    // ---------------------------------------------------
+    
+    // Combined roles
+    const allowedRoles = [...zilaRoles, ...ksheterRoles];
+
+    // console.log(allowedRoles);
+    // console.log(zilaId);
+    // ---------------------------------------------------
+    // 3️⃣ Fetch all Saadhaks of this Zila with allowed roles
+    // ---------------------------------------------------
+    const users = await Saadhak.find({
+      zila: zilaId,
+      role: { $in: allowedRoles }
+    })
+      .populate("kender", "name")
+      .populate("ksheter", "name")
+      .sort({ name: 1 })
+      .lean();
+
+      // console.log(users);
+    // ---------------------------------------------------
+    // 4️⃣ Attach names for EJS
+    // ---------------------------------------------------
+    const usersWithNames = users.map(u => ({
+      ...u,
+      kenderName: u.kender?.name || "",
+      ksheterName: u.ksheter?.name || "",
+      zilaName: zilaName,
+      prantName: prantName
+    }));
+
+    // ---------------------------------------------------
+    // 5️⃣ Render EJS
+    // ---------------------------------------------------
+    res.render("idcard/multiple", { users: usersWithNames });
+
+  } catch (err) {
+    console.error("Error generating Zila ID cards:", err);
+    res.send("Error generating Zila ID cards");
+  }
+};
 

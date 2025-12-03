@@ -341,6 +341,13 @@
     </a>
     <% } %>
 
+    <% if (user.roles && user.roles.some(r =>
+            ['Zila Pradhan', 'Zila Mantri', 'Zila Sangathan Mantri', 'Zila Cashier'].includes(r))) { %>
+    <a href="/idcard/zila/<%= user.zila %>" class="btn btn-dark w-100 mt-2">
+      Generate Zila & Ksheter ID Cards
+    </a>
+    <% } %>
+
   </div>
 </section>
 
