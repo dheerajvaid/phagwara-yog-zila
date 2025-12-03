@@ -20,6 +20,54 @@
     <label for="selectAllCards" style="font-weight:600; cursor:pointer;">Select / Deselect All</label>
   </div>
 
+  <!-- -------------------- GAP CONTROLS -------------------- -->
+<div style="
+  display:flex; 
+  align-items:center; 
+  gap:15px; 
+  flex-wrap:wrap;
+  background:#fff; 
+  padding:8px 12px; 
+  border-radius:6px; 
+  border:1px solid #e2e2e2;
+">
+
+  <div>
+    <label style="font-weight:600; color:#3a120f;">Top Gap:</label>
+    <select id="topGapSelect" class="form-select form-select-sm" style="min-width:80px;">
+      <option value="0.1" selected>0.1 cm</option>
+      <option value="0.2">0.2 cm</option>
+      <option value="0.3">0.3 cm</option>
+      <option value="0.4">0.4 cm</option>
+      <option value="0.5">0.5 cm</option>
+    </select>
+  </div>
+
+  <div>
+    <label style="font-weight:600; color:#3a120f;">Left Gap:</label>
+    <select id="leftGapSelect" class="form-select form-select-sm" style="min-width:80px;">
+      <option value="0.1">0.1 cm</option>
+      <option value="0.2">0.2 cm</option>
+      <option value="0.3">0.3 cm</option>
+      <option value="0.4">0.4 cm</option>
+      <option value="0.5" selected>0.5 cm</option>
+    </select>
+  </div>
+
+  <div>
+    <label style="font-weight:600; color:#3a120f;">Inner Gap:</label>
+    <select id="innerGapSelect" class="form-select form-select-sm" style="min-width:80px;">
+      <option value="0.1">0.1 cm</option>
+      <option value="0.2">0.2 cm</option>
+      <option value="0.3">0.3 cm</option>
+      <option value="0.4">0.4 cm</option>
+      <option value="0.5" selected>0.5 cm</option>
+    </select>
+  </div>
+
+</div>
+
+
   <div>
     <button class="btn btn-primary" style="padding:6px 16px; font-weight:600;" onclick="generateA4PDF()">Download Selected PDF</button>
   </div>
@@ -102,11 +150,14 @@
 
     const cardWidth = 8.56;
     const cardHeight = 5.40;
-    const gap = 0.4;
     const columns = 2; // 2 cards per row
     const rows = 5;    // 5 rows per page
+    
+    let topGap = parseFloat(document.getElementById('topGapSelect').value);
+    let leftGap = parseFloat(document.getElementById('leftGapSelect').value);
+    let innerGap = parseFloat(document.getElementById('innerGapSelect').value);
 
-    let x = gap, y = gap;
+    let x = leftGap, y = topGap;
 
     for (let i = 0; i < selectedCards.length; i++) {
       const card = selectedCards[i];
@@ -132,19 +183,19 @@
       pdf.addImage(imgData, "JPEG", x, y, cardWidth, cardHeight);
 
       // Move to next column
-      x += cardWidth + gap;
+      x += cardWidth + innerGap;
 
       // Move to next row if column limit reached
       if ((i + 1) % columns === 0) {
-        x = gap;
-        y += cardHeight + gap;
+        x = leftGap;
+        y += cardHeight + innerGap;
       }
 
       // Page break if page is full
       if ((i + 1) % (columns * rows) === 0) {
         pdf.addPage();
-        x = gap;
-        y = gap;
+        x = leftGap;
+        y = topGap;
       }
     }
 

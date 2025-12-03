@@ -418,28 +418,30 @@ document.getElementById("exportCsvBtn").addEventListener("click", () => {
       return;
     }
 
-    const headers = [
-      "S.No", "Name", "Mobile", "Email", "DOJ", "DOB", "DOM",
-      "Prant", "Zila", "Ksheter", "Kender", "Roles", "Address"
-    ];
+   const headers = [
+  "S.No", "Pic", "Name", "Mobile", "Email", "DOJ", "DOB", "DOM",
+  "Prant", "Zila", "Ksheter", "Kender", "Roles", "Address"
+];
 
-    const formatDate = (d) => (!d ? '' : new Date(d).toLocaleDateString('en-GB').replace(/\//g, '-'));
+const formatDate = (d) => (!d ? '' : new Date(d).toLocaleDateString('en-GB').replace(/\//g, '-'));
 
-    const rows = filtered.map((s, i) => [
-      i + 1,
-      s.name || '',
-      s.mobile || '',
-      s.email || '',
-      formatDate(s.doj),
-      formatDate(s.dob),
-      formatDate(s.marriageDate),
-      s.prant?.name || '',
-      s.zila?.name || '',
-      s.ksheter?.name || '',
-      s.kender?.name || '',
-      Array.isArray(s.role) ? s.role.join(', ') : (s.role || ''),
-      s.address || ''
-    ]);
+const rows = filtered.map((s, i) => [
+  i + 1,
+  s.photoUrl ? 'Yes' : '',
+  s.name || '',
+  s.mobile || '',
+  s.email || '',
+  formatDate(s.doj),
+  formatDate(s.dob),
+  formatDate(s.marriageDate),
+  s.prant?.name || '',
+  s.zila?.name || '',
+  s.ksheter?.name || '',
+  s.kender?.name || '',
+  Array.isArray(s.role) ? s.role.join(', ') : (s.role || ''),
+  s.address || ''
+]);
+
 
     // ✅ Build CSV
     const csvArray = [headers, ...rows];
