@@ -1088,7 +1088,7 @@ exports.uploadPhotoAjax = async (req, res) => {
 
 exports.downloadKenderIdcards = async (req, res) => {
   try {
-    const kenderId = req.params.id;
+    const kenderId = req.session.user.kender;
 
     // ---------------------------
     // 1️⃣ Fetch Kender → Ksheter → Zila → Prant
@@ -1146,7 +1146,8 @@ exports.downloadKenderIdcards = async (req, res) => {
 
 exports.downloadZilaIdcards = async (req, res) => {
   try {
-    const zilaId = req.params.id;
+    const zilaId = req.session.user.zila;
+    const includeAll = req.query.all === "1";   // 👈 NEW
 
     // --------------------------------
     // 1️⃣ Fetch Zila → Prant
@@ -1155,35 +1156,35 @@ exports.downloadZilaIdcards = async (req, res) => {
       .populate("prant")
       .lean();
 
-    if (!zilaData) {
-      return res.send("Zila not found");
-    }
+    if (!zilaData) return res.send("Zila not found");
 
     const zilaName = zilaData.name || "";
     const prantName = zilaData.prant?.name || "";
 
     // ---------------------------------------------------
-    // 2️⃣ Identify roles to include (Zila + Ksheter roles)
+    // 2️⃣ Identify roles to include
     // ---------------------------------------------------
-    
-    // Combined roles
-    const allowedRoles = [...zilaRoles, ...ksheterRoles];
 
-    // console.log(allowedRoles);
-    // console.log(zilaId);
+    let roleFilter = {};   // default: no filter (fetch all)
+
+    if (!includeAll) {
+      // 👈 only Zila + Ksheter roles
+      const allowedRoles = [...zilaRoles, ...ksheterRoles];
+      roleFilter = { role: { $in: allowedRoles } };
+    }
+
     // ---------------------------------------------------
-    // 3️⃣ Fetch all Saadhaks of this Zila with allowed roles
+    // 3️⃣ Fetch Saadhaks
     // ---------------------------------------------------
     const users = await Saadhak.find({
       zila: zilaId,
-      role: { $in: allowedRoles }
+      ...roleFilter   // 👈 Dynamic
     })
       .populate("kender", "name")
       .populate("ksheter", "name")
       .sort({ name: 1 })
       .lean();
 
-      // console.log(users);
     // ---------------------------------------------------
     // 4️⃣ Attach names for EJS
     // ---------------------------------------------------
@@ -1191,8 +1192,8 @@ exports.downloadZilaIdcards = async (req, res) => {
       ...u,
       kenderName: u.kender?.name || "",
       ksheterName: u.ksheter?.name || "",
-      zilaName: zilaName,
-      prantName: prantName
+      zilaName,
+      prantName
     }));
 
     // ---------------------------------------------------
@@ -1205,4 +1206,5 @@ exports.downloadZilaIdcards = async (req, res) => {
     res.send("Error generating Zila ID cards");
   }
 };
+
 

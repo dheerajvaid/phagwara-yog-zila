@@ -5,7 +5,13 @@
 
 <!-- -------------------- FILTER & DOWNLOAD SECTION -------------------- -->
 <div class="download-container" style="margin-bottom:20px; padding:10px 15px; background:#f9f9f9; border:1px solid #ddd; border-radius:8px; display:flex; flex-wrap:wrap; align-items:center; gap:15px; justify-content:space-between;">
-  
+
+  <!-- SEARCH (new) -->
+  <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+    <input id="cardSearch" type="search" placeholder="Search cards (name, mobile, role...)" aria-label="Search cards"
+      style="min-width:240px; padding:6px 10px; border-radius:8px; border:1px solid #ddd; outline:none; font-weight:500;" />
+  </div>
+
   <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
     <label for="filterSelect" style="font-weight:600; color:#3a120f;">Filter Cards:</label>
     <select id="filterSelect" class="form-select form-select-sm" style="min-width:150px;">
@@ -16,60 +22,84 @@
   </div>
 
   <div style="display:flex; align-items:center; gap:5px;">
-    <input type="checkbox" id="selectAllCards" style="transform:scale(1.2); cursor:pointer;" />
+    <input type="checkbox" id="selectAllCards" style="cursor:pointer;" />
     <label for="selectAllCards" style="font-weight:600; cursor:pointer;">Select / Deselect All</label>
   </div>
 
+  <!-- -------------------- SELECTED COUNT BOX (TOP) -------------------- -->
+  <div id="selectedCountBox" 
+    style="
+      padding:6px 14px; 
+      background:#fff4e6; 
+      border:1px solid #f1d2a8; 
+      border-radius:8px; 
+      font-weight:600; 
+      color:#8a4b12;
+      box-shadow:0 1px 3px rgba(0,0,0,0.08);
+    ">
+    Selected: <span id="selectedCount">0</span> Cards
+  </div>
+
+  <!-- PROGRESS BAR -->
+  <div style="min-width:180px; max-width:260px; width:26%; display:flex; flex-direction:column; gap:6px;">
+    <div style="display:flex; justify-content:space-between; font-size:12px; color:#5a4538; font-weight:600;">
+      <span>Selection Progress</span>
+      <span id="progressPerc">0%</span>
+    </div>
+    <div style="background:#f1ece6; height:8px; border-radius:999px; overflow:hidden; border:1px solid #efe6db;">
+      <div id="selectionProgress" style="height:100%; width:0%; background:linear-gradient(90deg,#3a120f,#8a4b12); transition:width 260ms ease;"></div>
+    </div>
+  </div>
+
   <!-- -------------------- GAP CONTROLS -------------------- -->
-<div style="
-  display:flex; 
-  align-items:center; 
-  gap:15px; 
-  flex-wrap:wrap;
-  background:#fff; 
-  padding:8px 12px; 
-  border-radius:6px; 
-  border:1px solid #e2e2e2;
-">
+  <div style="
+    display:flex; 
+    align-items:center; 
+    gap:15px; 
+    flex-wrap:wrap;
+    background:#fff; 
+    padding:8px 12px; 
+    border-radius:6px; 
+    border:1px solid #e2e2e2;
+  ">
 
-  <div>
-    <label style="font-weight:600; color:#3a120f;">Top Gap:</label>
-    <select id="topGapSelect" class="form-select form-select-sm" style="min-width:80px;">
-      <option value="0.1">0.1 cm</option>
-      <option value="0.2">0.2 cm</option>
-      <option value="0.3">0.3 cm</option>
-      <option value="0.4">0.4 cm</option>
-      <option value="0.5" selected>0.5 cm</option>
-    </select>
+    <div>
+      <label style="font-weight:600; color:#3a120f;">Top Gap:</label>
+      <select id="topGapSelect" class="form-select form-select-sm" style="min-width:80px;">
+        <option value="0.1">0.1 cm</option>
+        <option value="0.2">0.2 cm</option>
+        <option value="0.3">0.3 cm</option>
+        <option value="0.4">0.4 cm</option>
+        <option value="0.5" selected>0.5 cm</option>
+      </select>
+    </div>
+
+    <div>
+      <label style="font-weight:600; color:#3a120f;">Left Gap:</label>
+      <select id="leftGapSelect" class="form-select form-select-sm" style="min-width:80px;">
+        <option value="0.1">0.1 cm</option>
+        <option value="0.2">0.2 cm</option>
+        <option value="0.3">0.3 cm</option>
+        <option value="0.4">0.4 cm</option>
+        <option value="0.5" selected>0.5 cm</option>
+      </select>
+    </div>
+
+    <div>
+      <label style="font-weight:600; color:#3a120f;">Inner Gap:</label>
+      <select id="innerGapSelect" class="form-select form-select-sm" style="min-width:80px;">
+        <option value="0.1" selected>0.1 cm</option>
+        <option value="0.2">0.2 cm</option>
+        <option value="0.3">0.3 cm</option>
+        <option value="0.4">0.4 cm</option>
+        <option value="0.5">0.5 cm</option>
+      </select>
+    </div>
+
   </div>
 
   <div>
-    <label style="font-weight:600; color:#3a120f;">Left Gap:</label>
-    <select id="leftGapSelect" class="form-select form-select-sm" style="min-width:80px;">
-      <option value="0.1">0.1 cm</option>
-      <option value="0.2">0.2 cm</option>
-      <option value="0.3">0.3 cm</option>
-      <option value="0.4">0.4 cm</option>
-      <option value="0.5" selected>0.5 cm</option>
-    </select>
-  </div>
-
-  <div>
-    <label style="font-weight:600; color:#3a120f;">Inner Gap:</label>
-    <select id="innerGapSelect" class="form-select form-select-sm" style="min-width:80px;">
-      <option value="0.1" selected>0.1 cm</option>
-      <option value="0.2">0.2 cm</option>
-      <option value="0.3">0.3 cm</option>
-      <option value="0.4">0.4 cm</option>
-      <option value="0.5">0.5 cm</option>
-    </select>
-  </div>
-
-</div>
-
-
-  <div>
-    <button class="btn btn-primary" style="padding:6px 16px; font-weight:600;" onclick="generateA4PDF()">Download Selected PDF</button>
+    <button id="downloadBtn" class="btn btn-primary" style="padding:6px 16px; font-weight:600;" onclick="generateA4PDF()">Download Selected (0)</button>
   </div>
 </div>
 
@@ -77,9 +107,10 @@
 <div id="cardsContainer" style="padding:20px; display:flex; flex-wrap:wrap; gap:20px;">
   <% users.forEach(u => { %>
     <div class="card-wrapper" data-has-image="<%= u.photoUrl || u.photo ? 'yes' : 'no' %>">
-      <div style="position:relative;">
+      <div style="position:relative;" class="card-clickable" tabindex="0" title="Tap or click to select">
         <!-- Individual card selection checkbox -->
-        <input type="checkbox" class="card-checkbox" style="position:absolute; top:5px; left:5px; z-index:10; transform:scale(1.2); cursor:pointer;">
+        <input type="checkbox" class="card-checkbox" style="position:absolute; top:5px; left:5px; z-index:12; cursor:pointer;" />
+
         <%- include("./singleCardPartial", { 
           user: u, 
           kenderName: u.kenderName, 
@@ -92,15 +123,121 @@
   <% }) %>
 </div>
 
+
+<!-- -------------------- FLOATING SELECTED COUNTER -------------------- -->
+<div id="floatingSelectedCount" aria-hidden="false">
+  <span id="floatingSelectedNumber">0</span> Selected
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script>
-  // -------------------- FILTER LOGIC --------------------
+  // ---------- EXISTING DOM REFERENCES (kept same) ----------
   const filterSelect = document.getElementById('filterSelect');
   const selectAllCheckbox = document.getElementById('selectAllCards');
   const cardsContainer = document.getElementById('cardsContainer');
 
+  // NEW elements
+  const selectedCountSpan = document.getElementById('selectedCount');
+  const floatingCount = document.getElementById('floatingSelectedNumber');
+  const selectionProgress = document.getElementById('selectionProgress');
+  const progressPerc = document.getElementById('progressPerc');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const cardSearch = document.getElementById('cardSearch');
+
+  // State for range selection
+  let lastCheckedIndex = null;
+
+  // Helper: get visible card-wrappers array
+  function getVisibleWrappers() {
+    return Array.from(cardsContainer.querySelectorAll('.card-wrapper'))
+      .filter(c => c.style.display !== 'none');
+  }
+
+  // -------------------- UPDATE SELECTED COUNT + UI --------------------
+  function updateSelectedCount() {
+    const visibleCards = getVisibleWrappers();
+    const checkedCards = visibleCards.filter(c => c.querySelector('.card-checkbox').checked);
+
+    const selectedCount = checkedCards.length;
+    const visibleCount = visibleCards.length || 1;
+
+    // Update top & floating counters
+    selectedCountSpan.textContent = selectedCount;
+    floatingCount.textContent = selectedCount;
+
+    // Update progress bar and percentage
+    const perc = Math.round((selectedCount / visibleCount) * 100);
+    selectionProgress.style.width = perc + '%';
+    progressPerc.textContent = perc + '%';
+
+    // Update download button text
+    downloadBtn.textContent = `Download Selected (${selectedCount})`;
+
+    // Visual overlay for selected cards
+    Array.from(cardsContainer.querySelectorAll('.card-wrapper')).forEach((wr) => {
+      const cb = wr.querySelector('.card-checkbox');
+      if (cb.checked) {
+        wr.classList.add('card-selected');
+      } else {
+        wr.classList.remove('card-selected');
+      }
+    });
+
+    highlightCountBox();
+  }
+
+  function enforcePDFLimit() {
+  const selected = parseInt(selectedCountSpan.textContent);
+  const MAX_LIMIT = 50;
+
+  if (selected > MAX_LIMIT) {
+    downloadBtn.disabled = true;
+    downloadBtn.style.opacity = "0.5";
+    downloadBtn.style.cursor = "not-allowed";
+    downloadBtn.title = `PDF disabled — limit is 50 (selected ${selected})`;
+  } else {
+    downloadBtn.disabled = false;
+    downloadBtn.style.opacity = "1";
+    downloadBtn.style.cursor = "pointer";
+    downloadBtn.title = "";
+  }
+}
+
+const oldUpdate = updateSelectedCount;
+updateSelectedCount = function () {
+  oldUpdate();
+  refreshOverlays();
+  enforcePDFLimit();
+};
+
+  function highlightCountBox() {
+    const box = document.getElementById('selectedCountBox');
+    box.classList.add('highlight');
+    setTimeout(() => box.classList.remove('highlight'), 450);
+  }
+
+  // -------------------- SEARCH (LIVE) --------------------
+  cardSearch.addEventListener('input', () => {
+    const q = cardSearch.value.trim().toLowerCase();
+    const allWrappers = Array.from(cardsContainer.querySelectorAll('.card-wrapper'));
+
+    allWrappers.forEach(w => {
+      const text = (w.textContent || '').toLowerCase();
+      if (!q || text.includes(q)) {
+        w.style.display = 'inline-block';
+      } else {
+        w.style.display = 'none';
+      }
+    });
+
+    // reset selectAll checkbox for clarity
+    selectAllCheckbox.checked = false;
+    updateSelectedCount();
+  });
+
+  // -------------------- FILTER LOGIC (existing behavior preserved) --------------------
   filterSelect.addEventListener('change', () => {
     const value = filterSelect.value;
     const cards = cardsContainer.querySelectorAll('.card-wrapper');
@@ -112,10 +249,11 @@
       else if (value === 'noImage') card.style.display = !hasImage ? 'inline-block' : 'none';
     });
 
-    // Reset "Select All" checkbox
     selectAllCheckbox.checked = false;
+    updateSelectedCount();
   });
 
+  // -------------------- SELECT/DESELECT ALL --------------------
   selectAllCheckbox.addEventListener('change', () => {
     const checkboxes = cardsContainer.querySelectorAll('.card-checkbox');
     checkboxes.forEach(cb => {
@@ -123,118 +261,335 @@
         cb.checked = selectAllCheckbox.checked;
       }
     });
+    updateSelectedCount();
   });
 
-  // -------------------- PDF GENERATION --------------------
-  async function generateA4PDF() {
-    const { jsPDF } = window.jspdf;
-    if (!jsPDF) return alert("jsPDF failed to load.");
-
-    const spinner = document.getElementById('loadingSpinner');
-    if (spinner) spinner.style.display = 'block'; // show spinner
-
-    const selectedCards = Array.from(cardsContainer.querySelectorAll('.card-wrapper'))
-      .filter(card => card.querySelector('.card-checkbox').checked && card.style.display !== 'none');
-
-    if(selectedCards.length === 0) {
-      alert("Please select at least one card.");
-      if(spinner) spinner.style.display = 'none';
+  // -------------------- CLICK / TAP ON CARD (toggle) --------------------
+  // Single handler to make entire .card-clickable toggle selection.
+  cardsContainer.addEventListener('click', (e) => {
+    // If the checkbox itself was clicked, let change handler handle it (but stop propagation to avoid double toggle)
+    if (e.target.classList && e.target.classList.contains('card-checkbox')) {
+      e.stopPropagation();
       return;
     }
 
-    const pdf = new jsPDF({
-      orientation: "portrait",
-      unit: "cm",
-      format: "a4"
+    const wrapperClickable = e.target.closest('.card-clickable');
+    if (!wrapperClickable) return;
+
+    // Toggle checkbox
+    const cb = wrapperClickable.querySelector('.card-checkbox');
+    cb.checked = !cb.checked;
+
+    // Update lastCheckedIndex for shift+click range selects
+    const wrappers = getVisibleWrappers();
+    const wrapperElement = wrapperClickable.closest('.card-wrapper');
+    const idx = wrappers.indexOf(wrapperElement);
+    lastCheckedIndex = idx;
+
+    updateSelectedCount();
+  });
+
+  // If user changes a checkbox (direct click), ensure counters update
+  cardsContainer.addEventListener('change', (e) => {
+    if (e.target.classList && e.target.classList.contains('card-checkbox')) {
+      // Update lastCheckedIndex for range select (when checkbox clicked directly)
+      const wrappers = getVisibleWrappers();
+      const wrapperElement = e.target.closest('.card-wrapper');
+      const idx = wrappers.indexOf(wrapperElement);
+      lastCheckedIndex = idx;
+      updateSelectedCount();
+    }
+  });
+
+  // -------------------- SHIFT + CLICK (range select) --------------------
+  // Use mousedown to capture Shift+click across both checkbox and card clickable
+  cardsContainer.addEventListener('mousedown', (e) => {
+    // Only left-click
+    if (e.button !== 0) return;
+
+    const wrapperClickable = e.target.closest('.card-clickable');
+    if (!wrapperClickable) return;
+
+    const wrappers = getVisibleWrappers();
+    const wrapperElement = wrapperClickable.closest('.card-wrapper');
+    const idx = wrappers.indexOf(wrapperElement);
+
+    if (e.shiftKey && lastCheckedIndex !== null && lastCheckedIndex !== undefined) {
+      // determine range
+      const start = Math.min(lastCheckedIndex, idx);
+      const end = Math.max(lastCheckedIndex, idx);
+      // Decide whether to check or uncheck based on the current clicked's state
+      const shouldCheck = !wrappers[idx].querySelector('.card-checkbox').checked;
+      for (let i = start; i <= end; i++) {
+        wrappers[i].querySelector('.card-checkbox').checked = shouldCheck;
+      }
+      updateSelectedCount();
+      lastCheckedIndex = idx;
+      e.preventDefault();
+    }
+  });
+  
+  // -------------------- INITIALIZE: prepare overlays & accessibility --------------------
+  function prepareCards() {
+    Array.from(cardsContainer.querySelectorAll('.card-wrapper')).forEach((wr, i) => {
+      const tick = wr.querySelector('.tick-overlay');
+      if (tick) {
+        // ensure overlay hidden initially
+        tick.style.opacity = '0';
+        tick.style.transform = 'translateY(-4px) scale(0.92)';
+      }
+
+      // Add aria attributes for a11y
+      const clickable = wr.querySelector('.card-clickable');
+      if (clickable) {
+        clickable.setAttribute('role', 'button');
+        clickable.setAttribute('aria-pressed', 'false');
+      }
     });
+  }
 
-    const cardWidth = 8.56;
-    const cardHeight = 5.40;
-    const columns = 2; // 2 cards per row
-    const rows = 5;    // 5 rows per page
-    
-    let topGap = parseFloat(document.getElementById('topGapSelect').value);
-    let leftGap = parseFloat(document.getElementById('leftGapSelect').value);
-    let innerGap = parseFloat(document.getElementById('innerGapSelect').value);
-
-    let x = leftGap, y = topGap;
-
-    for (let i = 0; i < selectedCards.length; i++) {
-      const card = selectedCards[i];
-
-      // Wait for all images inside the card to load
-      const imgs = card.querySelectorAll('img');
-      for (let img of imgs) {
-        if (!img.complete) await img.decode();
+  // Update overlays when selection toggles
+  function refreshOverlays() {
+    Array.from(cardsContainer.querySelectorAll('.card-wrapper')).forEach(wr => {
+      const cb = wr.querySelector('.card-checkbox');
+      const tick = wr.querySelector('.tick-overlay');
+      const clickable = wr.querySelector('.card-clickable');
+      if (cb.checked) {
+        wr.classList.add('card-selected');
+        if (tick) {
+          tick.style.opacity = '1';
+          tick.style.transform = 'translateY(0) scale(1)';
+        }
+        if (clickable) clickable.setAttribute('aria-pressed', 'true');
+      } else {
+        wr.classList.remove('card-selected');
+        if (tick) {
+          tick.style.opacity = '0';
+          tick.style.transform = 'translateY(-4px) scale(0.92)';
+        }
+        if (clickable) clickable.setAttribute('aria-pressed', 'false');
       }
+    });
+  }
 
-      // Hide UI elements meant only for screen (like checkboxes)
-      card.classList.add('pdf-hide');
+  // Hook updateSelectedCount to refresh overlays too
+  const originalUpdateSelectedCount = updateSelectedCount;
+  updateSelectedCount = function () {
+    // call old logic (count + UI)
+    originalUpdateSelectedCount();
+    // overlays
+    refreshOverlays();
+  };
 
-      const canvas = await html2canvas(card, { 
-        scale: 4,       // High-quality for print
-        useCORS: true,
-        allowTaint: false
-      });
+  // Initialize
+  prepareCards();
+  updateSelectedCount();
 
-      card.classList.remove('pdf-hide'); // restore visibility
-      const imgData = canvas.toDataURL("image/jpeg", 1.0);
+  // -------------------- PDF GENERATION (UNCHANGED, exact same logic) --------------------
+ // -------------------- PDF GENERATION (FULL FIXED VERSION) --------------------
+async function generateA4PDF() {
 
-      pdf.addImage(imgData, "JPEG", x, y, cardWidth, cardHeight);
+  const selectedCards = Array.from(cardsContainer.querySelectorAll('.card-wrapper'))
+    .filter(card => card.querySelector('.card-checkbox').checked && card.style.display !== 'none');
 
-      // Move to next column
-      x += cardWidth + innerGap;
+  // HARD LIMIT
+  const MAX_LIMIT = 50;
 
-      // Move to next row if column limit reached
-      if ((i + 1) % columns === 0) {
-        x = leftGap;
-        y += cardHeight + innerGap;
-      }
+  if (selectedCards.length > MAX_LIMIT) {
+    alert(`⚠️ You selected ${selectedCards.length} cards.\n\nPDF generation is limited to ${MAX_LIMIT} cards at a time to prevent memory crashes.\n\nPlease select fewer cards and try again.`);
+    return;
+  }
 
-      // Page break if page is full
-      if ((i + 1) % (columns * rows) === 0) {
-        pdf.addPage();
-        x = leftGap;
-        y = topGap;
+  const { jsPDF } = window.jspdf;
+  if (!jsPDF) return alert("jsPDF failed to load.");
+
+  const spinner = document.getElementById('loadingSpinner');
+  if (spinner) spinner.style.display = 'block';
+
+  if (selectedCards.length === 0) {
+    alert("Please select at least one card.");
+    if (spinner) spinner.style.display = 'none';
+    return;
+  }
+
+  // MEMORY FIX 1: Dynamic scale
+  const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+  const renderScale = isMobile ? 2 : 3;
+
+  const pdf = new jsPDF({
+    orientation: "portrait",
+    unit: "cm",
+    format: "a4"
+  });
+
+  const cardWidth = 8.56;
+  const cardHeight = 5.40;
+  const columns = 2;
+  const rows = 5;
+
+  let topGap = parseFloat(document.getElementById('topGapSelect').value);
+  let leftGap = parseFloat(document.getElementById('leftGapSelect').value);
+  let innerGap = parseFloat(document.getElementById('innerGapSelect').value);
+
+  let x = leftGap, y = topGap;
+
+  // MEMORY FIX 2: Process one card at a time
+  for (let i = 0; i < selectedCards.length; i++) {
+
+    const card = selectedCards[i];
+
+    // Ensure images are loaded before rendering
+    const imgs = card.querySelectorAll('img');
+    for (let img of imgs) {
+      if (!img.complete) {
+        try { await img.decode(); } catch (e) {}
       }
     }
 
-    pdf.save("ID-Cards-Selected.pdf");
+    // Hide tick overlay / outlines for clean PDF
+    card.classList.add('pdf-hide');
 
-    if (spinner) spinner.style.display = 'none'; // hide spinner
+    const canvas = await html2canvas(card, {
+      scale: renderScale,
+      useCORS: true,
+      allowTaint: true,
+      logging: false,
+      backgroundColor: null
+    });
+
+    const imgData = canvas.toDataURL("image/png");
+
+    // ------------------------------
+    // PLACE image on A4 grid layout
+    // ------------------------------
+    pdf.addImage(imgData, "PNG", x, y, cardWidth, cardHeight);
+
+    x += cardWidth + innerGap;
+
+    if ((i + 1) % columns === 0) {
+      x = leftGap;
+      y += cardHeight + innerGap;
+    }
+
+    if ((i + 1) % (columns * rows) === 0 && i < selectedCards.length - 1) {
+      pdf.addPage();
+      x = leftGap;
+      y = topGap;
+    }
+
+    // Unhide card
+    card.classList.remove('pdf-hide');
   }
+
+  // SAVE
+  pdf.save(`ID-CARDS-${Date.now()}.pdf`);
+
+  if (spinner) spinner.style.display = 'none';
+}
+
 </script>
 
 <style>
   /* -------------------- BEAUTIFY FILTER SECTION -------------------- */
-  .download-container select.form-select-sm {
-    border-radius:6px;
-    border:1px solid #ccc;
-    padding:2px 8px;
-  }
+.download-container select.form-select-sm {
+  border-radius:6px;
+  border:1px solid #ccc;
+  padding:2px 8px;
+}
 
-  .download-container button.btn-primary {
-    background:#3a120f;
-    border:none;
-    transition:all 0.2s ease;
-  }
+.download-container button.btn-primary {
+  background:#3a120f;
+  border:none;
+  transition:all 0.2s ease;
+}
 
-  .download-container button.btn-primary:hover {
-    background:#5a1f0f;
-  }
+.download-container button.btn-primary:hover {
+  background:#5a1f0f;
+}
 
-  .download-container input[type="checkbox"] {
-    cursor:pointer;
-  }
+.download-container input[type="checkbox"] {
+  cursor:pointer;
+}
 
-  .download-container label {
-    cursor:pointer;
-  }
+.download-container label {
+  cursor:pointer;
+}
 
-  /* Hide checkboxes in PDF */
-  .pdf-hide input[type="checkbox"] {
-    display:none !important;
-  }
+/* Hide checkboxes in PDF */
+.pdf-hide input[type="checkbox"] {
+  display:none !important;
+}
+
+#selectedCountBox {
+  transition: all 0.25s ease;
+}
+
+#selectedCountBox.highlight {
+  background:#ffe8cc !important;
+  border-color:#e6b37a !important;
+}
+
+/* Card looks tappable */
+.card-clickable {
+  cursor: pointer;
+  display: inline-block;
+  outline: none;
+}
+
+/* selected state */
+.card-selected {
+  box-shadow: 0 10px 30px rgba(58,18,15,0.08);
+  border-radius: 8px;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+/* Floating Counter (Always Visible) */
+#floatingSelectedCount {
+  position: fixed;
+  bottom: 15px;
+  right: 15px;
+  background:#3a120f;
+  color:#fff;
+  padding:10px 18px;
+  font-size:15px;
+  font-weight:600;
+  border-radius:50px;
+  box-shadow:0 3px 8px rgba(0,0,0,0.25);
+  z-index:9999;
+  opacity:0.94;
+}
+
+/* small accessibility focus style */
+.card-clickable:focus {
+  box-shadow: 0 6px 18px rgba(58,18,15,0.12);
+  border-radius:8px;
+}
+
+/* --- Prevent Card Auto-Deselect Click Issue --- */
+.card-wrapper {
+  position: relative;
+  cursor: pointer;
+}
+
+.card-wrapper .card-checkbox {
+  z-index: 9999;
+}
+
+/* Allow full card click but keep checkbox clickable */
+.card-clickable *:not(.card-checkbox):not(.tick-overlay) {
+  pointer-events: none !important;
+}
+
+/* Checkbox must remain clickable */
+.card-checkbox {
+  pointer-events: auto !important;
+}
+
+/* Make the whole card clickable */
+.card-clickable {
+  pointer-events: auto !important;
+}
+
 </style>
 
 <%- include('../partials/footer') %>
