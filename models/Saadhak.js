@@ -32,6 +32,13 @@ const saadhakSchema = new mongoose.Schema(
     heightInches: Number, // e.g. 6
     photoUrl: { type: String, default: "" },
     photoPublicId: { type: String, default: "" },
+    photoStatus: {
+      type: String,
+      enum: ["not_uploaded", "uploaded", "queued", "printed"],
+      default: "not_uploaded",
+    },
+    photoUploadedAt: { type: Date },
+    photoPrintedAt: { type: Date },
   },
   { timestamps: true }
 );

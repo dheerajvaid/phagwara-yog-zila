@@ -1069,6 +1069,8 @@ exports.uploadPhotoAjax = async (req, res) => {
     // Save new info to DB
     saadhak.photoUrl = newUrl;
     saadhak.photoPublicId = newPublicId;
+    saadhak.photoStatus = "uploaded";
+    saadhak.photoUploadedAt = new Date();
     await saadhak.save();
 
     req.session.user.photoUrl = saadhak.photoUrl;
@@ -1099,9 +1101,9 @@ exports.downloadKenderIdcards = async (req, res) => {
         populate: {
           path: "zila",
           populate: {
-            path: "prant"
-          }
-        }
+            path: "prant",
+          },
+        },
       })
       .lean();
 
@@ -1116,7 +1118,10 @@ exports.downloadKenderIdcards = async (req, res) => {
     // ---------------------------
     // 2️⃣ Fetch all users of this Kender
     // ---------------------------
-    const users = await Saadhak.find({ kender: kenderId })
+    const users = await Saadhak.find({
+      kender: kenderId,
+      photoStatus: "uploaded",
+    })
       .populate("kender", "name")
       .populate("ksheter", "name")
       .sort({ name: 1 })
@@ -1125,19 +1130,18 @@ exports.downloadKenderIdcards = async (req, res) => {
     // ---------------------------
     // 3️⃣ Attach names for EJS
     // ---------------------------
-    const usersWithNames = users.map(u => ({
+    const usersWithNames = users.map((u) => ({
       ...u,
       kenderName: u.kender?.name || "",
       ksheterName: ksheterName,
       zilaName: zilaName,
-      prantName: prantName
+      prantName: prantName,
     }));
 
     // ---------------------------
     // 4️⃣ Render EJS
     // ---------------------------
     res.render("idcard/multiple", { users: usersWithNames });
-
   } catch (err) {
     console.error(err);
     res.send("Error generating ID cards");
@@ -1147,14 +1151,12 @@ exports.downloadKenderIdcards = async (req, res) => {
 exports.downloadZilaIdcards = async (req, res) => {
   try {
     const zilaId = req.session.user.zila;
-    const includeAll = req.query.all === "1";   // 👈 NEW
+    const includeAll = req.query.all === "1"; // 👈 NEW
 
     // --------------------------------
     // 1️⃣ Fetch Zila → Prant
     // --------------------------------
-    const zilaData = await Zila.findById(zilaId)
-      .populate("prant")
-      .lean();
+    const zilaData = await Zila.findById(zilaId).populate("prant").lean();
 
     if (!zilaData) return res.send("Zila not found");
 
@@ -1165,7 +1167,7 @@ exports.downloadZilaIdcards = async (req, res) => {
     // 2️⃣ Identify roles to include
     // ---------------------------------------------------
 
-    let roleFilter = {};   // default: no filter (fetch all)
+    let roleFilter = {}; // default: no filter (fetch all)
 
     if (!includeAll) {
       // 👈 only Zila + Ksheter roles
@@ -1178,7 +1180,8 @@ exports.downloadZilaIdcards = async (req, res) => {
     // ---------------------------------------------------
     const users = await Saadhak.find({
       zila: zilaId,
-      ...roleFilter   // 👈 Dynamic
+      photoStatus: "uploaded",
+      ...roleFilter, // 👈 Dynamic
     })
       .populate("kender", "name")
       .populate("ksheter", "name")
@@ -1188,23 +1191,74 @@ exports.downloadZilaIdcards = async (req, res) => {
     // ---------------------------------------------------
     // 4️⃣ Attach names for EJS
     // ---------------------------------------------------
-    const usersWithNames = users.map(u => ({
+    const usersWithNames = users.map((u) => ({
       ...u,
       kenderName: u.kender?.name || "",
       ksheterName: u.ksheter?.name || "",
       zilaName,
-      prantName
+      prantName,
     }));
 
     // ---------------------------------------------------
     // 5️⃣ Render EJS
     // ---------------------------------------------------
     res.render("idcard/multiple", { users: usersWithNames });
-
   } catch (err) {
     console.error("Error generating Zila ID cards:", err);
     res.send("Error generating Zila ID cards");
   }
 };
 
+// controllers/adminController.js
 
+exports.fixPhotoStatus = async (req, res) => {
+  try {
+    // 1. Set uploaded for saadhaks who already have photos
+    const updatedUploaded = await Saadhak.updateMany(
+      {
+        $or: [
+          { photoUrl: { $exists: true, $ne: "" } },
+          { photoPublicId: { $exists: true, $ne: "" } }
+        ]
+      },
+      {
+        $set: {
+          photoStatus: "uploaded",
+          photoUploadedAt: new Date()
+        }
+      }
+    );
+
+    // 2. Set not_uploaded for saadhaks with no photo
+    const updatedNotUploaded = await Saadhak.updateMany(
+      {
+        $and: [
+          { $or: [{ photoUrl: "" }, { photoUrl: null }, { photoUrl: { $exists: false } }] },
+          {
+            $or: [
+              { photoPublicId: "" },
+              { photoPublicId: null },
+              { photoPublicId: { $exists: false } }
+            ]
+          }
+        ]
+      },
+      {
+        $set: {
+          photoStatus: "not_uploaded",
+          photoUploadedAt: null
+        }
+      }
+    );
+
+    res.send(`
+      <h2>Photo Status Fix Completed</h2>
+      <p><strong>Uploaded Marked:</strong> ${updatedUploaded.modifiedCount}</p>
+      <p><strong>Not Uploaded Marked:</strong> ${updatedNotUploaded.modifiedCount}</p>
+    `);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error fixing photo statuses");
+  }
+};

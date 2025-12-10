@@ -134,6 +134,8 @@ router.post(
   saadhakController.uploadPhotoAjax
 );
 
+router.get("/saadhak/fix-photo-status", saadhakController.fixPhotoStatus);
+
 
 
 module.exports = router;
