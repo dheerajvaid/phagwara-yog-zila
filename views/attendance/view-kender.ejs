@@ -132,13 +132,33 @@
       <div class="table-wrapper">
         <table class="table table-bordered table-hover shadow-sm text-center align-middle">
           <thead class="bg-primary text-white">
+            <!-- FIRST ROW: HEADER + DAY NUMBERS -->
             <tr>
               <th style="white-space: nowrap;">Kender⬇️ / Date ➡️</th>
               <% activeDays.forEach(day => { %>
                 <th style="min-width: 28px; max-width: 36px; font-size: 0.75rem;"><%= day %></th>
               <% }) %>
             </tr>
+
+            <!-- SECOND ROW: CORRESPONDING WEEKDAY NAMES -->
+            <tr>
+              <th>Day</th> <!-- empty cell under 'Kender' column -->
+              
+              <% 
+                const weekNames = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+
+                activeDays.forEach(day => { 
+                  const dateObj = new Date(selectedYear, selectedMonth - 1, day); 
+                  const weekday = weekNames[dateObj.getDay()];
+              %>
+                <th style="min-width: 28px; max-width: 36px; font-size: 0.70rem; opacity:0.9;">
+                  <%= weekday %>
+                </th>
+              <% }) %>
+            </tr>
+
           </thead>
+
 
           <tbody>
             <% 
@@ -149,7 +169,7 @@
 
               <!-- Ksheter Heading Row (H2-style) -->
               <tr class="ksheter-heading-row">
-                <th colspan="<%= colSpan %>" class="bg-warning text-start fs-4 fw-bold">
+                <th colspan="<%= colSpan %>" class="bg-warning text-start fs-6 fw-bold">
                   <%= ksName %>
                 </th>
               </tr>
@@ -173,9 +193,9 @@
 
               <!-- Ksheter TOTAL Row (date-wise totals) -->
               <tr>
-                <th class="text-primary fw-bold bg-light">Total</th>
+                <th class="text-black fw-bold bg-warning">Total</th>
                 <% activeDays.forEach(day => { %>
-                  <th class="text-primary fw-bold bg-light border" style="border: 1px solid black;">
+                  <th class="text-black fw-bold bg-warning border" style="border: 1px solid black;">
                     <%= ksheterDayTotals[ksName] && ksheterDayTotals[ksName][day] > 0 ? ksheterDayTotals[ksName][day] : '' %>
                   </th>
                 <% }) %>
@@ -183,8 +203,8 @@
 
               <!-- Divider Row -->
               <tr class="divider-row">
-                <td colspan="<%= colSpan %>" class="bg-secondary-subtle text-center fw-bold">
-                  ===========================================
+                <td colspan="<%= colSpan %>" class="bg-danger text-center fw-bold">
+                  
                 </td>
               </tr>
 
@@ -192,9 +212,9 @@
 
             <!-- GRAND Total Present Row At Bottom (unchanged) -->
             <tr>
-              <th class="text-primary fw-bold bg-light">Total Present</th>
+              <th class="text-black fw-bold bg-warning">Total Present</th>
               <% activeDays.forEach(day => { %>
-                <th class="text-primary fw-bold bg-light border" style="border: 1px solid black;">
+                <th class="text-black fw-bold bg-warning border" style="border: 1px solid black;">
                   <%= kenderDayCount[day] > 0 ? kenderDayCount[day] : '' %>
                 </th>
               <% }) %>

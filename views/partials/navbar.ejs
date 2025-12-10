@@ -89,7 +89,7 @@ const isSaadhakOnly = user?.roles.some(role => saadhakRoles.includes(role));
 
      <!-- User Photo at Start -->
     <% if (user && user.photoUrl) { %>
-      <a class="navbar-brand d-flex align-items-center me-2" href="/profile">
+      <a class="navbar-brand d-flex align-items-center me-2" href="/saadhak/self-update">
         <img src="<%= user.photoUrl %>" alt="Profile" class="rounded-circle" style="height: 32px; width: 32px; object-fit: cover; border: 2px solid #fff;">
       </a>
     <% } %>
