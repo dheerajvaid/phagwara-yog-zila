@@ -332,13 +332,7 @@
         Generate My ID Card
     </a>
 
-    <% if (user.roles && user.roles.some(r =>
-            ['Kender Pramukh', 'Seh Kender Pramukh'].includes(r))) { %>
-    <a href="/idcard/kender/<%= user.kender %>" class="btn btn-dark w-100 mt-2">
-      Generate All Kender ID Cards
-    </a>
-    <% } %>
-
+    
     <% if (user.roles && user.roles.some(r =>
             ['Zila Pradhan', 'Zila Mantri', 'Zila Sangathan Mantri', 'Zila Cashier'].includes(r))) { %>
     <a href="/idcard/zila/<%= user.zila %>" class="btn btn-dark w-100 mt-2">

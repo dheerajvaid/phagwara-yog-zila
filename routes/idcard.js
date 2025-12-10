@@ -7,7 +7,7 @@ const saadhakController = require("../controllers/saadhakController");
 const { zilaRoles, kenderRoles } = require("../config/roles");
 
 // Specific first
-router.get("/kender/:id", requireLogin, canManage(kenderRoles), saadhakController.downloadKenderIdcards);
+// router.get("/kender/:id", requireLogin, canManage(kenderRoles), saadhakController.downloadKenderIdcards);
 
 // Specific first
 router.get("/zila/:id", requireLogin, canManage(zilaRoles), saadhakController.downloadZilaIdcards);

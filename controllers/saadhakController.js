@@ -1120,7 +1120,7 @@ exports.downloadKenderIdcards = async (req, res) => {
     // ---------------------------
     const users = await Saadhak.find({
       kender: kenderId,
-      photoStatus: "uploaded",
+      // photoStatus: "uploaded",
     })
       .populate("kender", "name")
       .populate("ksheter", "name")
@@ -1180,7 +1180,7 @@ exports.downloadZilaIdcards = async (req, res) => {
     // ---------------------------------------------------
     const users = await Saadhak.find({
       zila: zilaId,
-      photoStatus: "uploaded",
+      // photoStatus: "uploaded",
       ...roleFilter, // 👈 Dynamic
     })
       .populate("kender", "name")
@@ -1262,3 +1262,35 @@ exports.fixPhotoStatus = async (req, res) => {
     res.status(500).send("Error fixing photo statuses");
   }
 };
+
+exports.markPrinted = async (req, res) => {
+  try {
+    const { userIds } = req.body;
+    // console.log(userIds);
+
+    await Saadhak.updateMany(
+      { _id: { $in: userIds } },
+      { $set: { photoStatus: "printed" } }
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Status update failed:", err);
+    res.status(500).json({ success: false });
+  }
+};
+
+exports.updatePhotoStatus = async (req, res) => {
+  try {
+    const { ids, status } = req.body;
+    await Saadhak.updateMany(
+      { _id: { $in: ids } },
+      { $set: { photoStatus: status } }
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.json({ success: false });
+  }
+};
+

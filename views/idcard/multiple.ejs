@@ -13,13 +13,15 @@
   </div>
 
   <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-    <label for="filterSelect" style="font-weight:600; color:#3a120f;">Filter Cards:</label>
-    <select id="filterSelect" class="form-select form-select-sm" style="min-width:150px;">
-      <option value="all">All ID Cards</option>
-      <option value="withImage">Cards with Image</option>
-      <option value="noImage">Cards without Image</option>
-    </select>
-  </div>
+  <label for="filterSelect" style="font-weight:600; color:#3a120f;">Filter Cards:</label>
+
+  <select id="filterSelect" class="form-select form-select-sm" style="min-width:170px;">
+    <option value="imageNotUploaded">Image Not Uploaded</option>
+    <option value="imageUploaded" selected>Image Uploaded</option>
+    <option value="printed">Printed</option>
+  </select>
+</div>
+
 
   <div style="display:flex; align-items:center; gap:5px;">
     <input type="checkbox" id="selectAllCards" style="cursor:pointer;" />
@@ -98,30 +100,45 @@
 
   </div>
 
-  <div>
-    <button id="downloadBtn" class="btn btn-primary" style="padding:6px 16px; font-weight:600;" onclick="generateA4PDF()">Download Selected (0)</button>
-  </div>
+ <div>
+  <button id="downloadBtn" class="btn btn-primary" style="padding:6px 16px; font-weight:600;">Download Selected (0)</button>
+  <button id="reprintBtn" class="btn btn-warning" style="padding:6px 16px; font-weight:600; display:none;">Add to Re-Print</button>
 </div>
 
-<!-- -------------------- CARDS CONTAINER -------------------- -->
+</div>
+
 <div id="cardsContainer" style="padding:20px; display:flex; flex-wrap:wrap; gap:20px;">
   <% users.forEach(u => { %>
-    <div class="card-wrapper" data-has-image="<%= u.photoUrl || u.photo ? 'yes' : 'no' %>">
+
+    <div class="card-wrapper"
+
+      
+      data-has-image="<%= u.photoStatus === 'uploaded' ? 'yes' : 'no' %>"
+      
+      data-photo-status="<%= u.photoStatus %>"
+
+      data-user-id="<%= u._id %>">
+
       <div style="position:relative;" class="card-clickable" tabindex="0" title="Tap or click to select">
-        <!-- Individual card selection checkbox -->
-        <input type="checkbox" class="card-checkbox" style="position:absolute; top:5px; left:5px; z-index:12; cursor:pointer;" />
+        
+        <input type="checkbox" class="card-checkbox"
+          style="position:absolute; top:5px; left:5px; z-index:12; cursor:pointer;" />
 
         <%- include("./singleCardPartial", { 
-          user: u, 
-          kenderName: u.kenderName, 
-          ksheterName: u.ksheterName, 
-          zilaName: u.zilaName, 
+          user: u,
+          kenderName: u.kenderName,
+          ksheterName: u.ksheterName,
+          zilaName: u.zilaName,
           prantName: u.prantName 
         }) %>
+
       </div>
     </div>
+
   <% }) %>
 </div>
+
+
 
 
 <!-- -------------------- FLOATING SELECTED COUNTER -------------------- -->
@@ -144,6 +161,7 @@
   const selectionProgress = document.getElementById('selectionProgress');
   const progressPerc = document.getElementById('progressPerc');
   const downloadBtn = document.getElementById('downloadBtn');
+  const reprintBtn = document.getElementById('reprintBtn');
   const cardSearch = document.getElementById('cardSearch');
 
   // State for range selection
@@ -186,31 +204,25 @@
     });
 
     highlightCountBox();
+    enforcePDFLimit();
   }
 
   function enforcePDFLimit() {
-  const selected = parseInt(selectedCountSpan.textContent);
-  const MAX_LIMIT = 50;
+    const selected = parseInt(selectedCountSpan.textContent);
+    const MAX_LIMIT = 50;
 
-  if (selected > MAX_LIMIT) {
-    downloadBtn.disabled = true;
-    downloadBtn.style.opacity = "0.5";
-    downloadBtn.style.cursor = "not-allowed";
-    downloadBtn.title = `PDF disabled — limit is 50 (selected ${selected})`;
-  } else {
-    downloadBtn.disabled = false;
-    downloadBtn.style.opacity = "1";
-    downloadBtn.style.cursor = "pointer";
-    downloadBtn.title = "";
+    if (selected > MAX_LIMIT) {
+      downloadBtn.disabled = true;
+      downloadBtn.style.opacity = "0.5";
+      downloadBtn.style.cursor = "not-allowed";
+      downloadBtn.title = `PDF disabled — limit is 50 (selected ${selected})`;
+    } else {
+      downloadBtn.disabled = false;
+      downloadBtn.style.opacity = "1";
+      downloadBtn.style.cursor = "pointer";
+      downloadBtn.title = "";
+    }
   }
-}
-
-const oldUpdate = updateSelectedCount;
-updateSelectedCount = function () {
-  oldUpdate();
-  refreshOverlays();
-  enforcePDFLimit();
-};
 
   function highlightCountBox() {
     const box = document.getElementById('selectedCountBox');
@@ -232,28 +244,52 @@ updateSelectedCount = function () {
       }
     });
 
-    // reset selectAll checkbox for clarity
     selectAllCheckbox.checked = false;
     updateSelectedCount();
   });
 
-  // -------------------- FILTER LOGIC (existing behavior preserved) --------------------
-  filterSelect.addEventListener('change', () => {
+  // -------------------- TOGGLE BUTTONS BASED ON FILTER --------------------
+  function toggleButtonsByFilter() {
     const value = filterSelect.value;
-    const cards = cardsContainer.querySelectorAll('.card-wrapper');
+    if (value === 'printed') {
+      downloadBtn.style.display = 'none';
+      reprintBtn.style.display = 'inline-block';
+    } else {
+      downloadBtn.style.display = 'inline-block';
+      reprintBtn.style.display = 'none';
+    }
+  }
+
+  // -------------------- APPLY CARD FILTER --------------------
+  function applyCardFilter(resetCheckbox = true) {
+    const value = filterSelect.value;
+    const cards = cardsContainer.querySelectorAll(".card-wrapper");
 
     cards.forEach(card => {
-      const hasImage = card.dataset.hasImage === 'yes';
-      if (value === 'all') card.style.display = 'inline-block';
-      else if (value === 'withImage') card.style.display = hasImage ? 'inline-block' : 'none';
-      else if (value === 'noImage') card.style.display = !hasImage ? 'inline-block' : 'none';
+      const status = card.dataset.photoStatus; // not_uploaded / uploaded / printed
+      let show = false;
+
+      if (value === "imageNotUploaded") show = (status === "not_uploaded");
+      else if (value === "imageUploaded") show = (status === "uploaded");
+      else if (value === "printed") show = (status === "printed");
+
+      card.style.display = show ? "inline-block" : "none";
+
+      // Reset checkboxes ONLY if explicitly requested
+      if (resetCheckbox) card.querySelector('.card-checkbox').checked = false;
     });
 
-    selectAllCheckbox.checked = false;
+    if (resetCheckbox) selectAllCheckbox.checked = false;
     updateSelectedCount();
+  }
+
+  // -------------------- FILTER CHANGE EVENT --------------------
+  filterSelect.addEventListener('change', () => {
+    applyCardFilter(true); // reset checkboxes when user changes filter
+    toggleButtonsByFilter();
   });
 
-  // -------------------- SELECT/DESELECT ALL --------------------
+  // -------------------- SELECT / DESELECT ALL --------------------
   selectAllCheckbox.addEventListener('change', () => {
     const checkboxes = cardsContainer.querySelectorAll('.card-checkbox');
     checkboxes.forEach(cb => {
@@ -264,10 +300,8 @@ updateSelectedCount = function () {
     updateSelectedCount();
   });
 
-  // -------------------- CLICK / TAP ON CARD (toggle) --------------------
-  // Single handler to make entire .card-clickable toggle selection.
+  // -------------------- CARD CLICK / TOGGLE --------------------
   cardsContainer.addEventListener('click', (e) => {
-    // If the checkbox itself was clicked, let change handler handle it (but stop propagation to avoid double toggle)
     if (e.target.classList && e.target.classList.contains('card-checkbox')) {
       e.stopPropagation();
       return;
@@ -276,11 +310,9 @@ updateSelectedCount = function () {
     const wrapperClickable = e.target.closest('.card-clickable');
     if (!wrapperClickable) return;
 
-    // Toggle checkbox
     const cb = wrapperClickable.querySelector('.card-checkbox');
     cb.checked = !cb.checked;
 
-    // Update lastCheckedIndex for shift+click range selects
     const wrappers = getVisibleWrappers();
     const wrapperElement = wrapperClickable.closest('.card-wrapper');
     const idx = wrappers.indexOf(wrapperElement);
@@ -289,10 +321,9 @@ updateSelectedCount = function () {
     updateSelectedCount();
   });
 
-  // If user changes a checkbox (direct click), ensure counters update
+  // -------------------- CHECKBOX CHANGE --------------------
   cardsContainer.addEventListener('change', (e) => {
     if (e.target.classList && e.target.classList.contains('card-checkbox')) {
-      // Update lastCheckedIndex for range select (when checkbox clicked directly)
       const wrappers = getVisibleWrappers();
       const wrapperElement = e.target.closest('.card-wrapper');
       const idx = wrappers.indexOf(wrapperElement);
@@ -301,12 +332,9 @@ updateSelectedCount = function () {
     }
   });
 
-  // -------------------- SHIFT + CLICK (range select) --------------------
-  // Use mousedown to capture Shift+click across both checkbox and card clickable
+  // -------------------- SHIFT + CLICK RANGE SELECT --------------------
   cardsContainer.addEventListener('mousedown', (e) => {
-    // Only left-click
     if (e.button !== 0) return;
-
     const wrapperClickable = e.target.closest('.card-clickable');
     if (!wrapperClickable) return;
 
@@ -315,10 +343,8 @@ updateSelectedCount = function () {
     const idx = wrappers.indexOf(wrapperElement);
 
     if (e.shiftKey && lastCheckedIndex !== null && lastCheckedIndex !== undefined) {
-      // determine range
       const start = Math.min(lastCheckedIndex, idx);
       const end = Math.max(lastCheckedIndex, idx);
-      // Decide whether to check or uncheck based on the current clicked's state
       const shouldCheck = !wrappers[idx].querySelector('.card-checkbox').checked;
       for (let i = start; i <= end; i++) {
         wrappers[i].querySelector('.card-checkbox').checked = shouldCheck;
@@ -328,18 +354,16 @@ updateSelectedCount = function () {
       e.preventDefault();
     }
   });
-  
-  // -------------------- INITIALIZE: prepare overlays & accessibility --------------------
+
+  // -------------------- INITIALIZE CARDS --------------------
   function prepareCards() {
     Array.from(cardsContainer.querySelectorAll('.card-wrapper')).forEach((wr, i) => {
       const tick = wr.querySelector('.tick-overlay');
       if (tick) {
-        // ensure overlay hidden initially
         tick.style.opacity = '0';
         tick.style.transform = 'translateY(-4px) scale(0.92)';
       }
 
-      // Add aria attributes for a11y
       const clickable = wr.querySelector('.card-clickable');
       if (clickable) {
         clickable.setAttribute('role', 'button');
@@ -348,7 +372,6 @@ updateSelectedCount = function () {
     });
   }
 
-  // Update overlays when selection toggles
   function refreshOverlays() {
     Array.from(cardsContainer.querySelectorAll('.card-wrapper')).forEach(wr => {
       const cb = wr.querySelector('.card-checkbox');
@@ -356,138 +379,140 @@ updateSelectedCount = function () {
       const clickable = wr.querySelector('.card-clickable');
       if (cb.checked) {
         wr.classList.add('card-selected');
-        if (tick) {
-          tick.style.opacity = '1';
-          tick.style.transform = 'translateY(0) scale(1)';
-        }
+        if (tick) { tick.style.opacity = '1'; tick.style.transform = 'translateY(0) scale(1)'; }
         if (clickable) clickable.setAttribute('aria-pressed', 'true');
       } else {
         wr.classList.remove('card-selected');
-        if (tick) {
-          tick.style.opacity = '0';
-          tick.style.transform = 'translateY(-4px) scale(0.92)';
-        }
+        if (tick) { tick.style.opacity = '0'; tick.style.transform = 'translateY(-4px) scale(0.92)'; }
         if (clickable) clickable.setAttribute('aria-pressed', 'false');
       }
     });
   }
 
-  // Hook updateSelectedCount to refresh overlays too
-  const originalUpdateSelectedCount = updateSelectedCount;
-  updateSelectedCount = function () {
-    // call old logic (count + UI)
-    originalUpdateSelectedCount();
-    // overlays
-    refreshOverlays();
-  };
-
-  // Initialize
   prepareCards();
+  filterSelect.value = "imageUploaded"; // initial filter
+  applyCardFilter(false); // don't reset checkboxes
+  toggleButtonsByFilter();
   updateSelectedCount();
 
-  // -------------------- PDF GENERATION (UNCHANGED, exact same logic) --------------------
- // -------------------- PDF GENERATION (FULL FIXED VERSION) --------------------
-async function generateA4PDF() {
-
-  const selectedCards = Array.from(cardsContainer.querySelectorAll('.card-wrapper'))
-    .filter(card => card.querySelector('.card-checkbox').checked && card.style.display !== 'none');
-
-  // HARD LIMIT
-  const MAX_LIMIT = 50;
-
-  if (selectedCards.length > MAX_LIMIT) {
-    alert(`⚠️ You selected ${selectedCards.length} cards.\n\nPDF generation is limited to ${MAX_LIMIT} cards at a time to prevent memory crashes.\n\nPlease select fewer cards and try again.`);
-    return;
+  // -------------------- MARK PRINTED / REPRINT --------------------
+  async function markPrinted(userIds) {
+    try {
+      await fetch("/saadhak/mark-printed", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userIds })
+      });
+    } catch (err) {
+      console.error("Error updating photoStatus:", err);
+    }
   }
 
-  const { jsPDF } = window.jspdf;
-  if (!jsPDF) return alert("jsPDF failed to load.");
+  reprintBtn.addEventListener('click', async () => {
+    const selectedCards = Array.from(cardsContainer.querySelectorAll('.card-wrapper'))
+      .filter(card => card.querySelector('.card-checkbox').checked && card.style.display !== 'none');
 
-  const spinner = document.getElementById('loadingSpinner');
-  if (spinner) spinner.style.display = 'block';
+    if (selectedCards.length === 0) {
+      return alert("Please select at least one card to re-print.");
+    }
 
-  if (selectedCards.length === 0) {
-    alert("Please select at least one card.");
-    if (spinner) spinner.style.display = 'none';
-    return;
-  }
+    try {
+      const ids = selectedCards.map(c => c.dataset.userId);
+      const response = await fetch('/saadhak/updatePhotoStatus', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids, status: 'uploaded' })
+      });
 
-  // MEMORY FIX 1: Dynamic scale
-  const isMobile = /Mobi|Android/i.test(navigator.userAgent);
-  const renderScale = isMobile ? 2 : 3;
-
-  const pdf = new jsPDF({
-    orientation: "portrait",
-    unit: "cm",
-    format: "a4"
+      const result = await response.json();
+      if (result.success) {
+        selectedCards.forEach(c => {
+          c.dataset.photoStatus = 'uploaded';
+          c.querySelector('.card-checkbox').checked = false;
+          c.classList.remove('card-selected');
+        });
+        updateSelectedCount();
+        applyCardFilter(false);
+      } else {
+        alert("Failed to update status. Please try again.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error updating cards.");
+    }
   });
 
-  const cardWidth = 8.56;
-  const cardHeight = 5.40;
-  const columns = 2;
-  const rows = 5;
+  // -------------------- PDF GENERATION --------------------
+  async function generateA4PDF() {
+    const selectedCards = Array.from(cardsContainer.querySelectorAll('.card-wrapper'))
+      .filter(card => card.querySelector('.card-checkbox').checked && card.style.display !== 'none');
 
-  let topGap = parseFloat(document.getElementById('topGapSelect').value);
-  let leftGap = parseFloat(document.getElementById('leftGapSelect').value);
-  let innerGap = parseFloat(document.getElementById('innerGapSelect').value);
-
-  let x = leftGap, y = topGap;
-
-  // MEMORY FIX 2: Process one card at a time
-  for (let i = 0; i < selectedCards.length; i++) {
-
-    const card = selectedCards[i];
-
-    // Ensure images are loaded before rendering
-    const imgs = card.querySelectorAll('img');
-    for (let img of imgs) {
-      if (!img.complete) {
-        try { await img.decode(); } catch (e) {}
-      }
+    const MAX_LIMIT = 50;
+    if (selectedCards.length > MAX_LIMIT) {
+      alert(`⚠️ You selected ${selectedCards.length} cards.\n\nPDF generation is limited to ${MAX_LIMIT} cards at a time to prevent memory crashes.\n\nPlease select fewer cards and try again.`);
+      return;
     }
 
-    // Hide tick overlay / outlines for clean PDF
-    card.classList.add('pdf-hide');
+    const { jsPDF } = window.jspdf;
+    if (!jsPDF) return alert("jsPDF failed to load.");
 
-    const canvas = await html2canvas(card, {
-      scale: renderScale,
-      useCORS: true,
-      allowTaint: true,
-      logging: false,
-      backgroundColor: null
-    });
+    const spinner = document.getElementById('loadingSpinner');
+    if (spinner) spinner.style.display = 'block';
 
-    const imgData = canvas.toDataURL("image/png");
-
-    // ------------------------------
-    // PLACE image on A4 grid layout
-    // ------------------------------
-    pdf.addImage(imgData, "PNG", x, y, cardWidth, cardHeight);
-
-    x += cardWidth + innerGap;
-
-    if ((i + 1) % columns === 0) {
-      x = leftGap;
-      y += cardHeight + innerGap;
+    if (selectedCards.length === 0) {
+      alert("Please select at least one card.");
+      if (spinner) spinner.style.display = 'none';
+      return;
     }
 
-    if ((i + 1) % (columns * rows) === 0 && i < selectedCards.length - 1) {
-      pdf.addPage();
-      x = leftGap;
-      y = topGap;
+    const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+    const renderScale = isMobile ? 2 : 3;
+
+    const pdf = new jsPDF({ orientation: "portrait", unit: "cm", format: "a4" });
+    const cardWidth = 8.56, cardHeight = 5.40, columns = 2, rows = 5;
+    let topGap = parseFloat(document.getElementById('topGapSelect').value);
+    let leftGap = parseFloat(document.getElementById('leftGapSelect').value);
+    let innerGap = parseFloat(document.getElementById('innerGapSelect').value);
+
+    let x = leftGap, y = topGap;
+
+    for (let i = 0; i < selectedCards.length; i++) {
+      const card = selectedCards[i];
+      const imgs = card.querySelectorAll('img');
+      for (let img of imgs) if (!img.complete) try { await img.decode(); } catch (e) {}
+
+      card.classList.add('pdf-hide');
+      const canvas = await html2canvas(card, { scale: renderScale, useCORS: true, allowTaint: true, logging: false, backgroundColor: null });
+      const imgData = canvas.toDataURL("image/png");
+
+      pdf.addImage(imgData, "PNG", x, y, cardWidth, cardHeight);
+      x += cardWidth + innerGap;
+
+      if ((i + 1) % columns === 0) { x = leftGap; y += cardHeight + innerGap; }
+      if ((i + 1) % (columns * rows) === 0 && i < selectedCards.length - 1) { pdf.addPage(); x = leftGap; y = topGap; }
+
+      card.classList.remove('pdf-hide');
     }
 
-    // Unhide card
-    card.classList.remove('pdf-hide');
+    pdf.save(`ID-CARDS-${Date.now()}.pdf`);
+
+    const printedIds = selectedCards.map(card => card.dataset.userId);
+    await markPrinted(printedIds);
+
+    if (spinner) spinner.style.display = 'none';
+
+    // Update local UI to reflect printed status
+    selectedCards.forEach(c => c.dataset.photoStatus = 'printed');
+    applyCardFilter(false);
   }
 
-  // SAVE
-  pdf.save(`ID-CARDS-${Date.now()}.pdf`);
-
-  if (spinner) spinner.style.display = 'none';
-}
+  // -------------------- DOWNLOAD SELECTED CLICK --------------------
+downloadBtn.addEventListener('click', async () => {
+  await generateA4PDF();
+});
 
 </script>
+
 
 <style>
   /* -------------------- BEAUTIFY FILTER SECTION -------------------- */
