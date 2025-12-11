@@ -192,8 +192,8 @@
         <div id="tipImageArea" class="bg-white text-dark"
              style="padding: 0.5rem; border: 2px solid #28a745; border-radius: 0rem; max-width: 350px; margin: auto; box-shadow: 0 0 12px rgba(0,0,0,0.08);">
 
-           
 
+          <!-- ⭐ TOP SECTION WITH BYS LOGO + TITLE ⭐ -->
           <div class="d-flex align-items-center justify-content-center gap-3 mb-3">
             <div style="width:60px; height:60px; padding:5px; border:2px solid #28a745; border-radius:50%; background-color:white; display:flex; align-items:center; justify-content:center;">
               <img src="/images/logo.jpg" style="width:100%; height:100%; object-fit:contain; border-radius:50%;">
@@ -201,9 +201,8 @@
 
             <div>
               <div class="text-center text-primary fw-semibold">
-            <p class="text-danger fw-bold mb-1 mt-0">BHARATIYA YOG SANSTHAN</p>
-                      
-          </div>
+                <p class="text-danger fw-bold mb-1 mt-0">BHARATIYA YOG SANSTHAN</p>
+              </div>
               <h5 class="m-0 fw-bold text-success">आज का योग संदेश</h5>
               <div class="small text-dark">
                 <%= new Date().toLocaleDateString('hi-IN', { day: 'numeric', month: 'long', year: 'numeric' }) %>
@@ -211,42 +210,72 @@
             </div>
           </div>
 
+
+          <!-- ⭐ NEWLY ADDED USER PHOTO + NAME SECTION ⭐ -->
+          <% if (user.photoUrl) { %>
+            <div class="d-flex flex-column align-items-center mb-3">
+
+              <div style="
+                width: 90px;
+                height: 90px;
+                border-radius: 50%;
+                overflow: hidden;
+                border: 3px solid #28a745;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+              ">
+                <img src="<%= user.photoUrl %>"
+                     alt="Photo"
+                     style="width:100%; height:100%; object-fit:cover;">
+              </div>
+
+              <div class="mt-2 fw-bold text-danger" style="font-size:1.1rem;">
+                <%= user.name %>
+              </div>
+
+            </div>
+          <% } %>
+
+
           <hr style="border-top:2px solid #28a745; margin-bottom:0.5rem;">
 
+
+          <!-- ⭐ TIP TEXT ⭐ -->
           <p class="fs-5 mb-2 fst-italic" style="color:black;"><%= tipOfTheDay %></p>
 
-          <p class="text-center text-success fw-bold mb-0">- <%= user.name %></p>
+          <!-- Name already shown above if photo exists -->
+          <% if (!user.photoUrl) { %>
+            <p class="text-center text-success fw-bold mb-0">- <%= user.name %></p>
+          <% } %>
 
-          <!-- Show Kender Info inside Tip Box -->
-<%
-  const kenderRoles = ['Kender Pramukh', 'Seh Kender Pramukh', 'Shikshak', 'Karyakarta', 'Saadhak'];
-  const isKenderUser = user.roles && user.roles.some(r => kenderRoles.includes(r));
-%>
 
-<% if (isKenderUser && kenderDetails) { %>
-  <div class="kender-tip-box mt-3 p-3 rounded shadow-sm"
-       style="background:#f8fff4; border-left:5px solid #28a745; line-height:1.35;">
+          <!-- ⭐ KENDER INFO SECTION ⭐ -->
+          <%
+            const kenderRoles = ['Kender Pramukh', 'Seh Kender Pramukh', 'Shikshak', 'Karyakarta', 'Saadhak'];
+            const isKenderUser = user.roles && user.roles.some(r => kenderRoles.includes(r));
+          %>
 
-    <div class="fw-bold"><%= kenderDetails.name %></div>
+          <% if (isKenderUser && kenderDetails) { %>
+            <div class="kender-tip-box mt-3 p-3 rounded shadow-sm"
+                 style="background:#f8fff4; border-left:5px solid #28a745; line-height:1.35;">
+              
+              <div class="fw-bold"><%= kenderDetails.name %></div>
+              <div><%= kenderDetails.address %></div>
 
-    <div><%= kenderDetails.address %></div>
+              <% if (kenderDetails.startTime) { %>
+                <div>Start⏰: <%= kenderDetails.startTime %></div>
+              <% } %>
 
-    <% if (kenderDetails.startTime) { %>
-      <div>Start⏰: <%= kenderDetails.startTime %></div>
-    <% } %>
+            </div>
+          <% } %>
 
-  </div>
-<% } %>
-        
 
-          <!-- <hr style="border-top:2px solid #28a745; margin-bottom:0.5rem; margin-top:0.5rem;"> -->
-
+          <!-- FOOTER LINK -->
           <div class="mt-1 text-center text-primary fw-semibold">
-            
             <a href="https://www.joinyog.in" target="_blank" class="text-decoration-none text-danger">
               www.joinyog.in
             </a>
           </div>
+
         </div>
 
       </div>
@@ -259,6 +288,7 @@
     </div>
   </div>
 </div>
+
 
 <section class="container mt-1 text-center">
   <div class="dashboard-card">
