@@ -263,8 +263,8 @@ exports.createSaadhak = async (req, res) => {
       );
     }
 
-    console.log(typeof prant);
-    console.log(prant);
+    // console.log(typeof prant);
+    // console.log(prant);
 
     // Determine prantId cleanly
     const prantId = prant?.trim() || user?.prant?.$oid || user?.prant;

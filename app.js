@@ -74,6 +74,26 @@ app.use(express.json());
 app.use(methodOverride("_method"));
 
 // ---------------------------------------------
+// GREETINGS FOLDER CHECK + CLEANUP SCHEDULER
+// ---------------------------------------------
+const fs = require("fs");
+const cleanupOldGreetings = require("./utils/cleanupOldGreetings");
+
+// Ensure greetings folder exists
+const greetingsDir = path.join(__dirname, "public/greetings");
+if (!fs.existsSync(greetingsDir)) {
+  fs.mkdirSync(greetingsDir, { recursive: true });
+  console.log("📁 Created missing greetings folder");
+}
+
+// Run cleanup now
+cleanupOldGreetings();
+
+// Schedule cleanup every 1 hour
+setInterval(cleanupOldGreetings, 60 * 60 * 1000);
+
+
+// ---------------------------------------------
 // CONNECT MONGO
 // ---------------------------------------------
 mongoose

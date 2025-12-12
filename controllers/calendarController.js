@@ -2,13 +2,7 @@ const Saadhak = require("../models/Saadhak");
 const cleanupOldGreetings = require("../utils/cleanupOldGreetings");
 
 exports.viewUpcomingEvents = async (req, res) => {
-  try {
-    // Clean up old greetings
-    cleanupOldGreetings(); // no await since it's async with callbacks
-  } catch (cleanupErr) {
-    console.error("Cleanup failed:", cleanupErr);
-  }
-
+  
   try {
     const { prantRoles } = require("../config/roles");
 
