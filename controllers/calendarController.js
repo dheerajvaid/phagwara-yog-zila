@@ -12,7 +12,8 @@ exports.viewUpcomingEvents = async (req, res) => {
   try {
     const { prantRoles } = require("../config/roles");
 
-    const user = req.session.user;
+    const user = req.session.user;    
+    
     let saadhakQuery = {};
 
     if (!user.roles.includes("Admin")) {
