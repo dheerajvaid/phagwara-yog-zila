@@ -277,8 +277,6 @@
 
   </td>
 </tr>
-
-
           <% }) %>
 
         </tbody>
@@ -379,7 +377,7 @@
     document.getElementById('exportBtn').addEventListener('click', () => {
   const element = document.getElementById('attendanceExportWrapper');
   html2canvas(element, {
-    scale: 3,
+    scale: 5,
     useCORS: true,
     allowTaint: true,
     logging: true
