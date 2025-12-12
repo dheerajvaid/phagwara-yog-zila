@@ -248,7 +248,7 @@
     display: block;      /* removes bottom whitespace */
     margin: 0 !important;
     padding: 0 !important;
-    border: 1px solid #dc3545;
+    border: 1.4px solid #dc3545;
   "
 />
       <% } else { %>
@@ -259,20 +259,23 @@
   height:22px;
   margin:0 !important;
   padding:0 !important;
+  border: 1.4px solid #dc3545;  
+   display: block; 
 "></div>
 
 
       <% } %>
 
-      <!-- Blue Cap (ONLY if top performer) -->
-      <% if (attendance.monthlyCount === topCount) { %>
-        <span style="font-size: 0.8rem;">🧢</span>
-      <% } %>
+      
 
       <!-- Name + Count -->
       <div>
         <%= attendance.saadhak.name %>-<span class="text-danger fw-bold"><%= attendance.monthlyCount %></span>
       </div>
+      <!-- Blue Cap (ONLY if top performer) -->
+      <% if (attendance.monthlyCount === topCount) { %>
+        <span style="font-size: 0.8rem;">🧢</span>
+      <% } %>
 
     </div>
 
