@@ -1,168 +1,396 @@
-<%- include('../partials/header') %>
-<%- include('../partials/navbar') %>
+  <%- include('../partials/header') %>
+  <%- include('../partials/navbar') %>
 
-<style>
-.attendance-strip .day-box{width:28px;height:32px;border:1px solid black;display:flex;flex-direction:column;border-radius:4px;overflow:hidden;box-shadow:1px 1px 2px rgba(0,0,0,0.05)}
-.day-box .day-top{background-color:#dc3545;color:white;font-weight:bold;font-size:.65rem;padding:2px 0;flex:1;display:flex;align-items:center;justify-content:center}
-.day-box .day-bottom{background-color:#f8f9fa;color:black;font-weight:600;font-size:.75rem;flex:1;display:flex;align-items:center;justify-content:center}
-.small-text{font-size:.7rem}
-.table-flex-container{display:inline-flex;flex-wrap:nowrap;gap:0;white-space:normal}
-.table-wrapper{flex:0 0 auto;width:210px}
-#attendanceExportWrapper{position:relative;z-index:1;background-color:white!important}
-.page-border{border:3px solid #dc3545!important;padding:5px;box-shadow:0 0 4px rgba(0,0,0,0.1)}
-.watermark-bg{position:absolute;top:0;left:0;width:100%;height:100%;background-image:url('/images/logo.jpg');background-repeat:no-repeat;background-position:center;background-size:250px auto;opacity:.15;z-index:0;pointer-events:none}
-#attendanceExportWrapper table,#attendanceExportWrapper thead,#attendanceExportWrapper tbody,#attendanceExportWrapper td,#attendanceExportWrapper th{background-color:transparent!important;border:1px solid #333!important;position:relative;z-index:1}
-#attendanceExportWrapper td,#attendanceExportWrapper th{font-size:.7rem;font-weight:600;padding:4px 2px;word-wrap:break-word}
-.table-flex-container::-webkit-scrollbar{display:none}
-hr{margin:0;padding:0}
-#attendanceExportWrapper td.bg-warning-subtle{background-color:#fff3cd!important}
-.mobile-scroll{overflow-x:auto!important;overflow-y:hidden;width:100%;display:block;-webkit-overflow-scrolling:touch;white-space:nowrap;padding-bottom:4px}
-.mobile-scroll table{display:inline-block;vertical-align:top;white-space:normal}
-.att-row{height:34px;vertical-align:middle}
-.att-photo{width:26px;height:26px;border-radius:50%;border:1px solid #ccc;object-fit:cover}
-.att-photo-placeholder{width:26px;height:26px;visibility:hidden}
-</style>
+  <!-- Styles -->
+  <style>
+  .attendance-strip .day-box {
+    width: 28px;
+    height: 32px;
+    border: 1px solid black;
+    display: flex;
+    flex-direction: column;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+  }
 
-<section class="container mt-4">
-  <div class="text-center mb-3">
-    <form method="GET" action="/attendance/today">
-      <input type="date" name="date" class="form-control form-control-sm d-inline-block" style="width:auto" value="<%= attendanceDate %>" onchange="this.form.submit()"/>
-      <span class="fw-semibold"> - <%= saadhaks.length %> Present</span>
-    </form>
-  </div>
+  .day-box .day-top {
+    background-color: #dc3545; /* 🔴 Red theme */
+    color: white;
+    font-weight: bold;
+    font-size: 0.65rem;
+    padding: 2px 0;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
-  <div class="text-center mb-2">
-    <button id="exportBtn" class="btn btn-sm btn-primary">Download as Image</button>
-  </div>
+  .day-box .day-bottom {
+    background-color: #f8f9fa; /* ⚪ light background */
+    color: black;
+    font-weight: 600;
+    font-size: 0.75rem;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
-  <div id="attendanceExportWrapper" class="pt-1 px-3 pb-3 bg-white border rounded shadow-sm page-border" style="max-width:1000px;margin:auto;line-height:1.1;">
-    <div class="watermark-bg"></div>
-    <p class="fst-italic text-center mt-0 mb-1 fw-semibold text-primary small"><%= randomMessage %></p>
+  /* Small text & table flex */
+  .small-text {
+    font-size: 0.7rem;
+  }
 
-    <table class="table table-bordered table-sm text-center mb-3" style="font-size:.85rem;margin:auto;width:100%">
-      <thead>
-        <tr class="bg-warning-subtle"><th colspan="3" class="fs-6 text-danger fw-bold">BHARTIYA YOG SANSTHAN (R)</th></tr>
-        <tr class="bg-danger text-white"><th colspan="3" class="fs-6 text-white"><%= kenderName || 'Your Kender Name' %><br><%= kenderAddress || '' %></th></tr>
-      </thead>
-      <tbody>
-        <tr class="bg-warning-subtle">
-          <td colspan="3">
-            <strong>
-              <span class="text-danger fs-6">📆 <%= new Intl.DateTimeFormat('en-IN',{day:'2-digit',month:'short'}).format(new Date(attendanceDate)) %>, <%= new Intl.DateTimeFormat('en-IN',{weekday:'short'}).format(new Date(attendanceDate)) %></span>
-              &nbsp;&nbsp;|&nbsp;&nbsp;
-              <span class="text-danger fs-6">🧘🏻 <%= saadhaks.length %></span>
-              <% if(startTime){ %>
-              &nbsp;&nbsp;|&nbsp;&nbsp;
-              <span class="text-danger fw-bold fs-6">⏱️ <%= new Date("1970-01-01T"+startTime).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true}) %></span>
-              <% } %>
-            </strong>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  .table-flex-container {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    justify-content: center;
+    gap: 0rem;
+  }
 
-    <% if(saadhaks.length===0){ %>
-      <p class="text-center mt-3"><%= message %></p>
-    <% } else { %>
-      <%
-        const topCount=Math.max(...saadhaks.map(s=>s.monthlyCount));
-        const groupSize=Math.ceil(saadhaks.length/2);
-        const chunks=[];
-        for(let i=0;i<saadhaks.length;i+=groupSize){chunks.push(saadhaks.slice(i,i+groupSize))}
-      %>
+  .table-wrapper {
+    flex: 0 0 auto; 
+    width: 150px; 
+  }
 
-      <div class="mobile-scroll">
-        <div class="table-flex-container">
-          <% chunks.forEach((group,colIndex)=>{ %>
-            <div class="table-wrapper">
-              <table class="table table-sm table-bordered">
-                <tbody>
-                  <% group.forEach((attendance,index)=>{ %>
-                    <tr class="att-row">
-                      <td>
-                        <div style="display:flex;align-items:center;gap:8px;">
-                          <% if(attendance.saadhak.photoUrl && attendance.saadhak.photoUrl.trim()!==""){ %>
-                            <img src="<%= attendance.saadhak.photoUrl %>" crossorigin="anonymous" class="att-photo"/>
-                          <% } else { %>
-                            <div class="att-photo-placeholder"></div>
-                          <% } %>
+  #attendanceExportWrapper {
+    position: relative;
+    z-index: 1;
+    background-color: white !important;
+  }
 
-                          <% if(attendance.monthlyCount===topCount){ %>
-                            <span style="font-size:.9rem;">🧢</span>
-                          <% } %>
+  /* Optional: Add page border */
+  .page-border {
+    border: 3px solid #dc3545 !important;
+    padding: 5px;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
+  }
 
-                          <div>
-                            <%= attendance.saadhak.name %> - <span class="text-danger fw-bold"><%= attendance.monthlyCount %></span>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  <% }) %>
-                </tbody>
-              </table>
-            </div>
+  /* Watermark div */
+  .watermark-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('/images/logo.jpg');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 250px auto;
+    opacity: 0.15;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  #attendanceExportWrapper table,
+  #attendanceExportWrapper thead,
+  #attendanceExportWrapper tbody,
+  #attendanceExportWrapper td,
+  #attendanceExportWrapper th {
+    background-color: transparent !important;
+    border: 1px solid #333 !important;
+    position: relative;
+    z-index: 1;
+  }
+
+  #attendanceExportWrapper td,
+  #attendanceExportWrapper th {
+    font-size: 0.70rem;
+    font-weight: 600;
+    padding: 4px 2px;
+    word-wrap: break-word;
+  }
+
+  .table-flex-container::-webkit-scrollbar {
+    display: none;
+  }
+
+  hr {
+    margin: 0;
+    padding: 0;
+  }
+
+  #attendanceExportWrapper td.bg-warning-subtle {
+    background-color: #fff3cd !important;
+  }
+  </style>
+
+  <!-- HTML Section -->
+  <section class="container mt-4">
+    <!-- Date Filter and Export -->
+    <div class="text-center mb-3">
+      <form method="GET" action="/attendance/today">
+        <input 
+          type="date" 
+          name="date" 
+          class="form-control form-control-sm d-inline-block" 
+          style="width: auto;" 
+          value="<%= attendanceDate %>" 
+          onchange="this.form.submit()" />
+        <span class="fw-semibold"> - <%= saadhaks.length %> Present</span>
+      </form>
+    </div>
+
+    <div class="text-center mb-2">
+      <button id="exportBtn" class="btn btn-sm btn-primary">Download as Image</button>
+    </div>
+
+    <!-- Export Area -->
+    <div id="attendanceExportWrapper" class="pt-1 px-3 pb-3 bg-white border rounded shadow-sm page-border" style="max-width: 1000px; margin: auto; line-height: 1.1;">
+      
+      <!-- Watermark div -->
+      <div class="watermark-bg"></div>
+
+      <!-- Motivational Message -->
+      <p class="fst-italic text-center mt-0 mb-1 fw-semibold text-primary small"><%= randomMessage %></p>
+      
+      <!-- Main Header Info Table -->
+      <table class="table table-bordered table-sm text-center mb-3" style="font-size: 0.85rem; margin: auto; width: 100%;">
+        <thead>
+          <tr class="bg-warning-subtle"> 
+            <th colspan="3" class="fs-6 text-danger fw-bold">BHARTIYA YOG SANSTHAN (R)</th>
+          </tr>
+          <tr class="bg-danger text-white">
+            <th colspan="3" class="fs-6 text-white">
+              <%= kenderName || 'Your Kender Name' %><br>
+              <%= kenderAddress || '' %>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- <% if (startTime) { %>
+            <tr class="bg-warning-subtle">
+              <td colspan="3">
+                <span class="fw-bold fs-8">KENDER START TIME:</span>
+                <span class="text-danger fw-bold fs-6">
+                  <%= new Date("1970-01-01T" + startTime).toLocaleTimeString('en-IN', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                  }) %>
+                </span>
+              </td>
+            </tr>
+          <% } %> -->
+
+          <!-- Attendance Date & Count -->
+          <tr class="bg-warning-subtle">
+            <td colspan="3">
+              <strong>
+                <!-- DATE:  -->
+                <span class="text-danger fs-6">📆
+                  <%= new Intl.DateTimeFormat('en-IN', { day: '2-digit', month: 'short' }).format(new Date(attendanceDate)) %>,
+                  <%= new Intl.DateTimeFormat('en-IN', { weekday: 'short' }).format(new Date(attendanceDate)) %>
+                </span>
+                &nbsp;&nbsp;|&nbsp;&nbsp;
+                <!-- PRESENT:  -->
+                <span class="text-danger fs-6">🧘🏻 <%= saadhaks.length %></span>
+               
+                 <% if (startTime) { %>    
+                         &nbsp;&nbsp;|&nbsp;&nbsp;                
+                        <span class="text-danger fw-bold fs-6">⏱️
+                          <%= new Date("1970-01-01T" + startTime).toLocaleTimeString('en-IN', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: true
+                          }) %>
+                        </span>
+                      
+                  <% } %>
+              </strong>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Attendance Table or Message -->
+      <% if (saadhaks.length === 0) { %>
+        <p class="text-center mt-3"><%= message %></p>
+      <% } else { %>
+       <%
+  // Find the highest attendance count
+  const topCount = Math.max(...saadhaks.map(s => s.monthlyCount));
+
+  // Prepare 2-column chunks
+  const groupSize = Math.ceil(saadhaks.length / 2);
+  const chunks = [];
+  for (let i = 0; i < saadhaks.length; i += groupSize) {
+    chunks.push(saadhaks.slice(i, i + groupSize));
+  }
+%>
+
+<div class="table-flex-container">
+  <% chunks.forEach((group, colIndex) => { %>
+    <div class="table-wrapper">
+      <table class="table table-sm table-bordered">
+        <tbody>
+
+          <% group.forEach((attendance, index) => { 
+               const isTop = attendance.monthlyCount === topCount;
+          %>
+            <tr>
+  <td>
+
+    <div style="display:flex; align-items:center; gap:0px;">
+
+      <% if (attendance.saadhak.photoUrl && attendance.saadhak.photoUrl.trim() !== "") { %>
+
+        <!-- Actual Photo -->
+       <img 
+  src="<%= attendance.saadhak.photoUrl %>"
+  crossorigin="anonymous"
+  style="
+    width: 20px; 
+    height: 20px; 
+    border-radius: 50%; 
+    object-fit: cover;
+    border: 1px solid #ccc;
+  "
+/>
+
+
+      <% } else { %>
+
+        <!-- Invisible placeholder to maintain height/spacing -->
+        <div style="
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          visibility: hidden;
+        "></div>
+
+      <% } %>
+
+      <!-- Blue Cap (ONLY if top performer) -->
+      <% if (attendance.monthlyCount === topCount) { %>
+        <span style="font-size: 0.8rem;">🧢</span>
+      <% } %>
+
+      <!-- Name + Count -->
+      <div>
+        <%= attendance.saadhak.name %>-<span class="text-danger fw-bold"><%= attendance.monthlyCount %></span>
+      </div>
+
+    </div>
+
+  </td>
+</tr>
+
+
+          <% }) %>
+
+        </tbody>
+      </table>
+    </div>
+  <% }) %>
+</div>
+  
+      <% } %>
+
+      <!-- Kender Attendance Strip for Current Month -->
+      <div class="text-center">
+        <div class="attendance-strip d-flex justify-content-center flex-wrap gap-1">
+          <% monthlyAttendanceStrip.forEach(day => { %>
+            <% if (day.count > 0) { %>
+              <div class="day-box" title="<%= day.count %> saadhaks present on day <%= day.day %>">
+                <div class="day-top"><%= day.day %></div>
+                <div class="day-bottom text-black bg-warning-subtle"><%= day.count %></div>
+              </div>
+            <% } %>
           <% }) %>
         </div>
       </div>
-    <% } %>
 
-    <div class="text-center">
-      <div class="attendance-strip d-flex justify-content-center flex-wrap gap-1">
-        <% monthlyAttendanceStrip.forEach(day=>{ %>
-          <% if(day.count>0){ %>
-            <div class="day-box" title="<%= day.count %> saadhaks present on day <%= day.day %>">
-              <div class="day-top"><%= day.day %></div>
-              <div class="day-bottom text-black bg-warning-subtle"><%= day.count %></div>
-            </div>
-          <% } %>
-        <% }) %>
+      <!-- Attendance Chart -->
+      <div class="mt-1">
+        <canvas id="attendanceChart" style="max-height: 300px;"></canvas>
       </div>
+
+      <!-- Kender Team Table -->
+      <table class="table table-bordered table-sm text-center mt-1" style="font-size: 0.85rem; margin: auto; width: 100%;">
+        <thead>
+          <tr class="bg-danger text-white">
+            <th colspan="3" class="text-white">KENDER ADHIKARI</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Pramukh</td>
+            <td class="text-black bg-warning-subtle"><%= kenderPramukh.name %></td>
+            <td class="text-black"><%= kenderPramukh.mobile %></td>
+          </tr>
+          <% if (Array.isArray(sehKenderPramukh) && sehKenderPramukh.length > 0) { %>
+            <% sehKenderPramukh.forEach((skp) => { %>
+              <tr>
+                <td>Seh Pramukh</td>
+                <td class="text-text-black bg-warning-subtle"><%= skp.name %></td>
+                <td class="text-black"><%= skp.mobile %></td>
+              </tr>
+            <% }) %>
+          <% } else { %>
+            <tr>
+              <td>Seh Pramukh</td>
+              <td class="text-muted">N/A</td>
+              <td class="text-muted">N/A</td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+
     </div>
+  </section>
 
-    <div class="mt-1">
-      <canvas id="attendanceChart" style="max-height:300px;"></canvas>
-    </div>
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <table class="table table-bordered table-sm text-center mt-1" style="font-size:.85rem;margin:auto;width:100%">
-      <thead><tr class="bg-danger text-white"><th colspan="3" class="text-white">KENDER ADHIKARI</th></tr></thead>
-      <tbody>
-        <tr><td>Pramukh</td><td class="text-black bg-warning-subtle"><%= kenderPramukh.name %></td><td class="text-black"><%= kenderPramukh.mobile %></td></tr>
-        <% if(Array.isArray(sehKenderPramukh)&&sehKenderPramukh.length>0){ %>
-          <% sehKenderPramukh.forEach((skp)=>{ %>
-            <tr><td>Seh Pramukh</td><td class="text-text-black bg-warning-subtle"><%= skp.name %></td><td class="text-black"><%= skp.mobile %></td></tr>
-          <% }) %>
-        <% } else { %>
-          <tr><td>Seh Pramukh</td><td class="text-muted">N/A</td><td class="text-muted">N/A</td></tr>
-        <% } %>
-      </tbody>
-    </table>
+  <script>
+    const today = new Date();
+    const currentDay = today.getDate(); // Day of month (1-31)
 
-  </div>
-</section>
+    const allData = <%- JSON.stringify(monthlyAttendanceStrip) %>;
+    const filteredData = allData.filter(day => day.day <= currentDay);
+    const labels = filteredData.map(day => day.day);
+    const data = filteredData.map(day => day.count);
 
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    const ctx = document.getElementById('attendanceChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: data,
+          backgroundColor: 'rgba(220, 53, 69, 1)',
+          borderColor: 'rgba(220, 53, 69, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, title: { display: true, text: 'Attendance Count' } },
+          x: { title: { display: true, text: 'Day of Month' } }
+        }
+      }
+    });
 
-<script>
-const today=new Date();
-const currentDay=today.getDate();
-const allData=<%- JSON.stringify(monthlyAttendanceStrip) %>;
-const filteredData=allData.filter(day=>day.day<=currentDay);
-const labels=filteredData.map(day=>day.day);
-const data=filteredData.map(day=>day.count);
-
-const ctx=document.getElementById('attendanceChart').getContext('2d');
-new Chart(ctx,{type:'bar',data:{labels:labels,datasets:[{data:data,backgroundColor:'rgba(220,53,69,1)',borderColor:'rgba(220,53,69,1)',borderWidth:1}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,title:{display:true,text:'Attendance Count'}},x:{title:{display:true,text:'Day of Month'}}}}});
-
-document.getElementById('exportBtn').addEventListener('click',()=>{
-  const element=document.getElementById('attendanceExportWrapper');
-  html2canvas(element,{scale:3,useCORS:true,allowTaint:true,logging:true}).then(canvas=>{
-    const link=document.createElement('a');
-    link.download=`attendance_${new Date().toISOString().split('T')[0]}.png`;
-    link.href=canvas.toDataURL('image/png');
+    document.getElementById('exportBtn').addEventListener('click', () => {
+  const element = document.getElementById('attendanceExportWrapper');
+  html2canvas(element, {
+    scale: 3,
+    useCORS: true,
+    allowTaint: true,
+    logging: true
+  }).then(canvas => {
+    const link = document.createElement('a');
+    link.download = `attendance_${new Date().toISOString().split('T')[0]}.png`;
+    link.href = canvas.toDataURL('image/png');
     link.click();
   });
 });
-</script>
 
-<%- include('../partials/footer') %>
+  </script>
+
+  <%- include('../partials/footer') %>
