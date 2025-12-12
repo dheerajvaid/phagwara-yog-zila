@@ -231,35 +231,36 @@
                const isTop = attendance.monthlyCount === topCount;
           %>
             <tr>
-  <td>
+ <td style="padding:2px !important; margin:0 !important; border:0 !important;">
 
-    <div style="display:flex; align-items:center; gap:0px;">
+    <div style="display:flex; align-items:center; gap:1px;">
 
       <% if (attendance.saadhak.photoUrl && attendance.saadhak.photoUrl.trim() !== "") { %>
 
         <!-- Actual Photo -->
-       <img 
+      <img 
   src="<%= attendance.saadhak.photoUrl %>"
   crossorigin="anonymous"
   style="
-    width: 20px; 
-    height: 20px; 
-    border-radius: 50%; 
+    width: 18px; 
+    height: 22px; 
     object-fit: cover;
-    border: 1px solid #ccc;
+    display: block;      /* removes bottom whitespace */
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 1px solid #dc3545;
   "
 />
-
-
       <% } else { %>
 
         <!-- Invisible placeholder to maintain height/spacing -->
-        <div style="
-          width: 20px;
-          height: 20px;
-          border-radius: 50%;
-          visibility: hidden;
-        "></div>
+       <div style="
+  width:18px;
+  height:22px;
+  margin:0 !important;
+  padding:0 !important;
+"></div>
+
 
       <% } %>
 
