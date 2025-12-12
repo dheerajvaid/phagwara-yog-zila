@@ -52,7 +52,7 @@
 
   .table-wrapper {
     flex: 0 0 auto;
-    width: 145px;
+    width: 200px; 
   }
 
   #attendanceExportWrapper {
@@ -231,23 +231,54 @@
                const isTop = attendance.monthlyCount === topCount;
           %>
             <tr>
-              <td class="bg-warning-subtle text-center">
+  <td>
 
-                <% if (isTop) { %>
-                  <!-- Blue Cap Emoji -->
-                  <span style="font-size: 0.8rem;">🧢</span>
-                <% } else { %>
-                  <!-- Normal serial number -->
-                  <%= colIndex * groupSize + index + 1 %>
-                <% } %>
+    <div style="display:flex; align-items:center; gap:8px;">
 
-              </td>
+      <% if (attendance.saadhak.photoUrl && attendance.saadhak.photoUrl.trim() !== "") { %>
 
-              <td>
-                <%= attendance.saadhak.name %>
-                - <span class="text-danger"><%= attendance.monthlyCount %></span>
-              </td>
-            </tr>
+        <!-- Actual Photo -->
+        <img 
+          src="<%= attendance.saadhak.photoUrl %>" 
+          alt="pic"
+          style="
+            width: 26px; 
+            height: 26px; 
+            border-radius: 50%; 
+            object-fit: cover;
+            border: 1px solid #ccc;
+          "
+        />
+
+      <% } else { %>
+
+        <!-- Invisible placeholder to maintain height/spacing -->
+        <div style="
+          width: 26px;
+          height: 26px;
+          border-radius: 50%;
+          visibility: hidden;
+        "></div>
+
+      <% } %>
+
+      <!-- Blue Cap (ONLY if top performer) -->
+      <% if (attendance.monthlyCount === topCount) { %>
+        <span style="font-size: 0.9rem;">🧢</span>
+      <% } %>
+
+      <!-- Name + Count -->
+      <div>
+        <%= attendance.saadhak.name %>
+        - <span class="text-danger fw-bold"><%= attendance.monthlyCount %></span>
+      </div>
+
+    </div>
+
+  </td>
+</tr>
+
+
           <% }) %>
 
         </tbody>
