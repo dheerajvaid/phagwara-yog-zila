@@ -1,5 +1,6 @@
 <%- include('../partials/header') %>
 <%- include('../partials/navbar') %>
+
 <a href="/export/pdf/zila/<%= zila._id %>" class="btn btn-sm btn-outline-danger">🧾 Export PDF</a>
 <a href="/export/csv/zila/<%= zila._id %>" class="btn btn-sm btn-outline-success">📥 Export CSV</a>
 
@@ -17,14 +18,21 @@
   <!-- 👥 Zila Team -->
   <h5 class="text-success mb-3">👥 Zila Team</h5>
   <div class="row">
-    <% saadhaks.filter(s => String(s.zila) === String(zila._id) && zilaRoles.some(role => s.roles.includes(role))).forEach(member => { %>
+    <% saadhaks
+       .filter(s =>
+         String(s.zila) === String(zila._id) &&
+         zilaRoles.some(role => (s.role || []).includes(role))
+       )
+       .forEach(member => { %>
+
       <div class="col-md-3">
         <div class="border p-2 rounded bg-light mb-3">
           <strong><%= member.name %></strong><br>
-          <small><%= member.roles.join(", ") %></small><br>
+          <small><%= (member.role || []).join(", ") %></small><br>
           <small class="text-muted"><%= member.mobile %></small>
         </div>
       </div>
+
     <% }) %>
   </div>
 
@@ -38,19 +46,28 @@
 
         <!-- 👥 Ksheter Team -->
         <div class="row">
-          <% saadhaks.filter(s => String(s.ksheter) === String(ksheter._id) && ksheterRoles.some(role => s.roles.includes(role))).forEach(member => { %>
+          <% saadhaks
+             .filter(s =>
+               String(s.ksheter) === String(ksheter._id) &&
+               ksheterRoles.some(role => (s.role || []).includes(role))
+             )
+             .forEach(member => { %>
+
             <div class="col-md-3">
               <div class="border p-2 rounded mb-2 bg-light">
                 <strong><%= member.name %></strong><br>
-                <small><%= member.roles.join(", ") %></small><br>
+                <small><%= (member.role || []).join(", ") %></small><br>
                 <small class="text-muted"><%= member.mobile %></small>
               </div>
             </div>
+
           <% }) %>
         </div>
 
         <!-- 🔗 Explore button -->
-        <a href="/explore/ksheter/<%= ksheter._id %>" class="btn btn-sm btn-outline-success mt-2">🔍 Explore Ksheter</a>
+        <a href="/explore/ksheter/<%= ksheter._id %>" class="btn btn-sm btn-outline-success mt-2">
+          🔍 Explore Ksheter
+        </a>
       </div>
     </div>
   <% }) %>

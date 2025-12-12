@@ -540,6 +540,7 @@ exports.showEditForm = async (req, res) => {
       ksheters,
       kenders,
       allowedRoles,
+      user,
       error: null,
     });
   } catch (err) {
