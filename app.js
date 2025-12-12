@@ -52,19 +52,15 @@ const dashboardController = require("./controllers/dashboardController");
 dotenv.config();
 
 // ---------------------------------------------
-// 🚀 FASTEST POSSIBLE SERVER START (Render Optimized)
+// SERVER PORT + HEALTH CHECK
 // ---------------------------------------------
 const port = process.env.PORT || 3000;
 const host = "0.0.0.0";
 
 app.get("/healthz", (req, res) => res.status(200).send("OK"));
 
-app.listen(port, host, () => {
-  console.log(`🚀 Server started instantly at http://${host}:${port}`);
-});
-
 // ---------------------------------------------
-// 📌 VIEW ENGINE + STATIC FILES
+// VIEW ENGINE + STATIC FILES
 // ---------------------------------------------
 app.set("view engine", "ejs");
 app.set("views", [
@@ -78,7 +74,7 @@ app.use(express.json());
 app.use(methodOverride("_method"));
 
 // ---------------------------------------------
-// 📌 CONNECT MONGO (Does NOT block startup)
+// CONNECT MONGO
 // ---------------------------------------------
 mongoose
   .connect(process.env.MONGO_URI, {
@@ -89,7 +85,7 @@ mongoose
     console.log("MongoDB connected");
 
     // ---------------------------------------------
-    // 📌 SESSION STORE (Load only after DB ready)
+    // SESSION STORE
     // ---------------------------------------------
     app.use(
       session({
@@ -112,7 +108,7 @@ mongoose
     app.use(flash());
 
     // ---------------------------------------------
-    // 📌 GLOBAL USER + ROLES
+    // GLOBAL USER + ROLES
     // ---------------------------------------------
     app.use((req, res, next) => {
       res.locals.user = req.session.user || null;
@@ -125,24 +121,22 @@ mongoose
     });
 
     // ---------------------------------------------
-    // 📌 INJECT SCOPE DATA (prant/zila/ksheter/kender)
-    // Must be BEFORE any routes that use scope data
+    // INJECT SCOPE DATA
     // ---------------------------------------------
     app.use(injectScopeData);
 
     // ---------------------------------------------
-    // 📌 EVENT COUNT (Navbar badge)
-    // Must be BEFORE routes that render pages using it
+    // EVENT COUNT BADGE
     // ---------------------------------------------
     app.use(setEventCount);
 
     // ---------------------------------------------
-    // 📌 ASSIGN ROLE LEVEL
+    // ASSIGN ROLE LEVEL
     // ---------------------------------------------
     app.use(assignRoleLevel);
 
     // ---------------------------------------------
-    // 📌 LOAD ROUTES
+    // LOAD ROUTES
     // ---------------------------------------------
     app.get("/", dashboardController.getFrontPageData);
 
@@ -179,7 +173,13 @@ mongoose
     app.use("/paath", paathGroupRoutes);
     app.use('/idcard', require('./routes/idcard'));
 
-
     console.log("✅ All middlewares & routes loaded safely");
+
+    // ---------------------------------------------
+    // START SERVER AFTER EVERYTHING IS READY
+    // ---------------------------------------------
+    app.listen(port, host, () => {
+      console.log(`🚀 Server fully ready at http://${host}:${port}`);
+    });
   })
   .catch((err) => console.error("❌ MongoDB connection error:", err));
