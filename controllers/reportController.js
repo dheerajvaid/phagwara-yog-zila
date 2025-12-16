@@ -342,7 +342,118 @@ exports.attendanceSummary = async (req, res) => {
     topperByName[k.name] = entry ? entry.count : 0;
   });
 
-  // console.log(topperByName);
+
+
+
+// ===== 🖼️ KENDER PRAMUKH + SEH KENDER PRAMUKH PHOTO MAP =====
+
+// Get all relevant kenders (already filtered)
+const allRelevantKenders = await Kender.find(kenderFilter).select("_id name");
+
+// Fetch all Kender Pramukh and Seh Kender Pramukhs for these kenders
+const kenderLeads = await Saadhak.find({
+  kender: { $in: allRelevantKenders.map(k => k._id) },
+  role: { $in: ["Kender Pramukh", "Seh Kender Pramukh"] },
+}).select("kender role photoUrl name");
+
+// Build a map: Kender Name → array of lead objects
+const kenderPhotosMap = {}; // { "Kender Name": [ {role, photoUrl, name}, ... ] }
+
+allRelevantKenders.forEach(k => {
+  const leads = kenderLeads
+    .filter(l => l.kender && l.kender.toString() === k._id.toString())
+    .sort((a, b) => {
+      const roleOrder = { "Kender Pramukh": 1, "Seh Kender Pramukh": 2 };
+
+      // Pick first relevant role from roles array
+      const getLeadRole = (lead) => {
+        if (Array.isArray(lead.roles)) {
+          if (lead.roles.includes("Kender Pramukh")) return "Kender Pramukh";
+          if (lead.roles.includes("Seh Kender Pramukh")) return "Seh Kender Pramukh";
+          return lead.roles[0]; // fallback
+        }
+        return lead.role || ""; // fallback for legacy data
+      };
+
+      const roleA = getLeadRole(a);
+      const roleB = getLeadRole(b);
+
+      if (roleA !== roleB) {
+        return (roleOrder[roleA] || 99) - (roleOrder[roleB] || 99);
+      }
+
+      // Sort alphabetically by name (case-insensitive)
+      return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+    });
+
+  kenderPhotosMap[k.name] = leads.map(l => ({
+    role: Array.isArray(l.roles) ? l.roles.join(", ") : l.role,
+    photoUrl: l.photoUrl && l.photoUrl.trim() !== "" ? l.photoUrl : "/images/default-user.png",
+    name: l.name,
+  }));
+});
+
+// ===== 🖼️ KSHTER PRADHAN + KSHTER MANTRI PHOTO MAP =====
+
+// 1️⃣ Get all relevant Ksheter from already filtered Kenders
+const allRelevantKsheterIds = [
+  ...new Set(allKenders.map(k => k.ksheter?._id?.toString()).filter(Boolean))
+];
+
+const allRelevantKsheter = await Ksheter.find({
+  _id: { $in: allRelevantKsheterIds }
+}).select("_id name");
+
+// 2️⃣ Fetch Ksheter Pradhan & Ksheter Mantri
+const ksheterLeads = await Saadhak.find({
+  ksheter: { $in: allRelevantKsheter.map(k => k._id) },
+  role: { $in: ["Ksheter Pradhan", "Ksheter Mantri"] }
+}).select("ksheter roles role photoUrl name");
+
+// 3️⃣ Build map: Ksheter Name → team array
+const ksheterPhotosMap = {};  
+// { "Phagwara East": [ {role, photoUrl, name}, ... ] }
+
+allRelevantKsheter.forEach(ksheter => {
+  const team = ksheterLeads
+    .filter(l => l.ksheter && l.ksheter.toString() === ksheter._id.toString())
+    .sort((a, b) => {
+      const roleOrder = {
+        "Ksheter Pradhan": 1,
+        "Ksheter Mantri": 2
+      };
+
+      const getLeadRole = (lead) => {
+        if (Array.isArray(lead.roles)) {
+          if (lead.roles.includes("Ksheter Pradhan")) return "Ksheter Pradhan";
+          if (lead.roles.includes("Ksheter Mantri")) return "Ksheter Mantri";
+          return lead.roles[0];
+        }
+        return lead.role || "";
+      };
+
+      const roleA = getLeadRole(a);
+      const roleB = getLeadRole(b);
+
+      if (roleA !== roleB) {
+        return (roleOrder[roleA] || 99) - (roleOrder[roleB] || 99);
+      }
+
+      // Alphabetical name sort
+      return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+    });
+
+  ksheterPhotosMap[ksheter.name] = team.map(l => ({
+    role: Array.isArray(l.roles) ? l.roles.join(", ") : l.role,
+    photoUrl:
+      l.photoUrl && l.photoUrl.trim() !== ""
+        ? l.photoUrl
+        : "/images/default-user.png",
+    name: l.name
+  }));
+});
+
+// console.log(ksheterPhotosMap);
 
   res.render("report/attendanceSummary", {
     summary: sortedSummary,
@@ -354,6 +465,12 @@ exports.attendanceSummary = async (req, res) => {
     user,
     requestData,
     topperByName,
+    kenderPhotosMap, // ⭐ added
+    ksheterPhotosMap, // ⭐ NEW
+
+  //   // ⭐ NEW
+  // zilaTeamPhotos,
+  // ksheterTeamPhotos,
   });
 };
 

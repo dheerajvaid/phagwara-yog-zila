@@ -1,10 +1,26 @@
 <!-- views/partials/footer.ejs -->
 
-<footer class="bg-dark text-light text-center py-3 mt-5">
-  <div class="container">
-    <p class="mb-0">© <%= new Date().getFullYear() %> Bhartiya Yog Sansthan, Phagwara Zila. All rights reserved.</p>
+<footer class="bg-dark text-light mt-5">
+  <div class="container py-3">
+
+    <!-- Main Line -->
+    <p class="mb-1 text-center fw-semibold text-light">
+      © <%= new Date().getFullYear() %> Bhartiya Yog Sansthan®️. All rights reserved.
+    </p>
+
+    <!-- Creator Credit -->
+    <p class="mb-0 text-center" style="font-size: 0.9rem;">
+      <span class="text-warning fw-semibold">Created by:</span>
+      <span class="fw-semibold text-info">Dheeraj Vaid</span>
+      <span class="text-secondary mx-1">|</span>
+      <a href="tel:9316161666" class="text-success fw-semibold text-decoration-none">
+        📞 93161-61666
+      </a>
+    </p>
+
   </div>
 </footer>
+
 
 <script src="/js/app.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" defer></script>

@@ -71,23 +71,72 @@
             <% for (let kender in summary[zila][ksheter]) { %>
              <% if (summary[zila][ksheter][kender] !== "unmarked") { %>
             <tr>
-              <td class="text-start" style="font-size:0.85rem; padding:5px 6px;">
-    
-    <div><%= kender %></div>
+             
+  <td class="text-start" style="font-size:0.85rem; padding:5px 6px;">
+  <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
 
-    <% let capCount = topperByName[kender] || 0; %>
+    <% 
+      const pramukhs = (kenderPhotosMap[kender] || [])
+                          .filter(p => p.role.includes("Kender Pramukh"))
+                          .sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
 
-    <% if (capCount > 0) { %>
-      <div style="font-size:1rem; line-height:1.2; margin-top:2px;">
-        <% for (let i = 0; i < capCount; i++) { %>
-            🧢
-        <% } %>
-      </div>
-    <% } %>
+      const sehPramukhs = (kenderPhotosMap[kender] || [])
+                          .filter(p => p.role.includes("Seh Kender Pramukh"))
+                          .sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+    %>
 
+    <!-- Render Kender Pramukh first -->
+    <% pramukhs.forEach(p => { %>
+      <img
+        src="<%= p.photoUrl %>"
+        alt="<%= p.name %>"
+        title="<%= p.role %>: <%= p.name %>"
+        crossorigin="anonymous"
+        style="
+          width:34px;
+          height:42px;
+          object-fit:cover;
+          border-radius:4px;
+          border:1.5px solid #dc3545;
+          background:#f8f9fa;
+          flex-shrink:0;
+        "
+      >
+    <% }) %>
+
+    <!-- Render Seh Kender Pramukh next (alphabetically sorted) -->
+    <% sehPramukhs.forEach(p => { %>
+      <img
+        src="<%= p.photoUrl %>"
+        alt="<%= p.name %>"
+        title="<%= p.role %>: <%= p.name %>"
+        crossorigin="anonymous"
+        style="
+          width:34px;
+          height:42px;
+          object-fit:cover;
+          border-radius:4px;
+          border:1.5px solid #dc3545;
+          background:#f8f9fa;
+          flex-shrink:0;
+        "
+      >
+    <% }) %>
+
+    <!-- Kender Name + Topper Caps -->
+    <div>
+      <div><%= kender %></div>
+
+      <% let capCount = topperByName[kender] || 0; %>
+      <% if (capCount > 0) { %>
+        <div style="font-size:1rem; line-height:1.1; margin-top:2px;">
+          <% for (let i = 0; i < capCount; i++) { %>🧢<% } %>
+        </div>
+      <% } %>
+    </div>
+
+  </div>
 </td>
-
-
               <td style="font-size:0.85rem; padding:5px 6px;">
                 <% if (summary[zila][ksheter][kender] === "unmarked") { %>
                   <span class="text-danger fst-italic fw-normal">TBM*</span>
@@ -101,15 +150,80 @@
 
             <!-- Ksheter Total -->
             <tr class="bg-danger text-white fw-bold text-center">
-              <td class="text-center text-white" style="font-size:0.85rem; padding:5px 6px;">
-                <% if (userRole === 'Admin' || userRole === 'Zila Pradhan' || userRole === 'Zila Mantri' || userRole === 'Zila Sangathan Mantri' || userRole === 'Zila Cashier') { %>
-                  Ksheter Total
-                <% } else if (userRole === 'Ksheter Pradhan' || userRole === 'Ksheter Mantri') { %>
-                  Ksheter Total
-                <% } else { %>
-                  Kender Total
-                <% } %>
-              </td>
+              <td class="text-start text-white" style="font-size:0.85rem; padding:5px 6px;">
+  <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:center;">
+
+    <% 
+      const ksheterPradhans = (ksheterPhotosMap[ksheter] || [])
+        .filter(p => p.role.includes("Ksheter Pradhan"))
+        .sort((a,b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+
+      const ksheterMantris = (ksheterPhotosMap[ksheter] || [])
+        .filter(p => p.role.includes("Ksheter Mantri"))
+        .sort((a,b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+    %>
+
+    <!-- Ksheter Pradhan first -->
+    <% ksheterPradhans.forEach(p => { %>
+      <img
+        src="<%= p.photoUrl %>"
+        title="<%= p.role %>: <%= p.name %>"
+        alt="<%= p.name %>"
+        crossorigin="anonymous"
+        style="
+          width:30px;
+          height:38px;
+          object-fit:cover;
+          border-radius:4px;
+          border:1.5px solid #ffffff;
+          background:#f8f9fa;
+          flex-shrink:0;
+        "
+      >
+    <% }) %>
+
+    <!-- Ksheter Mantri next -->
+    <% ksheterMantris.forEach(p => { %>
+      <img
+        src="<%= p.photoUrl %>"
+        title="<%= p.role %>: <%= p.name %>"
+        alt="<%= p.name %>"
+        crossorigin="anonymous"
+        style="
+          width:30px;
+          height:38px;
+          object-fit:cover;
+          border-radius:4px;
+          border:1.5px solid #ffffff;
+          background:#f8f9fa;
+          flex-shrink:0;
+        "
+      >
+    <% }) %>
+
+    <!-- Text -->
+    <span class="fw-bold text-white">
+      <% if (
+        userRole === 'Admin' ||
+        userRole === 'Zila Pradhan' ||
+        userRole === 'Zila Mantri' ||
+        userRole === 'Zila Sangathan Mantri' ||
+        userRole === 'Zila Cashier'
+      ) { %>
+        Our Ksheter Total
+      <% } else if (
+        userRole === 'Ksheter Pradhan' ||
+        userRole === 'Ksheter Mantri'
+      ) { %>
+        Our Ksheter Total
+      <% } else { %>
+        Kender Total
+      <% } %>
+    </span>
+
+  </div>
+</td>
+
               <td class="text-white" style="font-size:0.85rem; padding:5px 6px;">
                 <%= ksheterTotals[zila] && ksheterTotals[zila][ksheter] !== undefined ? ksheterTotals[zila][ksheter] : 0 %>
               </td>
@@ -213,7 +327,13 @@
     // watermarkText.style.display = 'block';
 
     setTimeout(() => {
-      html2canvas(exportArea, { scale: 4 }).then(canvas => {
+      html2canvas(exportArea, {
+  scale: 4,
+  useCORS: true,
+  allowTaint: true,
+  backgroundColor: '#ffffff'
+})
+.then(canvas => {
         const link = document.createElement('a');
         link.download = `attendance_summary_<%= selectedDate %>.png`;
         link.href = canvas.toDataURL('image/png');
