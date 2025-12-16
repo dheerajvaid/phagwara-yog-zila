@@ -8,6 +8,7 @@ const prantRoles = [
   "Prant Mantri",
   "Prant Sangathan Mantri",
   "Prant Cashier",
+  "Prant Sadasya"
 ];
 
 const zilaRoles = [
