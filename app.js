@@ -41,6 +41,8 @@ const yatraRoutes = require("./routes/yatraRoutes");
 const wishesRoutes = require("./routes/wishesRoutes");
 const paathRoutes = require("./paathTracker/routes/paath.routes");
 const paathGroupRoutes = require("./paathTracker/routes/paathGroup.routes");
+const gameRoutes = require('./routes/gameRoutes');
+
 
 // Middlewares
 const { assignRoleLevel } = require("./middleware/roleMiddleware");
@@ -192,6 +194,7 @@ mongoose
     app.use("/paath", paathRoutes);
     app.use("/paath", paathGroupRoutes);
     app.use('/idcard', require('./routes/idcard'));
+    app.use('/games', gameRoutes);
 
     console.log("✅ All middlewares & routes loaded safely");
 
