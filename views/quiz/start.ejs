@@ -52,14 +52,14 @@
     <p class="text-muted">अपनी पसंदीदा श्रेणियाँ चुनें और क्विज़ शुरू करें</p>
   </div>
 
-  <form action="/quiz/start" method="POST" class="p-4 border rounded bg-light shadow-sm" id="quizStartForm">
+  <form action="/quiz/start" method="POST" class="p-4 border rounded bg-light shadow-sm" id="quizStartForm" novalidate>
 
     <!-- Hidden field to detect button clicked -->
     <input type="hidden" name="actionType" id="actionType" value="start">
 
     <div class="mb-4">
       <label for="numQuestions" class="form-label fw-semibold fs-5">प्रश्नों की संख्या (5 से 20):</label>
-      <input type="number" name="numQuestions" class="form-control form-control-lg" min="5" max="20" value="5" required>
+      <input type="number" inputmode="numeric" name="numQuestions" class="form-control form-control-lg" min="5" max="20" value="5" required>
     </div>
 
     <div class="mb-4">
