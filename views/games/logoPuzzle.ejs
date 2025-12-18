@@ -7,14 +7,21 @@
 
       <!-- Title -->
       <h3 class="text-center text-danger fw-bold mb-2">🧩 Yog Logo Puzzle</h3>
-      <p class="text-center text-muted mb-3" style="font-size:0.95rem;">
-        एकाग्रता • धैर्य • साधना
-      </p>
+      
+      <!-- Puzzle Size Selector (NEW) -->
+      <div class="text-center mb-3">
+        <select
+          class="form-select form-select-sm w-auto mx-auto"
+          onchange="setPuzzleSize(+this.value)">
+          <option value="3">Easy (3 × 3)</option>
+          <option value="4" selected>Medium (4 × 4)</option>
+          <option value="5">Hard (5 × 5)</option>
+        </select>
+      </div>
 
       <!-- Preview -->
       <div class="text-center mb-3">
-        <img src="/images/logo-nbg.png" alt="Logo Preview" class="img-fluid rounded shadow-sm" style="max-width:160px; background:#fff; padding:6px;">
-        <div class="small text-muted mt-1">Complete Logo Preview</div>
+        <img src="/images/logo-nbg.png" alt="Logo Preview" class="img-fluid rounded shadow-sm" style="max-width:160px; background:#fff; padding:6px;">        
       </div>
 
       <!-- Puzzle Board -->
