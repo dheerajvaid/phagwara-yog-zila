@@ -1,0 +1,333 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<style>
+
+:root {
+  --bys-green-dark: #1b5e20;
+  --bys-green: #2e7d32;
+  --bys-green-light: #43a047;
+  --bys-bg: #f4f8f6;
+}
+
+/* Page */
+body {
+  background: var(--bys-bg);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+/* Wrapper */
+.game-wrapper {
+  max-width: 420px;
+  margin: auto;
+  padding: 14px;
+}
+
+/* Titles */
+.game-title {
+  text-align: center;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--bys-green-dark);
+  margin-bottom: 4px;
+}
+
+.game-subtitle {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #4e6f58;
+  margin-bottom: 10px;
+}
+
+/* Stats */
+.stats {
+  display: flex;
+  justify-content: space-between;
+  margin: 8px 0 12px;
+  font-weight: 600;
+  color: #333;
+  font-size: 0.85rem;
+}
+
+/* Board */
+.memory-board {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), 1fr);
+  gap: 10px;
+}
+
+/* Card */
+.card {
+  aspect-ratio: 1 / 1;
+  background: transparent;
+  border-radius: 14px;
+  cursor: pointer;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Flip */
+.card.flip {
+  transform: rotateY(180deg) scale(1.04);
+}
+
+/* Faces */
+.card .front,
+.card .back {
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backface-visibility: hidden;
+  padding: 8px;
+  text-align: center;
+  font-weight: 700;
+}
+
+/* Front (Logo Side) */
+.card .front {
+  background: linear-gradient(145deg, var(--bys-green-dark), var(--bys-green-light));
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+/* Logo image */
+.card .front img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  transition: transform 0.25s ease;
+}
+
+.card:hover .front img {
+  transform: scale(1.1);
+}
+
+/* Back (Text Side) */
+.card .back {
+  background: #ffffff;
+  color: var(--bys-green);
+  transform: rotateY(180deg);
+  border: 2px solid var(--bys-green);
+  font-size: 0.75rem;
+  line-height: 1.25;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Success Message */
+.success-box {
+  display: none;
+  margin-top: 14px;
+  background: #e8f5e9;
+  border-radius: 14px;
+  padding: 14px;
+  text-align: center;
+  color: var(--bys-green-dark);
+  font-weight: 700;
+  animation: fadeUp 0.6s ease;
+}
+
+/* Restart Button */
+.btn-restart {
+  width: 100%;
+  margin-top: 12px;
+  font-size: 1rem;
+  padding: 10px;
+  border-radius: 14px;
+  background: var(--bys-green);
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.25s ease;
+}
+
+.btn-restart:hover {
+  background: var(--bys-green-dark);
+}
+
+/* Animations */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Small Screens */
+@media (max-width: 360px) {
+  .card .back {
+    font-size: 0.75rem;
+  }
+
+  .card .front img {
+    width: 42px;
+    height: 42px;
+  }
+}
+</style>
+
+<div class="game-wrapper">
+  <h4 class="game-title">🧠 Yog Smriti Match</h4>
+  <div class="game-subtitle">स्मृति · एकाग्रता · योग</div>
+
+  <div class="stats">
+    <div>Moves: <span id="moveCount">0</span></div>
+    <div>Time: <span id="timeCount">0</span>s</div>
+  </div>
+
+  <div class="memory-board" id="memoryBoard"></div>
+
+  <div class="success-box" id="successBox">
+    🙏 उत्कृष्ट स्मृति अभ्यास<br>
+    <span style="font-size:0.85rem;font-weight:500;">
+      नियमित अभ्यास से स्मरण शक्ति बढ़ती है
+    </span>
+  </div>
+
+  <button class="btn btn-success btn-restart" onclick="restartGame()">
+    🔄 Restart Game
+  </button>
+</div>
+
+<script>
+  /* ===============================
+     CONFIGURATION
+     =============================== */
+  const BOARD_SIZE = 6; // 🔁 change to 6 for 6x6
+  const PAIRS = (BOARD_SIZE * BOARD_SIZE) / 2;
+
+  /* ===============================
+     ELEMENTS
+     =============================== */
+  const board = document.getElementById("memoryBoard");
+  const moveEl = document.getElementById("moveCount");
+  const timeEl = document.getElementById("timeCount");
+  const successBox = document.getElementById("successBox");
+
+  /* ===============================
+     STATE
+     =============================== */
+  let flippedCards = [];
+  let matchedCount = 0;
+  let moves = 0;
+  let timer = 0;
+  let timerInterval;
+  let currentGameItems = [];
+
+  /* ===============================
+     YOG WORDS (MASTER LIST)
+     =============================== */
+  const items = [
+    'योग','ध्यान','प्राणायाम','कपालभाति','अनुलोम-विलोम','भस्त्रिका',
+    'भुजंगासन','ताड़ासन','वज्रासन','पद्मासन','शवासन','सूर्यनमस्कार',
+    'धारणा','समाधि','संयम','साधना','प्रकृति','प्राण','चेतना','स्वास्थ्य',
+    'शांति','संतुलन','स्वस्थ शरीर','स्वस्थ मन','नियम','यम','नियम',
+    'अहिंसा','सत्य','ब्रह्मचर्य','अपरिग्रह','तप','स्वाध्याय','ईश्वर प्रणिधान'
+  ];
+
+  /* ===============================
+     HELPERS
+     =============================== */
+  function shuffle(array) {
+    return array.sort(() => Math.random() - 0.5);
+  }
+
+  function getRandomPairs(sourceArray, pairCount) {
+    const uniqueWords = [...new Set(sourceArray)];
+    shuffle(uniqueWords);
+    const selected = uniqueWords.slice(0, pairCount);
+    return shuffle(selected.flatMap(word => [word, word]));
+  }
+
+  function startTimer() {
+    timerInterval = setInterval(() => {
+      timer++;
+      timeEl.textContent = timer;
+    }, 1000);
+  }
+
+  /* ===============================
+     GAME LOGIC
+     =============================== */
+  function createBoard() {
+  board.innerHTML = '';
+  board.style.setProperty('--cols', BOARD_SIZE);
+
+  successBox.style.display = 'none';
+  flippedCards = [];
+  matchedCount = 0;
+  moves = 0;
+  timer = 0;
+  moveEl.textContent = 0;
+  timeEl.textContent = 0;
+
+  clearInterval(timerInterval);
+  startTimer();
+
+  currentGameItems = getRandomPairs(items, PAIRS);
+
+  currentGameItems.forEach(text => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.value = text;
+
+    card.innerHTML = `
+      <div class="front">
+        <img src="/images/logo-nbg.png" alt="BYS Logo" class="card-logo">
+      </div>
+      <div class="back">${text}</div>
+    `;
+
+    card.addEventListener('click', () => flipCard(card));
+    board.appendChild(card);
+  });
+}
+
+
+  function flipCard(card) {
+    if (matchedCount === currentGameItems.length) return;
+    if (card.classList.contains("flip") || flippedCards.length === 2) return;
+
+    card.classList.add("flip");
+    flippedCards.push(card);
+
+    if (flippedCards.length === 2) {
+      moves++;
+      moveEl.textContent = moves;
+
+      if (flippedCards[0].dataset.value === flippedCards[1].dataset.value) {
+        matchedCount += 2;
+        flippedCards = [];
+
+        if (matchedCount === currentGameItems.length) {
+          clearInterval(timerInterval);
+          successBox.style.display = "block";
+        }
+      } else {
+        setTimeout(() => {
+          flippedCards.forEach(c => c.classList.remove("flip"));
+          flippedCards = [];
+        }, 800);
+      }
+    }
+  }
+
+  function restartGame() {
+    clearInterval(timerInterval);
+    createBoard();
+  }
+
+  /* ===============================
+     INIT
+     =============================== */
+  createBoard();
+</script>

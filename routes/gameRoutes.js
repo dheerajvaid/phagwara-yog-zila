@@ -10,6 +10,8 @@ const gameController = require('../controllers/gameController');
 // Logo Puzzle Route
 router.get('/logo-puzzle', gameController.logoPuzzle);
 
+router.get('/smriti-puzzle', gameController.smritiPuzzle);
+
 module.exports = router;
 
 
