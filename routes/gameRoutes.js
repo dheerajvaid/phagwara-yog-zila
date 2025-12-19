@@ -12,6 +12,8 @@ router.get('/logo-puzzle', gameController.logoPuzzle);
 
 router.get('/smriti-puzzle', gameController.smritiPuzzle);
 
+router.get('/shuffle-puzzle', gameController.shufflePuzzle);
+
 module.exports = router;
 
 
