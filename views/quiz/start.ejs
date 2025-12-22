@@ -2,43 +2,111 @@
 <%- include('../partials/navbar') %>
 
 <style>
+  body {
+    background: linear-gradient(135deg, #f4f8f6, #eef6f1);
+  }
+
+  /* ---------- Grid ---------- */
   .category-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
   }
 
   @media (max-width: 768px) {
     .category-grid {
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
     }
   }
 
+  @media (max-width: 480px) {
+    .category-grid {
+      grid-template-columns: repeat(1, 1fr);
+    }
+  }
+
+  /* ---------- Category Card ---------- */
   .category-box {
-    border: 2px solid #dee2e6;
-    border-radius: 8px;
-    padding: 10px;
-    background-color: #f8f9fa;
+    border-radius: 14px;
+    padding: 14px 10px;
+    background: #ffffff;
     text-align: center;
-    font-weight: 500;
     cursor: pointer;
     user-select: none;
-    transition: all 0.2s ease-in-out;
+    transition: all 0.25s ease;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    border: 2px solid transparent;
+  }
+
+  .category-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
   }
 
   .category-box.active {
-    background-color: #d1e7dd;
-    border-color: #0f5132;
+    background: linear-gradient(135deg, #d1e7dd, #e9f7ef);
+    border-color: #198754;
     color: #0f5132;
-    font-weight: bold;
+    font-weight: 700;
   }
 
+  .category-title {
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .category-count {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 2px 10px;
+    font-size: 0.8rem;
+    border-radius: 999px;
+    background: #e9ecef;
+    color: #495057;
+    font-weight: 600;
+  }
+
+  .category-box.active .category-count {
+    background: #198754;
+    color: #ffffff;
+  }
+
+  /* ---------- Select All ---------- */
   .select-all-box {
-    background-color: #fff3cd;
-    border: 2px solid #ffeeba;
-    border-radius: 8px;
-    padding: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, #fff3cd, #fff8e1);
+    border: 2px dashed #ffca2c;
+    border-radius: 12px;
+    padding: 12px 14px;
     cursor: pointer;
+    font-weight: 600;
+  }
+
+  /* ---------- Form Card ---------- */
+  .quiz-card {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 28px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+  }
+
+  /* ---------- Buttons ---------- */
+  .btn-success {
+    background: linear-gradient(135deg, #198754, #2fbf71);
+    border: none;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+
+  .btn-success:hover {
+    background: linear-gradient(135deg, #157347, #26a963);
+  }
+
+  .btn-outline-primary {
+    border-radius: 14px;
+    font-weight: 600;
   }
 
   .hidden-checkbox {
@@ -46,51 +114,95 @@
   }
 </style>
 
-<div class="container mt-5 mb-5" style="max-width: 900px;">
+<div class="container mt-5 mb-5" style="max-width: 920px;">
   <div class="text-center mb-4">
-    <h2 class="fw-bold">🧘‍♀️ योग प्रश्नोत्तरी प्रारंभ करें</h2>
-    <p class="text-muted">अपनी पसंदीदा श्रेणियाँ चुनें और क्विज़ शुरू करें</p>
+    <h2 class="fw-bold text-success">🧘‍♀️ योग प्रश्नोत्तरी प्रारंभ करें</h2>
+    <p class="text-muted fs-6">
+      श्रेणियाँ चुनें • अभ्यास करें • ज्ञान को गहराएँ
+    </p>
   </div>
 
-  <form action="/quiz/start" method="POST" class="p-4 border rounded bg-light shadow-sm" id="quizStartForm" novalidate>
+  <form
+    action="/quiz/start"
+    method="POST"
+    class="quiz-card"
+    id="quizStartForm"
+    novalidate
+  >
 
-    <!-- Hidden field to detect button clicked -->
     <input type="hidden" name="actionType" id="actionType" value="start">
 
+    <!-- Question Count -->
     <div class="mb-4">
-      <label for="numQuestions" class="form-label fw-semibold fs-5">प्रश्नों की संख्या (5 से 20):</label>
-      <input type="number" inputmode="numeric" name="numQuestions" class="form-control form-control-lg" min="5" max="20" value="5" required>
+      <label class="form-label fw-semibold fs-5">
+        प्रश्नों की संख्या (5–20)
+      </label>
+      <input
+        type="number"
+        inputmode="numeric"
+        name="numQuestions"
+        class="form-control form-control-lg text-center"
+        min="5"
+        max="20"
+        value="5"
+        required
+      >
     </div>
 
+    <!-- Categories -->
     <div class="mb-4">
-      <label class="form-label fw-semibold fs-5">श्रेणियाँ चुनें:</label>
+      <label class="form-label fw-semibold fs-5">
+        श्रेणियाँ चुनें
+      </label>
 
-      <div class="select-all-box mb-3" id="selectAllBox">
-        <input type="checkbox" class="form-check-input me-2" id="selectAll">
-        <label class="form-check-label fw-bold" for="selectAll">✔️ सभी को चुनें / हटाएँ</label>
+      <div class="select-all-box mb-3">
+        <input type="checkbox" class="form-check-input" id="selectAll">
+        <label for="selectAll">✔️ सभी श्रेणियाँ चुनें / हटाएँ</label>
       </div>
 
       <div class="category-grid">
         <% categories.forEach(c => { %>
-          <div class="category-box" data-category="<%= c %>"><%= c %></div>
-          <input type="checkbox" class="hidden-checkbox category-checkbox" name="categories" value="<%= c %>" id="cb_<%= c %>">
+
+          <div class="category-box" data-category="<%= c._id %>">
+            <div class="category-title">
+              <%= c._id %>
+            </div>
+            <span class="category-count">
+              <%= c.count %> प्रश्न
+            </span>
+          </div>
+
+          <input
+            type="checkbox"
+            class="hidden-checkbox category-checkbox"
+            name="categories"
+            value="<%= c._id %>"
+            id="cb_<%= c._id %>"
+          >
+
         <% }) %>
       </div>
     </div>
 
+    <!-- Buttons -->
     <div class="d-grid mt-4">
-      <button type="submit" class="btn btn-success btn-lg"
-              onclick="document.getElementById('actionType').value='start'">
+      <button
+        type="submit"
+        class="btn btn-success btn-lg py-3"
+        onclick="document.getElementById('actionType').value='start'"
+      >
         🚀 क्विज़ प्रारंभ करें
       </button>
     </div>
 
     <div class="d-grid mt-3">
-      <button type="submit"
-              formaction="/quiz/print"
-              formmethod="POST"
-              class="btn btn-outline-primary btn-lg"
-              onclick="document.getElementById('actionType').value='print'">
+      <button
+        type="submit"
+        formaction="/quiz/print"
+        formmethod="POST"
+        class="btn btn-outline-primary btn-lg py-3"
+        onclick="document.getElementById('actionType').value='print'"
+      >
         🖨️ प्रिंट क्विज़ (PDF)
       </button>
     </div>
@@ -98,80 +210,35 @@
   </form>
 </div>
 
-<!-- Category Validation Modal -->
-<div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="categoryModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header bg-warning">
-        <h5 class="modal-title" id="categoryModalLabel">⚠️ ध्यान दें</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        कृपया कम से कम एक श्रेणी का चयन करें।
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">ठीक है</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Minimum Questions Modal -->
-<div class="modal fade" id="questionModal" tabindex="-1" aria-labelledby="questionModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header bg-danger text-white">
-        <h5 class="modal-title" id="questionModalLabel">⚠️ न्यूनतम प्रश्न</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        प्रिंट के लिए कम से कम <strong>5 प्रश्न</strong> आवश्यक हैं।
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">ठीक है</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <script>
-
   const printBtn = document.querySelector('button[formaction="/quiz/print"]');
 
   printBtn.addEventListener("click", function (e) {
-    e.preventDefault();   // stop default submit
+    e.preventDefault();
 
     const form = printBtn.closest("form");
-
     const selected = document.querySelectorAll('.category-checkbox:checked');
+
     if (selected.length === 0) {
-      const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryModal'));
-      modal.show();
+      bootstrap.Modal.getOrCreateInstance(
+        document.getElementById('categoryModal')
+      ).show();
       return;
     }
 
-    // 🔥 VALIDATE NUMBER OF QUESTIONS (MIN 5)
     const numQ = document.querySelector('input[name="numQuestions"]').value;
     if (numQ < 5) {
-      const qModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('questionModal'));
-      qModal.show();
+      bootstrap.Modal.getOrCreateInstance(
+        document.getElementById('questionModal')
+      ).show();
       return;
     }
 
     form.action = printBtn.getAttribute("formaction");
-    form.method = printBtn.getAttribute("formmethod") || "POST";
-
-    const spinner = document.getElementById("loadingSpinner");
-    if (spinner) spinner.style.display = "block";
-
-    setTimeout(() => {
-      if (spinner) spinner.style.display = "none";
-    }, 2000);
-
+    form.method = "POST";
     form.submit();
   });
 
-  // Toggle selection
   document.querySelectorAll('.category-box').forEach(box => {
     box.addEventListener('click', () => {
       const val = box.dataset.category;
@@ -181,30 +248,21 @@
     });
   });
 
-  // Select All
   document.getElementById('selectAll').addEventListener('change', function () {
-    const allBoxes = document.querySelectorAll('.category-box');
-    const allChecks = document.querySelectorAll('.category-checkbox');
-
-    allChecks.forEach(cb => cb.checked = this.checked);
-    allBoxes.forEach(box => {
-      if (this.checked) box.classList.add('active');
-      else box.classList.remove('active');
+    document.querySelectorAll('.category-checkbox').forEach(cb => cb.checked = this.checked);
+    document.querySelectorAll('.category-box').forEach(box => {
+      box.classList.toggle('active', this.checked);
     });
   });
 
-  // Start Quiz Validation
   document.getElementById('quizStartForm').addEventListener('submit', function (e) {
-    const selected = document.querySelectorAll('.category-checkbox:checked');
-
-    if (selected.length === 0) {
+    if (!document.querySelector('.category-checkbox:checked')) {
       e.preventDefault();
-      e.stopImmediatePropagation();
-      const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryModal'));
-      modal.show();
+      bootstrap.Modal.getOrCreateInstance(
+        document.getElementById('categoryModal')
+      ).show();
     }
   });
-
 </script>
 
 <%- include('../partials/footer') %>

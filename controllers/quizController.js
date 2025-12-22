@@ -5,12 +5,25 @@ const { v4: uuidv4 } = require("uuid");
 const quizSessions = {};
 
 exports.getStartForm = async (req, res) => {
-  const categories = await Question.distinct("category");
+
+  const categories = await Question.aggregate([
+    {
+      $group: {
+        _id: "$category",
+        count: { $sum: 1 }
+      }
+    },
+    {
+      $sort: { _id: 1 }   // optional: alphabetical order
+    }
+  ]);
+
   res.render("quiz/start", {
     title: "Start Quiz",
-    categories,
+    categories
   });
 };
+
 
 exports.postStartQuiz = async (req, res) => {
   const { numQuestions, categories } = req.body;

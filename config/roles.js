@@ -1,6 +1,12 @@
 // config/roles.js
 const adminRoles = ["Admin"];
 
+const akhilBharatRoles =[
+  "Akhil Bharatiya Pradhan",
+  "Akhil Bharatiya Maha Mantri",
+  "Akhil Bharatiya Sangathan Mantri"
+]
+
 const prantRoles = [
   "Prant Sanrakshak",
   "Prant Pradhan",
@@ -36,6 +42,7 @@ const saadhakRoles = ["Saadhak"];
 // Define hierarchy values (higher = more powerful)
 const levelMap = {
   Admin: 120,
+  AkhilBharat: 110,
   Prant: 100,
   Zila: 80,
   Ksheter: 60,
@@ -48,6 +55,7 @@ const levelMap = {
 const roleHierarchy = {};
 
 adminRoles.forEach(r => roleHierarchy[r] = levelMap.Admin);
+akhilBharatRoles.forEach(r => roleHierarchy[r] = levelMap.AkhilBharat);
 prantRoles.forEach(r => roleHierarchy[r] = levelMap.Prant);
 zilaRoles.forEach(r => roleHierarchy[r] = levelMap.Zila);
 ksheterRoles.forEach(r => roleHierarchy[r] = levelMap.Ksheter);
@@ -57,6 +65,7 @@ saadhakRoles.forEach(r => roleHierarchy[r] = levelMap.Saadhak);
 
 module.exports = {
   adminRoles,
+  akhilBharatRoles,
   prantRoles,
   zilaRoles,
   ksheterRoles,
