@@ -1214,6 +1214,7 @@ exports.viewTop10Attendance = async (req, res) => {
           return {
             _id: s._id,
             name: s.name,
+            photoURL: s.photoUrl || "",
             kender: s.kender?.name || "N/A",
             ksheter: s.ksheter?.name || "N/A",
             attendance: [...presentDatesSet],
@@ -1379,6 +1380,7 @@ exports.viewTop10Attendance = async (req, res) => {
           return {
             _id: s._id,
             name: s.name,
+            photoURL: s.photoUrl || "", 
             ksheter: ksheterLabel,
             kender: kenderLabel,
             attendance: [...presentDatesSet],

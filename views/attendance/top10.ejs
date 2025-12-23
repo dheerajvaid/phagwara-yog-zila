@@ -316,157 +316,216 @@
     return initials + ' ' + lastWord;
   }
 
-document.getElementById('exportPdfBtn')?.addEventListener('click', function () {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({
-    unit: 'pt',
-    format: 'a4',
-    orientation: 'portrait',
-  });
+/* ================= IMAGE HELPER ================= */
+async function loadImageAsBase64(url) {
+  return new Promise((resolve) => {
+    if (!url) return resolve(null);
 
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+      resolve(canvas.toDataURL("image/jpeg", 0.92));
+    };
+
+    img.onerror = () => resolve(null);
+    img.src = url;
+  });
+}
+
+/* ================= EXPORT PDF ================= */
+document.getElementById('exportPdfBtn')?.addEventListener('click', async function () {
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'pt', format: 'a4', orientation: 'portrait' });
+
+  /* ================= HEADER / FOOTER ================= */
   function addHeaderFooter(data) {
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     const marginLeft = 40;
     const marginRight = 40;
 
-    doc.setFillColor(220, 53, 69);
-    doc.rect(0, 0, pageWidth, 50, 'F');
+    // Header
+    doc.setFillColor(180, 30, 45);
+    doc.rect(0, 0, pageWidth, 52, 'F');
 
-    doc.setFontSize(18);
-    doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.setTextColor(255);
     doc.text("BHARTIYA YOG SANSTHAN (Regd.)", marginLeft, 30);
 
     doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
-    doc.text(zilaName, marginLeft, 45);
+    doc.text(String(zilaName || ""), marginLeft, 46);
 
-    const monthYearStr = new Date(2000, selectedMonth - 1).toLocaleString('default', { month: 'long' }) + " " + selectedYear;
+    const monthYearStr =
+      new Date(2000, selectedMonth - 1).toLocaleString('default', { month: 'long' }) +
+      " " + selectedYear;
+
     const rightText = `Top ${topN} Saadhaks ${monthYearStr}`;
-    const rightTextWidth = doc.getTextWidth(rightText);
-    doc.text(rightText, pageWidth - marginRight - rightTextWidth, 45);
+    const rightWidth = doc.getTextWidth(rightText);
+    doc.text(rightText, pageWidth - marginRight - rightWidth, 46);
 
-    const pageStr = "Page " + data.pageNumber + " of " + doc.internal.getNumberOfPages();
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text(pageStr, marginLeft, pageHeight - 15);
+    // Footer
+    doc.setFontSize(9);
+    doc.setTextColor(0);
+    doc.text(
+      `Page ${data.pageNumber} of ${doc.internal.getNumberOfPages()}`,
+      marginLeft,
+      pageHeight - 14
+    );
 
     const footerText = "Exported from Bhartiya Yog Sansthan App";
-    const footerTextWidth = doc.getTextWidth(footerText);
-    doc.text(footerText, pageWidth - marginRight - footerTextWidth, pageHeight - 15);
+    const footerWidth = doc.getTextWidth(footerText);
+    doc.text(
+      footerText,
+      pageWidth - marginRight - footerWidth,
+      pageHeight - 14
+    );
   }
 
-  const monthYearStr = new Date(2000, selectedMonth - 1).toLocaleString('default', { month: 'long' }) + " " + selectedYear;
-
+  /* ================= SUMMARY TABLE ================= */
   const ksheterSummaryMap = <%- JSON.stringify(ksheterSummaryMap) %>;
 
-  // Draw the Ksheter-Kender Summary Table
+  doc.setFont("helvetica", "bold");
   doc.setFontSize(13);
   doc.setTextColor(0);
-  doc.setFont("helvetica", "bold");
-  doc.text("Ksheter-wise & Kender-wise Summary", 40, 75);
+  doc.text("Ksheter-wise & Kender-wise Summary", 40, 80);
 
-  let summaryStartY = 90;
-  const summaryHead = [['Ksheter', 'Kender', 'Saadhak Count']];
   const summaryBody = [];
 
- // Apply same sorting logic as screen (Adhikari first)
-const sortedKsheter = Object.keys(ksheterSummaryMap).sort((a, b) => {
-  const isA = a === 'Adhikari';
-  const isB = b === 'Adhikari';
-  if (isA && !isB) return -1;
-  if (!isA && isB) return 1;
-  return a.localeCompare(b);
-});
+  Object.keys(ksheterSummaryMap)
+    .sort((a, b) => (a === 'Adhikari' ? -1 : b === 'Adhikari' ? 1 : a.localeCompare(b)))
+    .forEach(ksheter => {
+      const { total, kendras } = ksheterSummaryMap[ksheter];
+      Object.keys(kendras)
+        .sort((a, b) => kendras[b] - kendras[a])
+        .forEach((kender, i) => {
+          summaryBody.push([
+            i === 0 ? `${ksheter} (${total})` : '',
+            kender,
+            kendras[kender],
+          ]);
+        });
+    });
 
-// Build PDF table rows using sorted ksheter
-sortedKsheter.forEach(ksheter => {
-  const kendras = ksheterSummaryMap[ksheter].kendras;
-  const total = ksheterSummaryMap[ksheter].total;
+  doc.autoTable({
+    head: [['Ksheter', 'Kender', 'Saadhak Count']],
+    body: summaryBody,
+    startY: 95,
+    margin: { left: 40, right: 40, bottom: 80 }, // 🔒 buffer
+    styles: {
+      fontSize: 10,
+      cellPadding: 4,
+      textColor: [0, 0, 0],
+      lineWidth: 0.4,
+      lineColor: [0, 0, 0],
+    },
+    headStyles: {
+      fillColor: [235, 235, 235],
+      textColor: [0, 0, 0],
+      fontStyle: 'bold',
+    },
+    didDrawPage: addHeaderFooter,
+  });
 
-  // Sort Kenders alphabetically also (optional but cleaner)
- // 🔥 Sort kenders by their saadhak count (highest → lowest)
-const kendrasKeys = Object.keys(kendras).sort((a, b) => {
-  return kendras[b] - kendras[a];
-});
+  /* ================= FORCE NEW PAGE ================= */
+  doc.addPage();
 
+  /* ================= ATTENDANCE TABLE ================= */
+  const head = [['Photo', 'Saadhak', 'Ksheter', 'Kender', 'Attd%']];
+  const body = [];
 
-  let first = true;
+  for (const s of attendanceData) {
+    const photoBase64 = await loadImageAsBase64(s.photoURL);
 
-  kendrasKeys.forEach(kender => {
-    const row = [];
-    if (first) {
-      row.push(`${ksheter} (${total})`);
-      first = false;
-    } else {
-      row.push('');
+    body.push([
+      '',
+      s.name,
+      s.ksheter,
+      s.kender,
+      `${s.presentCount} / ${s.totalOperationalDays} (${(
+        (s.presentCount / s.totalOperationalDays) * 100
+      ).toFixed(2)}%)`,
+    ]);
+
+    body[body.length - 1]._photoBase64 = photoBase64;
+  }
+
+  doc.autoTable({
+    head,
+    body,
+    startY: 80, // 🔒 fixed safe start
+    margin: { top: 80, bottom: 90, left: 40, right: 40 }, // 🔒 bottom buffer
+
+    styles: {
+      fontSize: 9,
+      cellPadding: 2,
+      valign: 'middle',
+      textColor: [0, 0, 0],
+      minCellHeight: 36, // 🔒 taller than image
+      lineWidth: { top: 0.4, bottom: 0.4 },
+      lineColor: [0, 0, 0],
+    },
+
+    columnStyles: {
+      0: { cellWidth: 42 },
+      1: { halign: 'left' },
+      4: { fontStyle: 'bold', textColor: [180, 30, 45] },
+    },
+
+    headStyles: {
+      fillColor: [180, 30, 45],
+      textColor: [255, 255, 255],
+      fontStyle: 'bold',
+      fontSize: 9.5,
+    },
+
+    didParseCell(data) {
+      if (data.section === 'body' && data.column.index === 0) {
+        data.cell.text = '';
+        data.cell._photoBase64 = body[data.row.index]._photoBase64;
+      }
+    },
+
+    didDrawCell(data) {
+  if (
+    data.section === 'body' &&
+    data.column.index === 0 &&
+    data.cell._photoBase64
+  ) {
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const bottomLimit = pageHeight - 90; // SAME as bottom margin
+
+    // 🚫 SAFETY GUARD: do NOT draw if too close to page end
+    if (data.cell.y + data.cell.height > bottomLimit) {
+      return; // image will be drawn on next page instead
     }
 
-    row.push(kender);
-    row.push(kendras[kender]);
+    const maxSize = 24;
+    const props = doc.getImageProperties(data.cell._photoBase64);
 
-    summaryBody.push(row);
-  });
-});
+    let w, h;
+    if (props.height > props.width) {
+      h = maxSize;
+      w = (props.width / props.height) * maxSize;
+    } else {
+      w = maxSize;
+      h = (props.height / props.width) * maxSize;
+    }
 
+    const x = data.cell.x + (data.cell.width - w) / 2;
+    const y = data.cell.y + (data.cell.height - h) / 2;
 
-  doc.autoTable({
-    head: summaryHead,
-    body: summaryBody,
-    startY: summaryStartY,
-    margin: { left: 40, right: 40 },
-    styles: {
-      fontSize: 10,
-      cellPadding: 4,
-      halign: 'center',
-      valign: 'middle',
-      overflow: 'linebreak',
-      minCellHeight: 18,
-    },
-    headStyles: {
-      fillColor: [241, 241, 241],
-      textColor: 0,
-      fontStyle: 'bold',
-    },
-    columnStyles: {
-      0: { halign: 'left', fontStyle: 'bold' },
-    },
-  });
-
-  // Prepare Attendance Table
-  const head = [['Saadhak', 'Ksheter', 'Kender', 'Attd%']];
-  const body = attendanceData.map(s => [
-    s.name,
-    s.ksheter,
-    s.kender,
-    `${s.presentCount} / ${s.totalOperationalDays} (${((s.presentCount / s.totalOperationalDays) * 100).toFixed(2)}%)`
-  ]);
-
-  const afterSummaryY = doc.lastAutoTable.finalY + 20;
-
-  doc.autoTable({
-    head: head,
-    body: body,
-    startY: afterSummaryY,
-    margin: { top: 60, bottom: 40, left: 40, right: 40 },
-    styles: {
-      fontSize: 10,
-      cellPadding: 4,
-      halign: 'center',
-      valign: 'middle',
-      overflow: 'linebreak',
-      minCellHeight: 20,
-    },
-    headStyles: {
-      fillColor: [220, 53, 69],
-      textColor: 255,
-      fontStyle: 'bold',
-    },
-    columnStyles: {
-      0: { halign: 'left' },
-      3: { halign: 'center', fontStyle: 'bold', textColor: [220, 53, 69] },
-    },
+    doc.addImage(data.cell._photoBase64, 'JPEG', x, y, w, h);
+  }
+},
 
     didDrawPage: addHeaderFooter,
     pageBreak: 'auto',
