@@ -361,6 +361,30 @@ tableBody.insertAdjacentHTML(
       </div>
     </div>
 
+    <!-- 🔴 Delete Modal -->
+    <div class="modal fade" id="deleteModal${s._id}" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-danger text-white">
+            <h5 class="modal-title">Confirm Delete</h5>
+            <button class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            Delete <strong>${s.name}</strong>?
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+              Cancel
+            </button>
+            <a href="/saadhak/delete/${s._id}"
+               class="btn btn-danger btn-sm">
+              Yes, Delete
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </td>
 </tr>`
 );
