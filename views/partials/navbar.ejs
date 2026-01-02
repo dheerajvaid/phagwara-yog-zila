@@ -17,16 +17,21 @@ const isSaadhakOnly = user?.roles.some(role => saadhakRoles.includes(role));
     --link-hover: #0d6efd;
     --underline: #0d6efd;
   }
+
   .navbar-gradient {
     background: linear-gradient(145deg, var(--brand-bg-1), var(--brand-bg-2));
     backdrop-filter: blur(6px);
   }
-  .navbar-brand, .navbar-nav .nav-link {
+
+  .navbar-brand,
+  .navbar-nav .nav-link {
     position: relative;
     color: var(--link) !important;
     transition: color 0.25s ease;
   }
-  .navbar-brand::after, .navbar-nav .nav-link::after {
+
+  .navbar-brand::after,
+  .navbar-nav .nav-link::after {
     content: '';
     position: absolute;
     left: 0;
@@ -37,55 +42,143 @@ const isSaadhakOnly = user?.roles.some(role => saadhakRoles.includes(role));
     transition: width 0.25s ease;
     opacity: 0.85;
   }
-  .navbar-brand:hover::after, .navbar-nav .nav-link:hover::after {
+
+  .navbar-brand:hover::after,
+  .navbar-nav .nav-link:hover::after {
     width: 100%;
   }
-  .navbar-brand:hover, .navbar-nav .nav-link:hover {
+
+  .navbar-brand:hover,
+  .navbar-nav .nav-link:hover {
     color: var(--link-hover) !important;
   }
 
+  /* ================= BRAND FIX START ================= */
+
+  /* Logo (NOT clickable) */
+  .brand-logo {
+    height: 28px;
+    pointer-events: none; /* ensures no click behavior */
+  }
+
+  /* Keep logo + text tightly grouped */
+  .navbar-brand {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+  }
+
+  /* Text container */
+  .brand-text {
+    line-height: 1.05;
+  }
+
+  /* HOME text */
+  .brand-home {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #ffffff !important;
+    text-decoration: none !important;
+    display: block;
+  }
+
+  /* DASHBOARD text */
+  .brand-dashboard {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-top: 2px;
+    opacity: 0.9;
+    cursor: pointer;
+    color: #ffffff !important;
+    text-decoration: none !important;
+    display: block;
+  }
+
+  /* Hover color for HOME & DASHBOARD */
+  .brand-home:hover,
+  .brand-dashboard:hover {
+    color: var(--link-hover) !important;
+    text-decoration: none !important;
+  }
+
+  /* Mobile tightening */
+  @media (max-width: 576px) {
+    .navbar-brand {
+      gap: 4px !important;
+    }
+
+    .brand-text {
+      line-height: 1;
+    }
+  }
+
+  /* ================= BRAND FIX END ================= */
+
   .menu-divider {
-  border: 0;
-  height: 1px;
-  margin: 0.5rem 0;
-  background: linear-gradient(to right, transparent, var(--underline), transparent);
-  opacity: 0.5;
-}
+    border: 0;
+    height: 1px;
+    background: linear-gradient(
+      to right,
+      transparent,
+      var(--underline),
+      transparent
+    );
+    opacity: 0.5;
+  }
 
   @media (max-width: 991px) {
     .navbar .dropdown-menu {
       background: var(--brand-bg-2);
       border: none;
     }
+
     .dropdown-menu .dropdown-item {
       color: #f8f9fa;
     }
+
     .dropdown-menu .dropdown-item:hover {
       background: rgba(13, 110, 253, 0.15);
       color: #fff;
     }
+
     .calendar-icon-mobile {
       position: absolute;
       top: 10px;
       right: 85px;
       z-index: 1050;
     }
+
     .calendar-icon-mobile i {
       font-size: 1.5rem;
     }
+
     .calendar-icon-mobile .badge {
       font-size: 0.65rem;
       padding: 4px 6px;
     }
   }
 </style>
+
+
 <nav class="navbar navbar-expand-lg navbar-dark navbar-gradient sticky-top shadow-sm">
   <div class="container-fluid">
-    <!-- HOME Logo -->
-    <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="/">
-      <img src="/images/logo-nbg.png" alt="BYS Logo" style="height: 28px;" />
-      HOME
-    </a>
+   <div class="navbar-brand d-flex align-items-center brand-compact p-0">
+  <!-- Logo (NO LINK) -->
+  <img
+    src="/images/logo-nbg.png"
+    alt="BYS Logo"
+    class="brand-logo"
+  />
+
+  <!-- Text Links -->
+  <div class="brand-text">
+    <a href="/" class="brand-home d-block">HOME</a>
+    <a href="/dashboard" class="brand-dashboard d-block">DASHBOARD</a>
+  </div>
+</div>
+
+
+
 
      <!-- User Photo at Start -->
     <% if (user && user.photoUrl) { %>

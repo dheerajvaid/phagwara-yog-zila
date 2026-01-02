@@ -101,7 +101,7 @@
 <div class="container mt-3">
   <h3 class="text-center mb-4 fw-bold text-danger">
     <img src="/images/logo.jpg" alt="BYS Logo" style="height: 40px; vertical-align: middle; margin-right: 10px;" />
-    Top <%= topN %> Attendance
+    TOP Attendance Report
   </h3>
 
   <!-- Filter Form -->
@@ -129,11 +129,6 @@
     </div>
 
     <%- include('../partials/scope-dropdowns') %>
-
-    <div class="col-6 col-md-3">
-      <label class="form-label">Top N (10–20)</label>
-      <input type="number" name="top" min="10" max="20" value="<%= topN %>" class="form-control" required />
-    </div>
 
     <div class="col-12 col-md-3">
       <button type="submit" class="btn btn-primary w-100">🔍 View Report</button>
@@ -300,7 +295,6 @@
 
   // Convert your EJS attendanceData into JS array
   const attendanceData = <%- JSON.stringify(attendanceData) %>;
-  const topN = "<%= topN %>";
   const zilaName = "<%= zilaName %>";
   const selectedMonth = <%= selectedMonth %>;
   const selectedYear = <%= selectedYear %>;
@@ -340,6 +334,8 @@ async function loadImageAsBase64(url) {
 
 /* ================= EXPORT PDF ================= */
 document.getElementById('exportPdfBtn')?.addEventListener('click', async function () {
+  const loadingSpinner = document.getElementById('loadingSpinner');
+  loadingSpinner.style.display = 'block';
 
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: 'pt', format: 'a4', orientation: 'portrait' });
@@ -368,7 +364,7 @@ document.getElementById('exportPdfBtn')?.addEventListener('click', async functio
       new Date(2000, selectedMonth - 1).toLocaleString('default', { month: 'long' }) +
       " " + selectedYear;
 
-    const rightText = `Top ${topN} Saadhaks ${monthYearStr}`;
+    const rightText = `TOP Attendance Report - ${monthYearStr}`;
     const rightWidth = doc.getTextWidth(rightText);
     doc.text(rightText, pageWidth - marginRight - rightWidth, 46);
 
@@ -376,7 +372,7 @@ document.getElementById('exportPdfBtn')?.addEventListener('click', async functio
     doc.setFontSize(9);
     doc.setTextColor(0);
     doc.text(
-      `Page ${data.pageNumber} of ${doc.internal.getNumberOfPages()}`,
+      `Page ${data.pageNumber}`,
       marginLeft,
       pageHeight - 14
     );
@@ -531,7 +527,8 @@ document.getElementById('exportPdfBtn')?.addEventListener('click', async functio
     pageBreak: 'auto',
   });
 
-  doc.save(`Top_${topN}_Attendance_${selectedMonth}_${selectedYear}.pdf`);
+  doc.save(`Top_Attendance_${selectedMonth}_${selectedYear}.pdf`);
+  loadingSpinner.style.display = 'none';
 });
 
   // Image export (kept your existing code)
