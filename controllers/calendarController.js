@@ -24,6 +24,7 @@ exports.viewUpcomingEvents = async (req, res) => {
         };
       } else if (user.zila) {
         saadhakQuery = {
+          prant: user.prant,
           $or: [
             { zila: user.zila },
             { zila: { $exists: false } },
