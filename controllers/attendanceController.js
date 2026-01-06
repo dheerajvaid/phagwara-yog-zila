@@ -2299,7 +2299,10 @@ exports.exportMissingExcel = async (req, res) => {
 
 exports.monthlyAttendanceSummary = async (req, res) => {
   try {
-    const { kender } = req.query;
+    const user = req.session.user;
+    
+    const selectedKenderData = await Kender.find({_id: user.kender});  
+    selectedKenderName = selectedKenderData[0].name || "";
     const today = new Date();
 
     // Last 12 months range
@@ -2309,7 +2312,7 @@ exports.monthlyAttendanceSummary = async (req, res) => {
     const summary = await Attendance.aggregate([
       {
         $match: {
-          kender: new mongoose.Types.ObjectId(kender),
+          kender: new mongoose.Types.ObjectId(user.kender),
           date: { $gte: start, $lt: end },
         },
       },
@@ -2434,6 +2437,7 @@ exports.monthlyAttendanceSummary = async (req, res) => {
       data,
       months: filteredMonths,
       today,
+      kenderName: selectedKenderName
     });
   } catch (error) {
     console.error(error);

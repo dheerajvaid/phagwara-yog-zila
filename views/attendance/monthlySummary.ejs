@@ -92,6 +92,7 @@
   </div>
 
   <h5 class="attendance-title">📊 12-Month Attendance Summary</h5>
+  <h5><%= kenderName %></h5>
 
   <!-- Month Filters -->
   <div class="month-filter-group">
@@ -148,6 +149,8 @@
 <script>
   const originalMonths = <%- JSON.stringify(months) %>;
   const tableData = <%- JSON.stringify(data) %>;
+  const selectedKender = <%- JSON.stringify(kenderName) %>;
+
 
   // ---------------- MONTH FILTER LOGIC ----------------
  document.querySelectorAll("input[name='monthFilter']").forEach(r => {
@@ -220,11 +223,11 @@
     const pageWidth = doc.internal.pageSize.getWidth();
 
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(18);
+    doc.setFontSize(14);
     doc.text("BHARTIYA YOG SANSTHAN (Regd.)", 40, 40);
 
     doc.setFontSize(12);
-    doc.text("Attendance Summary Report", 40, 60);
+    doc.text(`Attendance Summary Report - ${selectedKender}`, 40, 60);
 
     const table = document.getElementById("attendanceTable");
     const headers = [...table.querySelectorAll("thead th")]
@@ -258,7 +261,7 @@
       }
     });
 
-    doc.save("Attendance_Summary.pdf");
+    doc.save(`${selectedKender} - Attendance_Summary.pdf`);
   }
 
 
