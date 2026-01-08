@@ -130,16 +130,6 @@
 
     <%- include('../partials/scope-dropdowns') %>
 
-    <div class="col-6 col-md-3">
-      <label class="form-label">+Prev. Months</label>
-      <input type="number" name="prevMonths" min="1" max="12" value="<%= prevMonths %>" class="form-control" required />
-    </div>
-
-    <div class="col-6 col-md-3">
-      <label class="form-label">Attendance Upto %</label>
-      <input type="number" name="attendPer" min="1" max="100" value="<%= attendPer %>" class="form-control" required />
-    </div>
-
     <div class="col-12 col-md-3">
       <button type="submit" class="btn btn-primary w-100">🔍 View Report</button>
     </div>
@@ -308,7 +298,6 @@
   const zilaName = "<%= zilaName %>";
   const selectedMonth = <%= selectedMonth %>;
   const selectedYear = <%= selectedYear %>;
-  const prevMonths = <%= prevMonths %>;
   const ksheterSummaryMap = <%- JSON.stringify(ksheterSummaryMap) %>;
 
   // Helper function for short names (same as EJS one)
@@ -335,7 +324,7 @@ async function loadImageAsBase64(url) {
       canvas.height = img.naturalHeight;
       const ctx = canvas.getContext("2d");
       ctx.drawImage(img, 0, 0);
-      resolve(canvas.toDataURL("image/jpeg", 1));
+      resolve(canvas.toDataURL("image/jpeg", 0.92));
     };
 
     img.onerror = () => resolve(null);
@@ -355,8 +344,8 @@ document.getElementById('exportPdfBtn')?.addEventListener('click', async functio
   function addHeaderFooter(data) {
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const marginLeft = 20;
-    const marginRight = 20;
+    const marginLeft = 40;
+    const marginRight = 40;
 
     // Header
     doc.setFillColor(180, 30, 45);
@@ -371,8 +360,8 @@ document.getElementById('exportPdfBtn')?.addEventListener('click', async functio
     doc.setFont("helvetica", "normal");
     doc.text(String(zilaName || ""), marginLeft, 46);
 
-    const monthYearStr = new Date(2000, selectedMonth - prevMonths).toLocaleString('default', { month: 'short' }) +
-      " " + selectedYear + " - " + new Date(2000, selectedMonth - 1).toLocaleString('default', { month: 'short' }) +
+    const monthYearStr =
+      new Date(2000, selectedMonth - 1).toLocaleString('default', { month: 'long' }) +
       " " + selectedYear;
 
     const rightText = `TOP Attendance Report - ${monthYearStr}`;
@@ -397,8 +386,56 @@ document.getElementById('exportPdfBtn')?.addEventListener('click', async functio
     );
   }
 
-    /* ================= ATTENDANCE TABLE ================= */
-  const head = [['      ', 'Saadhak', 'Attd%']];
+  /* ================= SUMMARY TABLE ================= */
+  const ksheterSummaryMap = <%- JSON.stringify(ksheterSummaryMap) %>;
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(13);
+  doc.setTextColor(0);
+  doc.text("Ksheter-wise & Kender-wise Summary", 40, 80);
+
+  const summaryBody = [];
+
+  Object.keys(ksheterSummaryMap)
+    .sort((a, b) => (a === 'Adhikari' ? -1 : b === 'Adhikari' ? 1 : a.localeCompare(b)))
+    .forEach(ksheter => {
+      const { total, kendras } = ksheterSummaryMap[ksheter];
+      Object.keys(kendras)
+        .sort((a, b) => kendras[b] - kendras[a])
+        .forEach((kender, i) => {
+          summaryBody.push([
+            i === 0 ? `${ksheter} (${total})` : '',
+            kender,
+            kendras[kender],
+          ]);
+        });
+    });
+
+  doc.autoTable({
+    head: [['Ksheter', 'Kender', 'Saadhak Count']],
+    body: summaryBody,
+    startY: 95,
+    margin: { left: 40, right: 40, bottom: 80 }, // 🔒 buffer
+    styles: {
+      fontSize: 10,
+      cellPadding: 4,
+      textColor: [0, 0, 0],
+      lineWidth: 0.4,
+      lineColor: [0, 0, 0],
+    },
+    headStyles: {
+      fillColor: [235, 235, 235],
+      textColor: [0, 0, 0],
+      fontStyle: 'bold',
+    },
+    didDrawPage: addHeaderFooter,
+  });
+
+  /* ================= FORCE NEW PAGE ================= */
+  doc.addPage();
+
+  /* ================= ATTENDANCE TABLE ================= */
+  const head = [['Photo', 'Saadhak', 'Ksheter', 'Kender', 'Attd%']];
   const body = [];
 
   for (const s of attendanceData) {
@@ -407,6 +444,8 @@ document.getElementById('exportPdfBtn')?.addEventListener('click', async functio
     body.push([
       '',
       s.name,
+      s.ksheter,
+      s.kender,
       `${s.presentCount} / ${s.totalOperationalDays} (${(
         (s.presentCount / s.totalOperationalDays) * 100
       ).toFixed(2)}%)`,
@@ -419,27 +458,25 @@ document.getElementById('exportPdfBtn')?.addEventListener('click', async functio
     head,
     body,
     startY: 80, // 🔒 fixed safe start
-    margin: { top: 70, bottom: 90, left: 20, right: 20 }, // 🔒 bottom buffer
+    margin: { top: 80, bottom: 90, left: 40, right: 40 }, // 🔒 bottom buffer
 
     styles: {
-      fontSize: 24,
-      fontStyle: 'bold',
+      fontSize: 9,
       cellPadding: 2,
       valign: 'middle',
       textColor: [0, 0, 0],
-      minCellHeight: 64, // 🔒 taller than image
+      minCellHeight: 36, // 🔒 taller than image
       lineWidth: { top: 0.4, bottom: 0.4 },
       lineColor: [0, 0, 0],
     },
 
     columnStyles: {
-      0: { cellWidth: 48 },
+      0: { cellWidth: 42 },
       1: { halign: 'left' },
-      2: { fontSize: 16, fontStyle: 'bold', textColor: [180, 30, 45] },
+      4: { fontStyle: 'bold', textColor: [180, 30, 45] },
     },
 
     headStyles: {
-      minCellHeight: 16,
       fillColor: [180, 30, 45],
       textColor: [255, 255, 255],
       fontStyle: 'bold',
@@ -460,14 +497,14 @@ document.getElementById('exportPdfBtn')?.addEventListener('click', async functio
     data.cell._photoBase64
   ) {
     const pageHeight = doc.internal.pageSize.getHeight();
-    const bottomLimit = pageHeight - 100; // SAME as bottom margin
+    const bottomLimit = pageHeight - 90; // SAME as bottom margin
 
     // 🚫 SAFETY GUARD: do NOT draw if too close to page end
     if (data.cell.y + data.cell.height > bottomLimit) {
       return; // image will be drawn on next page instead
     }
 
-    const maxSize = 56;
+    const maxSize = 24;
     const props = doc.getImageProperties(data.cell._photoBase64);
 
     let w, h;

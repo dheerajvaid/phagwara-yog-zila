@@ -1075,8 +1075,10 @@ exports.viewTop10Attendance = async (req, res) => {
     const selectedMonth = parseInt(req.query.month) || today.getMonth() + 1;
     const selectedYear = parseInt(req.query.year) || today.getFullYear();
     const selectedScope = req.query.scope || "prant";
+    const prevMonths = Math.min(Math.abs(req.query.prevMonths), 12) || 1; 
+    const attendPer = Math.min(Math.abs(req.query.attendPer), 100) || 65; 
 
-    const start = new Date(selectedYear, selectedMonth - 1, 1);
+    const start = new Date(selectedYear, selectedMonth - prevMonths, 1);
     const end = new Date(selectedYear, selectedMonth, 0, 23, 59, 59);
 
     let prantName = "";
@@ -1220,7 +1222,7 @@ exports.viewTop10Attendance = async (req, res) => {
             attendancePercentage,
           };
         })
-        .filter((s) => s && s.attendancePercentage >= 65) // ✅ ONLY CHANGE
+        .filter((s) => s && s.attendancePercentage >= attendPer) // ✅ ONLY CHANGE
         .sort((a, b) => {
           if (b.presentCount !== a.presentCount)
             return b.presentCount - a.presentCount;
@@ -1357,6 +1359,8 @@ exports.viewTop10Attendance = async (req, res) => {
       selectedKender: res.locals.selectedKender,
       ksheterSummaryMap,
       kenderSummaryMap,
+      prevMonths,
+      attendPer
     });
   } catch (err) {
     console.error("Error loading top 10 saadhaks:", err);
