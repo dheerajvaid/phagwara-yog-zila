@@ -8,7 +8,9 @@ const greetingMessagesPath = path.join(__dirname, "../data/greetings.json");
 const messages = JSON.parse(fs.readFileSync(greetingMessagesPath, "utf-8"));
 
 exports.generateGreeting = async (req, res) => {
-  const { name, type, date, mobile } = req.body;
+  // console.log(req.body);
+
+  const { name, type, date, mobile, photoUrl } = req.body;
   const user = req.session.user;
 
   let kenderName = "",
@@ -48,7 +50,7 @@ exports.generateGreeting = async (req, res) => {
     );
 
     ctx.drawImage(backgroundImage, 0, 0, width, height);
-    ctx.drawImage(logoImage, width / 2 - 75, 40, 150, 120); // Centered logo
+    ctx.drawImage(logoImage, width / 2 - 60, 30, 120, 100); // Slightly smaller logo
 
     // 🎨 Border
     const borderWidth = 12;
@@ -93,85 +95,129 @@ exports.generateGreeting = async (req, res) => {
     ctx.fillStyle = "#d81b60";
     ctx.shadowColor = "#880e4f33";
     ctx.shadowBlur = 2;
-    ctx.font = "bold 64px Georgia";
-    drawCenteredText(ctx, `Happy ${capitalize(type)}!`, width / 2, 210);
+    ctx.font = "bold 52px Georgia"; // Reduced from 64px
+    drawCenteredText(ctx, `Happy ${capitalize(type)}!`, width / 2, 175);
 
     // 👤 Name
     ctx.fillStyle = "#0d47a1";
     ctx.shadowColor = "#00217133";
     ctx.shadowBlur = 2;
-    const nameFontSize = fitTextToWidth(ctx, name, 880, 74, "Verdana");
+    const nameFontSize = fitTextToWidth(ctx, name, 880, 58, "Verdana"); // Reduced from 74px
     ctx.font = `bold ${nameFontSize}px Verdana`;
-    drawCenteredText(ctx, name, width / 2, 300);
+    drawCenteredText(ctx, name, width / 2, 240);
 
     // 📅 Date
-    let yStartMessage = 360;
+    let yStartMessage = 290;
     if (date) {
       const formattedDate = formatDateReadable(date);
       ctx.fillStyle = "#d32f2f";
-      ctx.font = "bold 38px Arial";
-      drawCenteredText(ctx, formattedDate, width / 2, 350);
+      ctx.font = "bold 30px Arial"; // Reduced from 38px
+      drawCenteredText(ctx, formattedDate, width / 2, 285);
+      yStartMessage = 320;
     }
 
-    // 📦 Message Box (smaller height)
+    // 🖼️ User Photo (if provided)
+    if (photoUrl) {
+      try {
+        const userPhoto = await loadImage(photoUrl);
+        const photoSize = 140; // Reduced from 180
+        const photoX = width / 2 - photoSize / 2;
+        const photoY = yStartMessage;
+
+        // Draw circular photo with border
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(
+          photoX + photoSize / 2,
+          photoY + photoSize / 2,
+          photoSize / 2,
+          0,
+          Math.PI * 2
+        );
+        ctx.closePath();
+        ctx.clip();
+        ctx.drawImage(userPhoto, photoX, photoY, photoSize, photoSize);
+        ctx.restore();
+
+        // Draw border around photo
+        ctx.beginPath();
+        ctx.arc(
+          photoX + photoSize / 2,
+          photoY + photoSize / 2,
+          photoSize / 2,
+          0,
+          Math.PI * 2
+        );
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = borderColor;
+        ctx.stroke();
+
+        yStartMessage = photoY + photoSize + 15; // move message below photo
+      } catch (photoErr) {
+        console.error("Failed to load photo:", photoErr);
+      }
+    }
+
+    // 📦 Message Box
     const boxX = 60;
     const boxY = yStartMessage;
     const boxWidth = 880;
-    const boxHeight = 360; // reduced height
-    const padding = 24;
+    const padding = 20;
 
-    // ctx.save();
-    // ctx.shadowColor = "#00000022";
-    // ctx.shadowBlur = 5;
-    // ctx.fillStyle = "#ffffffee";
-    // ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
-    // ctx.lineWidth = 2;
-    // ctx.strokeStyle = "#cccccc";
-    // ctx.strokeRect(boxX, boxY, boxWidth, boxHeight);
-    // ctx.restore();
-
-    // 📝 Message (larger font, top-aligned)
+    // 📝 Message - Dynamic font size based on available space
     ctx.fillStyle = "black";
-    ctx.font = "58px Arial"; // larger font for sharpness
+    const hasPhoto = !!photoUrl;
+    const messageFontSize = hasPhoto ? 42 : 48; // Smaller font when photo present
+    ctx.font = `${messageFontSize}px Arial`;
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
 
     const lines = getWrappedLines(ctx, randomMessage, boxWidth - 2 * padding);
-    const lineHeight = 64; // slightly more spacing
+    const lineHeight = hasPhoto ? 48 : 54;
     let startY = boxY + padding;
 
-    lines.forEach((line, i) => {
+    // Limit lines to prevent overflow
+    const maxLines = hasPhoto ? 4 : 5;
+    const displayLines = lines.slice(0, maxLines);
+
+    displayLines.forEach((line, i) => {
       ctx.fillText(line, width / 2, startY + i * lineHeight);
     });
 
-    // 🟡 From Info
-    const fromLabel = "- Best Wishes -"; //From Label
+    // Calculate where message ends
+    const messageEndY = startY + displayLines.length * lineHeight + 20;
+
+    // 🟡 From Info - Dynamic positioning based on message end
+    const fromInfoStartY = Math.max(messageEndY, hasPhoto ? 680 : 700);
+
+    const fromLabel = "- Best Wishes -";
     const fromText = `${user.name} (${user.roles.join(", ")})`;
-    const hierarchyText = [kenderName, ksheterName]
-      .filter(Boolean)
-      .join(", ");
+    const hierarchyText = [kenderName, ksheterName].filter(Boolean).join(", ");
     const hierarchyText1 = [zilaName];
-      
 
     ctx.shadowColor = "#00000022";
     ctx.shadowBlur = 2;
 
-    ctx.font = "bold 36px Arial";
+    ctx.font = "bold 28px Arial"; // Reduced from 36px
     ctx.fillStyle = "red";
     ctx.textAlign = "center";
-    ctx.fillText(fromLabel, width / 2, 730);
+    ctx.fillText(fromLabel, width / 2, fromInfoStartY);
 
-    ctx.font = "bold 42px Arial";
+    ctx.font = "bold 34px Arial"; // Reduced from 42px
     ctx.fillStyle = "blue";
     ctx.textAlign = "center";
-    ctx.fillText(fromText, width / 2, 770);
-    ctx.font = "bold 32px Arial";
-    ctx.fillText(hierarchyText, width / 2, 825);
-    ctx.font = "bold 32px Arial";
-    ctx.fillText(hierarchyText1, width / 2, 855);
-    ctx.font = "bold 48px Arial";
+    ctx.fillText(fromText, width / 2, fromInfoStartY + 35);
+
+    ctx.font = "bold 26px Arial"; // Reduced from 32px
+    ctx.fillText(hierarchyText, width / 2, fromInfoStartY + 75);
+
+    ctx.font = "bold 26px Arial"; // Reduced from 32px
+    ctx.fillText(hierarchyText1, width / 2, fromInfoStartY + 105);
+
+    ctx.font = "bold 38px Arial"; // Reduced from 48px
     ctx.fillStyle = "red";
-    ctx.fillText("BHARATIYA YOG SANSTHAN (REGD.)", width / 2, 920);
+    ctx.fillText("BHARATIYA YOG SANSTHAN (REGD.)", width / 2, 940);
+
     // Save File
     const safeName = name.replace(/\s+/g, "_");
     const safeMobile = (mobile || "").replace(/\s+/g, "_");

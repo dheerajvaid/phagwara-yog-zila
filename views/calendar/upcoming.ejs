@@ -14,6 +14,13 @@
   .event-date { font-size: 0.95rem; color: red; font-weight: bold; font-style: italic; }
   .event-header-icon { font-size: 1.6rem; }
   .section-heading { border-bottom: 2px solid #dee2e6; margin-bottom: 1rem; padding-bottom: 0.5rem; }
+  .saadhak-avatar {
+  width: 48px;
+  object-fit: contain;   /* preserve ratio */
+  background: linear-gradient(120deg, #e0eafc, #cfdef3);
+  border-radius: 8px;
+  margin-right: 8px;
+} 
 </style>
 
 <div class="container mt-4">
@@ -29,12 +36,13 @@
       <div class="col-md-4 mb-4">
         <div class="card event-card today <%= e.type.includes('Birthday') ? 'birthday-card' : 'anniversary-card' %> h-100"
              data-saadhak-name="<%= e.saadhak.name %>"
+             data-photoUrl="<%= e.saadhak.photoUrl %>"
              data-event-type="<%= e.type %>"
              data-saadhak-mobile="<%= e.saadhak.mobile %>"
              data-event-date="<%= e.date.toISOString() %>"
              onclick="openGreetingModal(this)">
           <div class="card-body">
-            <h5 class="card-title fw-semibold text-primary"><i class="bi bi-person-circle me-2 event-header-icon"></i><%= e.saadhak.name %></h5>
+            <h5 class="card-title fw-semibold text-primary"><img src="<%= e.saadhak.photoUrl %>" class="saadhak-avatar" /><%= e.saadhak.name %></h5>
             <p class="mb-1"><strong>📱 <%= e.saadhak.mobile %></p></strong>
             <% if (e.saadhak.kender) { %><p class="mb-1"><strong class="text-danger">Kender: <span class="text-primary"><%= e.saadhak.kender.name %></span></p></strong><% } %>
             <% if (e.saadhak.ksheter) { %><p class="mb-1"><strong class="text-danger">Ksheter:</strong> <%= e.saadhak.ksheter.name %></p><% } %>
@@ -62,12 +70,13 @@
       <div class="col-md-4 mb-4">
         <div class="card event-card upcoming <%= e.type.includes('Birthday') ? 'birthday-card' : 'anniversary-card' %> h-100"
              data-saadhak-name="<%= e.saadhak.name %>"
+             data-photoUrl="<%= e.saadhak.photoUrl %>"
              data-event-type="<%= e.type %>"
              data-saadhak-mobile="<%= e.saadhak.mobile %>"
              data-event-date="<%= e.date.toISOString() %>"
              onclick="openGreetingModal(this)">
           <div class="card-body">
-            <h5 class="card-title fw-semibold text-primary"><i class="bi bi-person-fill me-2 event-header-icon"></i><%= e.saadhak.name %></h5>
+            <h5 class="card-title fw-semibold text-primary"><img src="<%= e.saadhak.photoUrl %>" class="saadhak-avatar" /><%= e.saadhak.name %></h5>
             <p class="mb-1"><strong>📱 <%= e.saadhak.mobile %></p></strong>
             <% if (e.saadhak.kender) { %><p class="mb-1"><strong class="text-danger">Kender: <span class="text-primary"><%= e.saadhak.kender.name %></span></p></strong><% } %>
             <% if (e.saadhak.ksheter) { %><p class="mb-1"><strong class="text-danger">Ksheter:</strong> <%= e.saadhak.ksheter.name %></p><% } %>
@@ -127,8 +136,6 @@
     </div>
   </div>
 </div>
-
-
 <script>
   let selectedName = '', selectedType = '', selectedMobile = '', selectedDate = '';
   const spinner = document.getElementById('loadingSpinner'); 
@@ -138,6 +145,7 @@
     selectedType = card.getAttribute('data-event-type').toLowerCase().replace(/[^\w]/g, '').trim();
     selectedMobile = card.getAttribute('data-saadhak-mobile');
     selectedDate = card.getAttribute('data-event-date');
+    selectedPhotoUrl = card.getAttribute('data-photoUrl')
 
     document.getElementById('modalMessage').innerText =
       `Shall I make a greeting for ${selectedName} for the event: ${selectedType}?`;
@@ -146,7 +154,7 @@
 
   document.getElementById('confirmGreetingBtn').addEventListener('click', async () => {
     if (spinner) spinner.style.display = 'block';
-    await createGreeting(selectedName, selectedType, selectedMobile, selectedDate);
+    await createGreeting(selectedName, selectedType, selectedMobile, selectedDate, selectedPhotoUrl);
     if (spinner) spinner.style.display = 'none';
 
     bootstrap.Modal.getInstance(document.getElementById('greetingModal')).hide();
@@ -156,19 +164,19 @@
  // Use your spinner's actual ID
   if (spinner) spinner.style.display = 'block';
 
-  setTimeout(() => {
-    if (spinner) spinner.style.display = 'none';
-  }, 3000);
+   setTimeout(() => {
+      if (spinner) spinner.style.display = 'none';
+    }, 2000);
 });
 
-  async function createGreeting(name, type, mobile, date) {
+  async function createGreeting(name, type, mobile, date, photoUrl) {
     try {
       const response = await fetch('/greeting/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ name, type, mobile, date })
+        body: JSON.stringify({ name, type, mobile, date, photoUrl })
       });
 
       const data = await response.json();
@@ -184,6 +192,8 @@
       console.error('Error generating greeting:', err);
       alert('Something went wrong.');
     }
+
+    if (spinner) spinner.style.display = 'none';
   }
 
   function showGreetingImage(url) {
@@ -202,6 +212,7 @@
 
   downloadBtn.setAttribute('download', fileName);
   imgModal.show();
+  if (spinner) spinner.style.display = 'none';
 }
 
 </script>

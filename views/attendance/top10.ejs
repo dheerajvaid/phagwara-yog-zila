@@ -406,7 +406,7 @@ document.getElementById('exportPdfBtn')?.addEventListener('click', async functio
 
     body.push([
       '',
-      s.name,
+      s.name.toUpperCase(),
       `${s.presentCount} / ${s.totalOperationalDays} (${(
         (s.presentCount / s.totalOperationalDays) * 100
       ).toFixed(2)}%)`,
