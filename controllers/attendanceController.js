@@ -1293,11 +1293,11 @@ exports.viewTop10Attendance = async (req, res) => {
 
       if (a.missedDays !== b.missedDays) return a.missedDays - b.missedDays;
 
-      if ((a.ksheter || "") !== (b.ksheter || ""))
-        return (a.ksheter || "").localeCompare(b.ksheter || "");
+      // if ((a.ksheter || "") !== (b.ksheter || ""))
+      //   return (a.ksheter || "").localeCompare(b.ksheter || "");
 
-      if ((a.kender || "") !== (b.kender || ""))
-        return (a.kender || "").localeCompare(b.kender || "");
+      // if ((a.kender || "") !== (b.kender || ""))
+      //   return (a.kender || "").localeCompare(b.kender || "");
 
       return (a.name || "").localeCompare(b.name || "");
     });
