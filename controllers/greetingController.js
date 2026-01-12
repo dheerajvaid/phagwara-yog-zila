@@ -117,42 +117,39 @@ exports.generateGreeting = async (req, res) => {
     }
 
     // 🖼️ User Photo (if provided)
+    // 🖼️ User Photo (if provided)
     if (photoUrl) {
       try {
         const userPhoto = await loadImage(photoUrl);
-        const photoSize = 140; // Reduced from 180
-        const photoX = width / 2 - photoSize / 2;
+        const maxPhotoWidth = 160;
+        const maxPhotoHeight = 200;
+
+        // Calculate dimensions preserving aspect ratio
+        const aspectRatio = userPhoto.width / userPhoto.height;
+        let photoWidth, photoHeight;
+
+        if (aspectRatio > maxPhotoWidth / maxPhotoHeight) {
+          // Wider image - constrain by width
+          photoWidth = maxPhotoWidth;
+          photoHeight = maxPhotoWidth / aspectRatio;
+        } else {
+          // Taller image - constrain by height
+          photoHeight = maxPhotoHeight;
+          photoWidth = maxPhotoHeight * aspectRatio;
+        }
+
+        const photoX = width / 2 - photoWidth / 2;
         const photoY = yStartMessage;
 
-        // Draw circular photo with border
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(
-          photoX + photoSize / 2,
-          photoY + photoSize / 2,
-          photoSize / 2,
-          0,
-          Math.PI * 2
-        );
-        ctx.closePath();
-        ctx.clip();
-        ctx.drawImage(userPhoto, photoX, photoY, photoSize, photoSize);
-        ctx.restore();
+        // Draw photo with border (no clipping)
+        ctx.drawImage(userPhoto, photoX, photoY, photoWidth, photoHeight);
 
         // Draw border around photo
-        ctx.beginPath();
-        ctx.arc(
-          photoX + photoSize / 2,
-          photoY + photoSize / 2,
-          photoSize / 2,
-          0,
-          Math.PI * 2
-        );
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 4;
         ctx.strokeStyle = borderColor;
-        ctx.stroke();
+        ctx.strokeRect(photoX, photoY, photoWidth, photoHeight);
 
-        yStartMessage = photoY + photoSize + 15; // move message below photo
+        yStartMessage = photoY + photoHeight + 20; // move message below photo
       } catch (photoErr) {
         console.error("Failed to load photo:", photoErr);
       }
