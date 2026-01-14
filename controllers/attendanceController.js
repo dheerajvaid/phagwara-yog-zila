@@ -1340,6 +1340,7 @@ exports.viewTop10Attendance = async (req, res) => {
       kenderSummaryMap[kender] += 1;
     }
 
+    
     return res.render("attendance/top10", {
       attendanceData,
       selectedMonth,
