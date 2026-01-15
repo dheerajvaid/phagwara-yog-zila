@@ -33,13 +33,28 @@ exports.setEventCount = async (req, res, next) => {
       const hasPrantRole = user.roles.some((role) => prantRoles.includes(role));
 
       if (hasPrantRole && user.prant) {
-        query.$and.push({ prant: user.prant });
+        query.$and.push({
+          $or: [
+            { prant: user.prant },
+            { prant: { $exists: false } },
+            { prant: null },
+          ],
+        });
       } else if (user.zila) {
-        query.$and.push({ zila: user.zila });
+        query.$and.push({
+          prant: user.prant,
+          $or: [
+            { zila: user.zila },
+            { zila: { $exists: false } },
+            { zila: null },
+          ],
+        });
       } else {
         query.$and.push({ _id: null }); // blocks everything
       }
     }
+
+    // console.log("Event Count Query:", JSON.stringify(query));
 
     const saadhaks = await Saadhak.find(query).select(
       "dob marriageDate maritalStatus"

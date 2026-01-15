@@ -185,6 +185,7 @@ exports.generateGreeting = async (req, res) => {
     const messageEndY = startY + displayLines.length * lineHeight + 20;
 
     // 🟡 From Info - Dynamic positioning based on message end
+    // 🟡 From Info - Dynamic positioning based on message end
     const fromInfoStartY = Math.max(messageEndY, hasPhoto ? 680 : 700);
 
     const fromLabel = "- Best Wishes -";
@@ -195,20 +196,57 @@ exports.generateGreeting = async (req, res) => {
     ctx.shadowColor = "#00000022";
     ctx.shadowBlur = 2;
 
-    ctx.font = "bold 28px Arial"; // Reduced from 36px
+    ctx.font = "bold 28px Arial";
     ctx.fillStyle = "red";
     ctx.textAlign = "center";
     ctx.fillText(fromLabel, width / 2, fromInfoStartY);
 
-    ctx.font = "bold 34px Arial"; // Reduced from 42px
-    ctx.fillStyle = "blue";
-    ctx.textAlign = "center";
-    ctx.fillText(fromText, width / 2, fromInfoStartY + 35);
+    // 👤 User's circular photo inline with name
+    // 👤 User's rectangular photo inline with name
+    const nameY = fromInfoStartY + 35;
+    const photoWidth = 56;
+    const photoHeight = photoWidth * 1.284; // ~44px height
 
-    ctx.font = "bold 26px Arial"; // Reduced from 32px
+    ctx.font = "bold 34px Arial";
+    const nameTextWidth = ctx.measureText(fromText).width;
+
+    if (user.photoUrl) {
+      try {
+        const senderPhoto = await loadImage(user.photoUrl);
+        const totalWidth = photoWidth + 10 + nameTextWidth; // photo + gap + text
+        const startX = width / 2 - totalWidth / 2;
+        const photoX = startX;
+        const photoY = nameY - photoHeight / 2 ; // vertically center with text
+
+        // Draw rectangular photo
+        ctx.drawImage(senderPhoto, photoX, photoY, photoWidth, photoHeight);
+
+        // Draw border
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = borderColor;
+        ctx.strokeRect(photoX, photoY, photoWidth, photoHeight);
+
+        // Draw name to the right of photo
+        ctx.fillStyle = "blue";
+        ctx.textAlign = "left";
+        ctx.fillText(fromText, photoX + photoWidth + 10, nameY);
+      } catch (err) {
+        console.error("Failed to load sender photo:", err);
+        ctx.fillStyle = "blue";
+        ctx.textAlign = "center";
+        ctx.fillText(fromText, width / 2, nameY);
+      }
+    } else {
+      ctx.fillStyle = "blue";
+      ctx.textAlign = "center";
+      ctx.fillText(fromText, width / 2, nameY);
+    }
+
+    ctx.textAlign = "center";
+    ctx.font = "bold 26px Arial";
     ctx.fillText(hierarchyText, width / 2, fromInfoStartY + 75);
 
-    ctx.font = "bold 26px Arial"; // Reduced from 32px
+    ctx.font = "bold 26px Arial";
     ctx.fillText(hierarchyText1, width / 2, fromInfoStartY + 105);
 
     ctx.font = "bold 38px Arial"; // Reduced from 48px
