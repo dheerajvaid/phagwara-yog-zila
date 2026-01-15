@@ -16,6 +16,7 @@ const { formatName } = require("../utils/formatters");
 
 const {
   adminRoles,
+  akhilBharatRoles,
   prantRoles,
   zilaRoles,
   ksheterRoles,
@@ -26,6 +27,7 @@ const {
 
 const ALL_ROLES = [
   ...adminRoles,
+  ...akhilBharatRoles,
   ...prantRoles,
   ...zilaRoles,
   ...ksheterRoles,

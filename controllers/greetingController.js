@@ -39,7 +39,7 @@ exports.generateGreeting = async (req, res) => {
     const ctx = canvas.getContext("2d");
 
     const normalizedType = type?.toLowerCase();
-    const randomNumber = Math.floor(Math.random() * 15) + 1;
+    const randomNumber = Math.floor(Math.random() * 12) + 1;
 
     const backgroundImage = await loadImage(
       path.join(__dirname, `../public/images/bg${randomNumber}.png`)
@@ -102,9 +102,9 @@ exports.generateGreeting = async (req, res) => {
     ctx.fillStyle = "#0d47a1";
     ctx.shadowColor = "#00217133";
     ctx.shadowBlur = 2;
-    const nameFontSize = fitTextToWidth(ctx, name, 880, 58, "Verdana"); // Reduced from 74px
+    const nameFontSize = fitTextToWidth(ctx, name + " Ji", 880, 58, "Verdana"); // Reduced from 74px
     ctx.font = `bold ${nameFontSize}px Verdana`;
-    drawCenteredText(ctx, name, width / 2, 240);
+    drawCenteredText(ctx, name + " Ji", width / 2, 240);
 
     // 📅 Date
     let yStartMessage = 290;
@@ -122,7 +122,7 @@ exports.generateGreeting = async (req, res) => {
       try {
         const userPhoto = await loadImage(photoUrl);
         const maxPhotoWidth = 160;
-        const maxPhotoHeight = 200;
+        const maxPhotoHeight = 205.44;
 
         // Calculate dimensions preserving aspect ratio
         const aspectRatio = userPhoto.width / userPhoto.height;
