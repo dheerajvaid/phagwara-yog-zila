@@ -406,13 +406,16 @@ document.getElementById('exportPdfBtn')?.addEventListener('click', async functio
 
     body.push([
       '',
-      s.name.toUpperCase(),
+      '',
       `${s.presentCount} / ${s.totalOperationalDays} (${(
         (s.presentCount / s.totalOperationalDays) * 100
       ).toFixed(2)}%)`,
     ]);
 
     body[body.length - 1]._photoBase64 = photoBase64;
+    body[body.length - 1]._name = s.name?.toUpperCase();
+    body[body.length - 1]._kender = s.kender;
+    body[body.length - 1]._ksheter = s.ksheter;
   }
 
   doc.autoTable({
@@ -433,10 +436,10 @@ document.getElementById('exportPdfBtn')?.addEventListener('click', async functio
     },
 
     columnStyles: {
-      0: { cellWidth: 48 },
-      1: { halign: 'left' },
-      2: { fontSize: 16, fontStyle: 'bold', textColor: [180, 30, 45] },
-    },
+  0: { cellWidth: 48 },
+  1: { cellWidth: 340, halign: 'left' },  // Fixed width for name column
+  2: { cellWidth: 120, fontSize: 16, fontStyle: 'bold', textColor: [180, 30, 45], halign: 'right' },
+},
 
     headStyles: {
       minCellHeight: 16,
@@ -447,16 +450,22 @@ document.getElementById('exportPdfBtn')?.addEventListener('click', async functio
     },
 
     didParseCell(data) {
-      if (data.section === 'body' && data.column.index === 0) {
-        data.cell.text = '';
-        data.cell._photoBase64 = body[data.row.index]._photoBase64;
-      }
-    },
+  if (data.section === 'body' && data.column.index === 0) {
+    data.cell.text = '';
+    data.cell._photoBase64 = body[data.row.index]._photoBase64;
+  }
+  if (data.section === 'body' && data.column.index === 1) {
+    data.cell.text = '';
+    data.cell._name = body[data.row.index]._name;
+    data.cell._kender = body[data.row.index]._kender;
+    data.cell._ksheter = body[data.row.index]._ksheter;
+  }
+  
+},
 
     didDrawCell(data) {
-  if (
-    data.section === 'body' &&
-    data.column.index === 0 &&
+  // Existing photo drawing code...
+  if (data.section === 'body' && data.column.index === 0 && 
     data.cell._photoBase64
   ) {
     const pageHeight = doc.internal.pageSize.getHeight();
@@ -483,6 +492,28 @@ document.getElementById('exportPdfBtn')?.addEventListener('click', async functio
     const y = data.cell.y + (data.cell.height - h) / 2;
 
     doc.addImage(data.cell._photoBase64, 'JPEG', x, y, w, h);
+  }
+
+  if (data.section === 'body' && data.column.index === 1 && data.cell._name) {
+    const x = data.cell.x + 4;
+    const centerY = data.cell.y + data.cell.height / 2;
+
+    // Draw name in big font
+    doc.setFontSize(24);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(20, 15, 255);
+    doc.text(data.cell._name || '', x, centerY - 6);
+
+    // Draw kender in small font below
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(255, 65, 30);
+    doc.text(data.cell._kender || '', x, centerY + 10);
+
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(25, 135, 13);
+    doc.text(data.cell._ksheter || '', x, centerY + 10 + 14);
   }
 },
 
