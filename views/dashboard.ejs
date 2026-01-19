@@ -192,7 +192,6 @@
         <div id="tipImageArea" class="bg-white text-dark"
              style="padding: 0.5rem; border: 2px solid #28a745; border-radius: 0rem; max-width: 350px; margin: auto; box-shadow: 0 0 12px rgba(0,0,0,0.08);">
 
-
           <!-- ⭐ TOP SECTION WITH BYS LOGO + TITLE ⭐ -->
           <div class="d-flex align-items-center justify-content-center gap-3 mb-3">
             <div style="width:60px; padding:5px; border:2px solid #28a745; border-radius:8px; background-color:white; display:flex; align-items:center; justify-content:center;">
@@ -210,43 +209,43 @@
             </div>
           </div>
 
-
-          <!-- ⭐ NEWLY ADDED USER PHOTO + NAME SECTION ⭐ -->
+          <!-- ⭐ USER PHOTO + NAME SECTION ⭐ -->
           <% if (user.photoUrl) { %>
             <div class="d-flex flex-column align-items-center mb-3">
-
-              <div style="
-                height: 90px;
-                width: 70.87px;
-                border-radius: 8px;
-                overflow: hidden;
-                border: 3px solid #28a745;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-              ">
-                <img src="<%= user.photoUrl %>"
-                     alt="Photo"
-                     style="width:100%; height:100%; object-fit:cover;">
+              <div style="height: 90px; width: 70.87px; border-radius: 8px; overflow: hidden; border: 3px solid #28a745; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                <img src="<%= user.photoUrl %>" alt="Photo" style="width:100%; height:100%; object-fit:cover;">
               </div>
-
               <div class="mt-2 fw-bold text-danger" style="font-size:1.1rem;">
                 <%= user.name %>
               </div>
-
             </div>
           <% } %>
 
-
           <hr style="border-top:2px solid #28a745; margin-bottom:0.5rem;">
 
+          <!-- ⭐ TIP TEXT (Display Mode) ⭐ -->
+          <div id="tipDisplayArea">
+            <p class="fs-5 mb-2 fst-italic" id="tipText" style="color:black;"><%= tipOfTheDay %></p>
+          </div>
 
-          <!-- ⭐ TIP TEXT ⭐ -->
-          <p class="fs-5 mb-2 fst-italic" style="color:black;"><%= tipOfTheDay %></p>
+          <!-- ⭐ TIP TEXT (Edit Mode) - Hidden by default ⭐ -->
+          <div id="tipEditArea" style="display: none;">
+            <textarea id="tipTextarea" class="form-control mb-2" rows="4" 
+                      style="border: 2px solid #28a745; border-radius: 8px; font-style: italic;"
+                      placeholder="अपना संदेश यहाँ लिखें..."></textarea>
+            <div class="d-flex justify-content-center gap-2">
+              <button type="button" class="btn btn-success btn-sm" id="confirmEditBtn">
+                ✓ ठीक है
+              </button>
+              <button type="button" class="btn btn-outline-secondary btn-sm" id="cancelEditBtn">
+                ✗ रद्द करें
+              </button>
+            </div>
+          </div>
 
-          <!-- Name already shown above if photo exists -->
           <% if (!user.photoUrl) { %>
             <p class="text-center text-success fw-bold mb-0">- <%= user.name %></p>
           <% } %>
-
 
           <!-- ⭐ KENDER INFO SECTION ⭐ -->
           <%
@@ -257,17 +256,13 @@
           <% if (isKenderUser && kenderDetails) { %>
             <div class="kender-tip-box mt-3 p-3 rounded shadow-sm"
                  style="background:#f8fff4; border-left:5px solid #28a745; line-height:1.35;">
-              
               <div class="fw-bold"><%= kenderDetails.name %></div>
               <div><%= kenderDetails.address %></div>
-
               <% if (kenderDetails.startTime) { %>
                 <div>Start⏰: <%= kenderDetails.startTime %></div>
               <% } %>
-
             </div>
           <% } %>
-
 
           <!-- FOOTER LINK -->
           <div class="mt-1 text-center text-primary fw-semibold">
@@ -282,6 +277,7 @@
 
       <div class="modal-footer justify-content-center py-2">
         <button type="button" class="btn btn-success" id="downloadTipBtn">⬇️ Download</button>
+        <button type="button" class="btn btn-outline-success" id="customizeTextBtn">✏️ Customize Text</button>
         <button type="button" class="btn btn-outline-success" data-bs-dismiss="modal">🙏 धन्यवाद</button>
       </div>
 
@@ -412,6 +408,45 @@
       link.click();
     });
   });
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const tipText = document.getElementById('tipText');
+  const tipDisplayArea = document.getElementById('tipDisplayArea');
+  const tipEditArea = document.getElementById('tipEditArea');
+  const tipTextarea = document.getElementById('tipTextarea');
+  const customizeTextBtn = document.getElementById('customizeTextBtn');
+  const confirmEditBtn = document.getElementById('confirmEditBtn');
+  const cancelEditBtn = document.getElementById('cancelEditBtn');
+
+  // Store original tip
+  const originalTip = tipText.textContent;
+
+  // Show edit mode
+  customizeTextBtn.addEventListener('click', function() {
+    tipTextarea.value = tipText.textContent;
+    tipDisplayArea.style.display = 'none';
+    tipEditArea.style.display = 'block';
+    tipTextarea.focus();
+    tipTextarea.select();
+  });
+
+  // Confirm edit
+  confirmEditBtn.addEventListener('click', function() {
+    const newText = tipTextarea.value.trim();
+    if (newText) {
+      tipText.textContent = newText;
+    }
+    tipEditArea.style.display = 'none';
+    tipDisplayArea.style.display = 'block';
+  });
+
+  // Cancel edit
+  cancelEditBtn.addEventListener('click', function() {
+    tipEditArea.style.display = 'none';
+    tipDisplayArea.style.display = 'block';
+  });
+});
 </script>
 
 <%- include('./partials/footer') %>
