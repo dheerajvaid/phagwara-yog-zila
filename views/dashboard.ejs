@@ -211,7 +211,7 @@
 
           <!-- ⭐ USER PHOTO + NAME SECTION ⭐ -->
           <% if (user.photoUrl) { %>
-            <div class="d-flex flex-column align-items-center mb-3">
+            <div class="d-flex flex-column align-items-center mb-3" id="showHidePhoto">
               <div style="height: 90px; width: 70.87px; border-radius: 8px; overflow: hidden; border: 3px solid #28a745; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
                 <img src="<%= user.photoUrl %>" alt="Photo" style="width:100%; height:100%; object-fit:cover;">
               </div>
@@ -278,6 +278,7 @@
       <div class="modal-footer justify-content-center py-2">
         <button type="button" class="btn btn-success" id="downloadTipBtn">⬇️ Download</button>
         <button type="button" class="btn btn-outline-success" id="customizeTextBtn">✏️ Customize Text</button>
+        <button type="button" class="btn btn-outline-success" id="showHidePhotoBtn">Hide Photo</button>
         <button type="button" class="btn btn-outline-success" data-bs-dismiss="modal">🙏 धन्यवाद</button>
       </div>
 
@@ -376,41 +377,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <script>
-  window.addEventListener("load", () => {
-    const tipModal = new bootstrap.Modal(document.getElementById('tipModal'));
-    tipModal.show();
-  });
-
-  const notifications = ["🎉 New Feature: Please Update Kender Creation Date under the menu Update Kender Details! or Edit Kender Details"];
-  let notifIdx = 0;
-  const notifText = document.getElementById("notificationText");
-
-  function showNextNotification() {
-    notifText.textContent = notifications[notifIdx];
-    notifIdx = (notifIdx + 1) % notifications.length;
-  }
-
-  showNextNotification();
-  setInterval(showNextNotification, 16000);
-
-  document.getElementById("downloadTipBtn").addEventListener("click", function () {
-    const tipElement = document.getElementById("tipImageArea");
-
-    html2canvas(tipElement, {
-      backgroundColor: '#ffffff',
-      scale: 4,
-      useCORS: true
-    }).then(canvas => {
-      const link = document.createElement("a");
-      const today = new Date().toLocaleDateString('en-CA');
-      link.download = `Aaj-Ka-Sandesh-${today}.png`;
-      link.href = canvas.toDataURL("image/png");
-      link.click();
-    });
-  });
-</script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
   const tipText = document.getElementById('tipText');
   const tipDisplayArea = document.getElementById('tipDisplayArea');
   const tipEditArea = document.getElementById('tipEditArea');
@@ -418,35 +385,111 @@ document.addEventListener('DOMContentLoaded', function() {
   const customizeTextBtn = document.getElementById('customizeTextBtn');
   const confirmEditBtn = document.getElementById('confirmEditBtn');
   const cancelEditBtn = document.getElementById('cancelEditBtn');
+  const showHidePhoto = document.getElementById('showHidePhoto');
+  const showHidePhotoBtn = document.getElementById('showHidePhotoBtn');
 
   // Store original tip
-  const originalTip = tipText.textContent;
+  const originalTip = tipText ? tipText.textContent : '';
 
-  // Show edit mode
-  customizeTextBtn.addEventListener('click', function() {
-    tipTextarea.value = tipText.textContent;
-    tipDisplayArea.style.display = 'none';
-    tipEditArea.style.display = 'block';
-    tipTextarea.focus();
-    tipTextarea.select();
-  });
-
-  // Confirm edit
-  confirmEditBtn.addEventListener('click', function() {
-    const newText = tipTextarea.value.trim();
-    if (newText) {
-      tipText.textContent = newText;
+  // Tip modal show (keep behavior)
+  window.addEventListener("load", () => {
+    const modalEl = document.getElementById('tipModal');
+    if (window.bootstrap && modalEl) {
+      const tipModal = new bootstrap.Modal(modalEl);
+      tipModal.show();
     }
-    tipEditArea.style.display = 'none';
-    tipDisplayArea.style.display = 'block';
   });
 
-  // Cancel edit
-  cancelEditBtn.addEventListener('click', function() {
-    tipEditArea.style.display = 'none';
-    tipDisplayArea.style.display = 'block';
-  });
+  // Notifications (keep behavior)
+  const notifications = ["🎉 New Feature: Please Update Kender Creation Date under the menu Update Kender Details! or Edit Kender Details"];
+  let notifIdx = 0;
+  const notifText = document.getElementById("notificationText");
+
+  function showNextNotification() {
+    if (!notifText) return;
+    notifText.textContent = notifications[notifIdx];
+    notifIdx = (notifIdx + 1) % notifications.length;
+  }
+
+  showNextNotification();
+  setInterval(showNextNotification, 16000);
+
+  // Download button (keep behavior)
+  const downloadBtn = document.getElementById("downloadTipBtn");
+  if (downloadBtn) {
+    downloadBtn.addEventListener("click", function () {
+      const tipElement = document.getElementById("tipImageArea");
+      if (!tipElement || !window.html2canvas) return;
+
+      html2canvas(tipElement, {
+        backgroundColor: '#ffffff',
+        scale: 4,
+        useCORS: true
+      }).then(canvas => {
+        const link = document.createElement("a");
+        const today = new Date().toLocaleDateString('en-CA');
+        link.download = `Aaj-Ka-Sandesh-${today}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+      });
+    });
+  }
+
+  // ✅ Show/Hide Photo (fixed)
+  if (showHidePhoto && showHidePhotoBtn) {
+    // If you start with inline style="display:none", convert it into Bootstrap's d-none
+    if (showHidePhoto.style.display === 'none') {
+      showHidePhoto.style.display = '';
+      showHidePhoto.classList.add('d-none'); // display:none !important
+    }
+
+    // Sync initial button text with current visibility
+    const initiallyHidden = showHidePhoto.classList.contains('d-none')
+      || window.getComputedStyle(showHidePhoto).display === 'none';
+    showHidePhotoBtn.textContent = initiallyHidden ? 'Show Photo' : 'Hide Photo';
+
+    showHidePhotoBtn.addEventListener('click', function () {
+      const isHidden = showHidePhoto.classList.contains('d-none')
+        || window.getComputedStyle(showHidePhoto).display === 'none';
+
+      if (isHidden) {
+        showHidePhoto.classList.remove('d-none');
+        showHidePhotoBtn.textContent = 'Hide Photo';
+      } else {
+        showHidePhoto.classList.add('d-none');
+        showHidePhotoBtn.textContent = 'Show Photo';
+      }
+    });
+  }
+
+  // Tip edit (keep behavior)
+  if (customizeTextBtn && tipTextarea && tipText && tipDisplayArea && tipEditArea) {
+    customizeTextBtn.addEventListener('click', function () {
+      tipTextarea.value = tipText.textContent;
+      tipDisplayArea.style.display = 'none';
+      tipEditArea.style.display = 'block';
+      tipTextarea.focus();
+      tipTextarea.select();
+    });
+  }
+
+  if (confirmEditBtn && tipTextarea && tipText && tipDisplayArea && tipEditArea) {
+    confirmEditBtn.addEventListener('click', function () {
+      const newText = tipTextarea.value.trim();
+      if (newText) tipText.textContent = newText;
+      tipEditArea.style.display = 'none';
+      tipDisplayArea.style.display = 'block';
+    });
+  }
+
+  if (cancelEditBtn && tipDisplayArea && tipEditArea) {
+    cancelEditBtn.addEventListener('click', function () {
+      tipEditArea.style.display = 'none';
+      tipDisplayArea.style.display = 'block';
+    });
+  }
 });
 </script>
+
 
 <%- include('./partials/footer') %>
