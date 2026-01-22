@@ -1174,7 +1174,7 @@ exports.viewTop10Attendance = async (req, res) => {
           ? today.getDate()
           : end.getDate();
 
-      const threshold = Math.ceil(daysInMonth * 0.65);
+      const threshold = Math.ceil(daysInMonth * (attendPer / 100));
 
       const kenderEligible = {};
       Object.entries(kenderOperationalDaysMap).forEach(
