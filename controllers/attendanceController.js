@@ -28,14 +28,14 @@ exports.showMarkAttendanceForm = async (req, res) => {
 
     const now = new Date();
     const istNow = new Date(
-      now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
+      now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
     );
 
     // Set to IST 00:00
     const today = new Date(
       istNow.getFullYear(),
       istNow.getMonth(),
-      istNow.getDate()
+      istNow.getDate(),
     );
 
     const start = new Date(today);
@@ -173,10 +173,10 @@ exports.showMarkAttendanceForm = async (req, res) => {
 
     // Sort both groups alphabetically by name
     saadhaksWithAttendance.sort((a, b) =>
-      a.name.localeCompare(b.name, "en", { sensitivity: "base" })
+      a.name.localeCompare(b.name, "en", { sensitivity: "base" }),
     );
     saadhaksWithoutAttendance.sort((a, b) =>
-      a.name.localeCompare(b.name, "en", { sensitivity: "base" })
+      a.name.localeCompare(b.name, "en", { sensitivity: "base" }),
     );
 
     // Merge the two groups
@@ -405,7 +405,7 @@ exports.viewTodayAttendance = async (req, res) => {
     const startOfMonth = new Date(
       selectedDate.getFullYear(),
       selectedDate.getMonth(),
-      1
+      1,
     );
     const endOfMonth = new Date(
       selectedDate.getFullYear(),
@@ -413,7 +413,7 @@ exports.viewTodayAttendance = async (req, res) => {
       0,
       23,
       59,
-      59
+      59,
     );
 
     // Fetch attendance of this Kender for the full month
@@ -435,7 +435,7 @@ exports.viewTodayAttendance = async (req, res) => {
     const totalDaysInMonth = new Date(
       selectedDate.getFullYear(),
       selectedDate.getMonth() + 1,
-      0
+      0,
     ).getDate();
     const monthlyAttendanceStrip = [];
 
@@ -526,7 +526,7 @@ exports.viewAttendanceByDate = async (req, res) => {
     targetDate.setHours(0, 0, 0, 0);
 
     const attendance = await Attendance.find({ date: targetDate }).populate(
-      "saadhak"
+      "saadhak",
     );
     res.render("attendance/by-date", { attendance, selectedDate: date });
   } catch (err) {
@@ -543,7 +543,7 @@ exports.showAttendanceReport = async (req, res) => {
 
   try {
     const attendanceRecords = await Attendance.find({ date: day }).populate(
-      "saadhak"
+      "saadhak",
     );
 
     if (attendanceRecords.length === 0) {
@@ -777,7 +777,7 @@ exports.viewAttendance = async (req, res) => {
           attendanceMap[record.saadhak] = [];
         }
         attendanceMap[record.saadhak].push(
-          record.date.toISOString().split("T")[0]
+          record.date.toISOString().split("T")[0],
         );
       });
 
@@ -959,7 +959,7 @@ exports.viewKenderWiseAttendance = async (req, res) => {
           const attendanceObj = kenderDateCountMap[k._id.toString()] || {};
           const presentCount = Object.values(attendanceObj).reduce(
             (sum, v) => sum + v,
-            0
+            0,
           );
 
           return {
@@ -1075,11 +1075,13 @@ exports.viewTop10Attendance = async (req, res) => {
     const selectedMonth = parseInt(req.query.month) || today.getMonth() + 1;
     const selectedYear = parseInt(req.query.year) || today.getFullYear();
     const selectedScope = req.query.scope || "prant";
-    const prevMonths = Math.min(Math.abs(req.query.prevMonths), 12) || 1; 
-    const attendPer = Math.min(Math.abs(req.query.attendPer), 100) || 65; 
-
+    const prevMonths = Math.min(Math.abs(req.query.prevMonths), 12) || 1;
+    const attendPer = Math.min(Math.abs(req.query.attendPer), 100) || 65;
     const start = new Date(selectedYear, selectedMonth - prevMonths, 1);
     const end = new Date(selectedYear, selectedMonth, 0, 23, 59, 59);
+    const minDays = parseInt(req.query.minDays) || Math.ceil(
+      ((end - start) / (1000 * 60 * 60 * 24)) * (attendPer / 100),
+    );
 
     let prantName = "";
     try {
@@ -1121,7 +1123,7 @@ exports.viewTop10Attendance = async (req, res) => {
 
     const isAdhikari = (saadhak) =>
       saadhak.role?.some(
-        (r) => zilaRoles.includes(r) || ksheterRoles.includes(r)
+        (r) => zilaRoles.includes(r) || ksheterRoles.includes(r),
       );
 
     if (scopeSelected) {
@@ -1168,19 +1170,25 @@ exports.viewTop10Attendance = async (req, res) => {
         }
       }
 
-      const daysInMonth =
-        selectedYear === today.getFullYear() &&
-        selectedMonth === today.getMonth() + 1
-          ? today.getDate()
-          : end.getDate();
+      //   console.log("Start of Month:", start);
+      //   console.log("End of Month:", end);
+      //  console.log("Days Difference:", Math.ceil((end - start) / (1000 * 60 * 60 * 24)));
 
-      const threshold = Math.ceil(daysInMonth * (attendPer / 100));
+      const daysInMonth = minDays;
+
+      // selectedYear === today.getFullYear() &&
+      // selectedMonth === today.getMonth() + 1
+      //   ? today.getDate()
+      //   : end.getDate();
+
+      const threshold = daysInMonth;
+      // console.log("Threshold of operational days per Kender:", threshold);
 
       const kenderEligible = {};
       Object.entries(kenderOperationalDaysMap).forEach(
         ([kenderId, datesSet]) => {
           kenderEligible[kenderId] = datesSet.size >= threshold;
-        }
+        },
       );
 
       // ----------------------------
@@ -1204,7 +1212,7 @@ exports.viewTop10Attendance = async (req, res) => {
           if (presentCount === 0 || totalOperationalDays === 0) return null;
 
           const attendancePercentage = Number(
-            ((presentCount / totalOperationalDays) * 100).toFixed(2)
+            ((presentCount / totalOperationalDays) * 100).toFixed(2),
           );
 
           const missedDays = totalOperationalDays - presentCount;
@@ -1244,7 +1252,7 @@ exports.viewTop10Attendance = async (req, res) => {
 
       let maxOperationalDays = Math.max(
         ...Object.values(kenderOperationalDaysMap).map((s) => s.size || 0),
-        daysInMonth
+        daysInMonth,
       );
 
       const adhikariList = saadhaks
@@ -1285,7 +1293,6 @@ exports.viewTop10Attendance = async (req, res) => {
       noData = attendanceData.length === 0;
     }
 
-    
     // 🔥 FINAL SORT — applies to BOTH Saadhak + Adhikari
     attendanceData.sort((a, b) => {
       if (b.presentCount !== a.presentCount)
@@ -1340,7 +1347,6 @@ exports.viewTop10Attendance = async (req, res) => {
       kenderSummaryMap[kender] += 1;
     }
 
-    
     return res.render("attendance/top10", {
       attendanceData,
       selectedMonth,
@@ -1361,7 +1367,8 @@ exports.viewTop10Attendance = async (req, res) => {
       ksheterSummaryMap,
       kenderSummaryMap,
       prevMonths,
-      attendPer
+      attendPer,
+      minDays: minDays,
     });
   } catch (err) {
     console.error("Error loading top 10 saadhaks:", err);
@@ -1608,7 +1615,7 @@ exports.exportMissingPDF = async (req, res) => {
     const last = lastAttendanceMap[s._id.toString()] || null;
     const daysSince = last
       ? Math.floor(
-          (Date.now() - new Date(last).getTime()) / (1000 * 60 * 60 * 24)
+          (Date.now() - new Date(last).getTime()) / (1000 * 60 * 60 * 24),
         )
       : -1;
 
@@ -1633,18 +1640,18 @@ exports.exportMissingPDF = async (req, res) => {
     filteredResult.sort((a, b) =>
       sortDir === "asc"
         ? a.name.localeCompare(b.name)
-        : b.name.localeCompare(a.name)
+        : b.name.localeCompare(a.name),
     );
   } else if (sortBy === "days") {
     const getDays = (d) =>
       d
         ? Math.floor(
-            (Date.now() - new Date(d).getTime()) / (1000 * 60 * 60 * 24)
+            (Date.now() - new Date(d).getTime()) / (1000 * 60 * 60 * 24),
           )
         : -1;
 
     filteredResult.sort((a, b) =>
-      sortDir === "asc" ? a.daysSince - b.daysSince : b.daysSince - a.daysSince
+      sortDir === "asc" ? a.daysSince - b.daysSince : b.daysSince - a.daysSince,
     );
   }
 
@@ -1672,7 +1679,7 @@ exports.exportMissingPDF = async (req, res) => {
       ksheterName,
       kenderName, // 🛑 Pass Names to EJS
     },
-    `Missing_Attendance_${from}_to_${to}.pdf`
+    `Missing_Attendance_${from}_to_${to}.pdf`,
   );
 };
 
@@ -1687,7 +1694,7 @@ exports.kenderTeamRankReport = async (req, res) => {
     const selectedYear = parseInt(req.query.year) || today.getFullYear();
 
     const startDate = new Date(
-      `${selectedYear}-${String(selectedMonth).padStart(2, "0")}-01`
+      `${selectedYear}-${String(selectedMonth).padStart(2, "0")}-01`,
     );
     const endDate = new Date(selectedYear, selectedMonth, 0, 23, 59, 59);
 
@@ -1802,7 +1809,7 @@ exports.exportKenderTeamRankPDF = async (req, res) => {
     const selectedYear = parseInt(year) || new Date().getFullYear();
 
     const startDate = new Date(
-      `${selectedYear}-${String(selectedMonth).padStart(2, "0")}-01`
+      `${selectedYear}-${String(selectedMonth).padStart(2, "0")}-01`,
     );
     const endDate = new Date(selectedYear, selectedMonth, 0, 23, 59, 59);
 
@@ -1916,7 +1923,7 @@ exports.exportKenderTeamRankPDF = async (req, res) => {
         baseUrl,
         kenderName,
       },
-      filename
+      filename,
     );
   } catch (error) {
     console.error("Error exporting Kender Team Rank PDF:", error);
@@ -1949,12 +1956,12 @@ exports.viewIndividualAttendance = async (req, res) => {
             23,
             59,
             59,
-            999
+            999,
           )
         : new Date(selectedYear, selectedMonth, 0); // end of selected month
 
     const startDate = new Date(
-      `${selectedYear}-${String(selectedMonth).padStart(2, "0")}-01`
+      `${selectedYear}-${String(selectedMonth).padStart(2, "0")}-01`,
     );
 
     const attendanceRecords = await Attendance.find({
@@ -2038,7 +2045,7 @@ exports.viewKsheterWiseAttendance = async (req, res) => {
 
     rawDays = Array.from(
       { length: isCurrentMonth ? today.getDate() : totalDays },
-      (_, i) => i + 1
+      (_, i) => i + 1,
     );
 
     let ksheterList = [];
@@ -2084,7 +2091,7 @@ exports.viewKsheterWiseAttendance = async (req, res) => {
 
       const totalPresent = Object.values(dailyCountMap).reduce(
         (a, b) => a + b,
-        0
+        0,
       );
       if (totalPresent > 0) {
         attendanceData.push({
@@ -2215,7 +2222,7 @@ exports.exportMissingExcel = async (req, res) => {
       ...new Set(missingSaadhaks.map((s) => s.kender).filter(Boolean)),
     ];
     const kenders = await Kender.find({ _id: { $in: kenderIds } }).select(
-      "name"
+      "name",
     );
     const kenderMap = {};
     kenders.forEach((k) => {
@@ -2226,7 +2233,7 @@ exports.exportMissingExcel = async (req, res) => {
       const last = lastAttendanceMap[s._id.toString()] || null;
       const daysSince = last
         ? Math.floor(
-            (Date.now() - new Date(last).getTime()) / (1000 * 60 * 60 * 24)
+            (Date.now() - new Date(last).getTime()) / (1000 * 60 * 60 * 24),
           )
         : -1;
 
@@ -2251,7 +2258,7 @@ exports.exportMissingExcel = async (req, res) => {
       filteredResult.sort((a, b) =>
         sortDir === "asc"
           ? a.name.localeCompare(b.name)
-          : b.name.localeCompare(a.name)
+          : b.name.localeCompare(a.name),
       );
     } else if (sortBy === "days") {
       filteredResult.sort((a, b) => a.daysSince - b.daysSince);
@@ -2287,11 +2294,11 @@ exports.exportMissingExcel = async (req, res) => {
 
     res.setHeader(
       "Content-Type",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     );
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename=Missing_Attendance_${from}_to_${to}.xlsx`
+      `attachment; filename=Missing_Attendance_${from}_to_${to}.xlsx`,
     );
 
     await workbook.xlsx.write(res);
@@ -2305,8 +2312,8 @@ exports.exportMissingExcel = async (req, res) => {
 exports.monthlyAttendanceSummary = async (req, res) => {
   try {
     const user = req.session.user;
-    
-    const selectedKenderData = await Kender.find({_id: user.kender});  
+
+    const selectedKenderData = await Kender.find({ _id: user.kender });
     selectedKenderName = selectedKenderData[0].name || "";
     const today = new Date();
 
@@ -2442,7 +2449,7 @@ exports.monthlyAttendanceSummary = async (req, res) => {
       data,
       months: filteredMonths,
       today,
-      kenderName: selectedKenderName
+      kenderName: selectedKenderName,
     });
   } catch (error) {
     console.error(error);
@@ -2598,11 +2605,11 @@ exports.exportAttendanceExcel = async (req, res) => {
 
     res.setHeader(
       "Content-Type",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     );
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename=Attendance_Summary_${Date.now()}.xlsx`
+      `attachment; filename=Attendance_Summary_${Date.now()}.xlsx`,
     );
 
     await workbook.xlsx.write(res);
