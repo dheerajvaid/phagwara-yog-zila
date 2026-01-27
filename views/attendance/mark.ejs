@@ -84,7 +84,8 @@
       const zilaRoles = <%- JSON.stringify(zilaRoles) %>;
       const ksheterRoles = <%- JSON.stringify(ksheterRoles) %>;
       const prantRoles = <%- JSON.stringify(prantRoles) %>;
-      
+      const spinner = document.getElementById('loadingSpinner');
+
         const tableBody = document.getElementById("saadhakTableBody");
         const attendanceDateInput = document.getElementById("attendanceDate");
         const checkbox = document.getElementById('toggleDiv');
@@ -101,7 +102,7 @@
 
         // Set range
         const fifteenDaysAgo = new Date(istToday);
-        fifteenDaysAgo.setDate(istToday.getDate() - 15);
+        fifteenDaysAgo.setDate(istToday.getDate() - 3);
 
         attendanceDateInput.max = formatDate(istToday);
         attendanceDateInput.min = formatDate(fifteenDaysAgo);
@@ -216,16 +217,23 @@
         attendanceDateInput.addEventListener("change", async function () {
     const selectedDate = attendanceDateInput.value;
     try {
+      loadingSpinner.style.display ='block';
+
       const res = await fetch(`/attendance/by-date?date=${selectedDate}`);
       const data = await res.json();
+      
+
       if (data.markedSaadhakIds) {
         // ✅ Update global markedSaadhakIds and re-render
         markedSaadhakIds.length = 0;
         data.markedSaadhakIds.forEach(id => markedSaadhakIds.push(id));
         renderTable();
+
+        loadingSpinner.style.display ='none';
       }
     } catch (err) {
       console.error("Failed to fetch attendance data", err);
+      loadingSpinner.style.display ='none';
     }
   });
 
@@ -257,4 +265,4 @@
       
 </script>
 
-<%- include('../partials/header') %>
+<%- include('../partials/footer') %>
