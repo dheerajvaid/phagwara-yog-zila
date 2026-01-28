@@ -1173,15 +1173,20 @@ exports.viewTop10Attendance = async (req, res) => {
       //   console.log("Start of Month:", start);
       //   console.log("End of Month:", end);
       //  console.log("Days Difference:", Math.ceil((end - start) / (1000 * 60 * 60 * 24)));
+            const daysInMonth =
+        selectedYear === today.getFullYear() &&
+        selectedMonth === today.getMonth() + 1
+          ? Math.ceil((today - start) / (1000 * 60 * 60 * 24))
+          : Math.ceil((end - start) / (1000 * 60 * 60 * 24));
 
-      const daysInMonth = minDays;
+      // const daysInMonth = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
 
       // selectedYear === today.getFullYear() &&
       // selectedMonth === today.getMonth() + 1
       //   ? today.getDate()
       //   : end.getDate();
 
-      const threshold = daysInMonth;
+      const threshold = minDays;
       // console.log("Threshold of operational days per Kender:", threshold);
 
       const kenderEligible = {};
@@ -1267,7 +1272,9 @@ exports.viewTop10Attendance = async (req, res) => {
           const attendancePercentage =
             (presentCount / maxOperationalDays) * 100;
 
-          if (attendancePercentage < minSaadhakPercentage) return null;
+          if (maxOperationalDays < minDays) return null;
+          if (attendancePercentage < attendPer) return null;
+          // console.log(s.name + " " + attendancePercentage + " " + attendPer);
 
           return {
             _id: s._id,
