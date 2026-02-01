@@ -45,7 +45,7 @@ exports.showAddForm = async (req, res) => {
     allowedRoles = ALL_ROLES;
   } else if (user.roles.some((role) => prantRoles.includes(role))) {
     allowedRoles = ALL_ROLES.filter(
-      (role) => ![...adminRoles, ...prantRoles].includes(role)
+      (role) => ![...adminRoles, ...prantRoles].includes(role),
     );
   } else if (user.roles.some((role) => zilaRoles.includes(role))) {
     allowedRoles = [
@@ -158,7 +158,7 @@ exports.createSaadhak = async (req, res) => {
       allowedRoles = ALL_ROLES;
     } else if (user.roles.some((r) => prantRoles.includes(r))) {
       allowedRoles = ALL_ROLES.filter(
-        (r) => ![...adminRoles, ...prantRoles].includes(r)
+        (r) => ![...adminRoles, ...prantRoles].includes(r),
       );
     } else if (user.roles.some((r) => zilaRoles.includes(r))) {
       allowedRoles = [
@@ -178,7 +178,7 @@ exports.createSaadhak = async (req, res) => {
     // Validate fields
     if (!validateName(name)) {
       return await renderWithError(
-        "❌ Name should contain only alphabets and spaces"
+        "❌ Name should contain only alphabets and spaces",
       );
     }
 
@@ -193,7 +193,7 @@ exports.createSaadhak = async (req, res) => {
     if (doj) {
       const [day, month, year] = doj.split("/");
       doj = new Date(
-        `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
+        `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`,
       );
     }
 
@@ -204,7 +204,7 @@ exports.createSaadhak = async (req, res) => {
     if (dob) {
       const [day, month, year] = dob.split("/");
       dob = new Date(
-        `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
+        `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`,
       );
     }
 
@@ -215,7 +215,7 @@ exports.createSaadhak = async (req, res) => {
     if (dom) {
       const [day, month, year] = dom.split("/");
       dom = new Date(
-        `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
+        `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`,
       );
     }
 
@@ -240,19 +240,19 @@ exports.createSaadhak = async (req, res) => {
     // Hierarchical association validation
     if (prantRoles.includes(role) && !prant) {
       return await renderWithError(
-        "❌ Prant selection is required for Prant-level roles."
+        "❌ Prant selection is required for Prant-level roles.",
       );
     }
 
     if (zilaRoles.includes(role) && (!zila || !prant)) {
       return await renderWithError(
-        "❌ Prant & Zila selection is required for Zila-level roles."
+        "❌ Prant & Zila selection is required for Zila-level roles.",
       );
     }
 
     if (ksheterRoles.includes(role) && (!prant || !zila || !ksheter)) {
       return await renderWithError(
-        "❌ Prant, Zila and Ksheter must be selected for Ksheter-level roles."
+        "❌ Prant, Zila and Ksheter must be selected for Ksheter-level roles.",
       );
     }
 
@@ -261,7 +261,7 @@ exports.createSaadhak = async (req, res) => {
       (!prant || !zila || !ksheter || !kender)
     ) {
       return await renderWithError(
-        "❌ Prant, Zila, Ksheter, and Kender must be selected for Kender, Shikshak, Karyakarta & Saadhak level roles."
+        "❌ Prant, Zila, Ksheter, and Kender must be selected for Kender, Shikshak, Karyakarta & Saadhak level roles.",
       );
     }
 
@@ -440,7 +440,7 @@ exports.showEditForm = async (req, res) => {
       allowedRoles = ALL_ROLES;
     } else if (user.roles.some((role) => prantRoles.includes(role))) {
       allowedRoles = ALL_ROLES.filter(
-        (role) => ![...adminRoles, ...prantRoles].includes(role)
+        (role) => ![...adminRoles, ...prantRoles].includes(role),
       );
     } else if (user.roles.some((role) => zilaRoles.includes(role))) {
       allowedRoles = [
@@ -619,7 +619,7 @@ exports.updateSaadhak = async (req, res) => {
       allowedRoles = ALL_ROLES;
     } else if (user.roles.some((r) => prantRoles.includes(r))) {
       allowedRoles = ALL_ROLES.filter(
-        (r) => ![...adminRoles, ...prantRoles].includes(r)
+        (r) => ![...adminRoles, ...prantRoles].includes(r),
       );
     } else if (user.roles.some((r) => zilaRoles.includes(r))) {
       allowedRoles = [
@@ -642,7 +642,7 @@ exports.updateSaadhak = async (req, res) => {
       dob = new Date(
         req.body.dob_year,
         req.body.dob_month - 1, // month is zero-based
-        req.body.dob_day
+        req.body.dob_day,
       );
     }
 
@@ -652,7 +652,7 @@ exports.updateSaadhak = async (req, res) => {
       marriageDate = new Date(
         req.body.dom_year,
         req.body.dom_month - 1,
-        req.body.dom_day
+        req.body.dom_day,
       );
     }
 
@@ -662,14 +662,14 @@ exports.updateSaadhak = async (req, res) => {
       doj = new Date(
         req.body.doj_year,
         req.body.doj_month - 1,
-        req.body.doj_day
+        req.body.doj_day,
       );
     }
 
     // ✅ Validations
     if (!validateName(name)) {
       return await renderEdit(
-        "❌ Name should contain only alphabets and spaces"
+        "❌ Name should contain only alphabets and spaces",
       );
     }
 
@@ -680,7 +680,7 @@ exports.updateSaadhak = async (req, res) => {
     const existing = await Saadhak.findOne({ mobile });
     if (existing && existing._id.toString() !== saadhakId) {
       return await renderEdit(
-        "❌ Mobile number already registered with another Saadhak."
+        "❌ Mobile number already registered with another Saadhak.",
       );
     }
 
@@ -690,7 +690,7 @@ exports.updateSaadhak = async (req, res) => {
       const existingEmail = await Saadhak.findOne({ email: normalizedEmail });
       if (existingEmail && existingEmail._id.toString() !== saadhakId) {
         return await renderEdit(
-          "❌ Email address already registered with another Saadhak."
+          "❌ Email address already registered with another Saadhak.",
         );
       }
     }
@@ -702,7 +702,7 @@ exports.updateSaadhak = async (req, res) => {
     if (doj && typeof doj === "string") {
       const [day, month, year] = doj.split("/");
       doj = new Date(
-        `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
+        `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`,
       );
     }
 
@@ -713,7 +713,7 @@ exports.updateSaadhak = async (req, res) => {
     if (dob && typeof dob === "string") {
       const [day, month, year] = dob.split("/");
       dob = new Date(
-        `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
+        `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`,
       );
     }
 
@@ -724,7 +724,7 @@ exports.updateSaadhak = async (req, res) => {
     if (marriageDate && typeof marriageDate === "string") {
       const [day, month, year] = marriageDate.split("/");
       marriageDate = new Date(
-        `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
+        `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`,
       );
     }
 
@@ -743,7 +743,7 @@ exports.updateSaadhak = async (req, res) => {
       !prant
     ) {
       return await renderEdit(
-        "❌ Prant selection is required for Prant-level roles."
+        "❌ Prant selection is required for Prant-level roles.",
       );
     }
 
@@ -753,7 +753,7 @@ exports.updateSaadhak = async (req, res) => {
       (!zila || !prant)
     ) {
       return await renderEdit(
-        "❌ Prant & Zila selection is required for Zila-level roles."
+        "❌ Prant & Zila selection is required for Zila-level roles.",
       );
     }
 
@@ -763,19 +763,19 @@ exports.updateSaadhak = async (req, res) => {
       (!prant || !zila || !ksheter)
     ) {
       return await renderEdit(
-        "❌ Prant, Zila and Ksheter must be selected for Ksheter-level roles."
+        "❌ Prant, Zila and Ksheter must be selected for Ksheter-level roles.",
       );
     }
 
     if (
       Array.isArray(role) &&
       role.some((r) =>
-        [...kenderRoles, ...kenderTeamRoles, ...saadhakRoles].includes(r)
+        [...kenderRoles, ...kenderTeamRoles, ...saadhakRoles].includes(r),
       ) &&
       (!prant || !zila || !ksheter || !kender)
     ) {
       return await renderEdit(
-        "❌ Prant, Zila, Ksheter, and Kender must be selected for Kender, Shikshak, Karyakarta & Saadhak level roles."
+        "❌ Prant, Zila, Ksheter, and Kender must be selected for Kender, Shikshak, Karyakarta & Saadhak level roles.",
       );
     }
 
@@ -882,7 +882,7 @@ exports.deleteSaadhak = async (req, res) => {
       } catch (e) {
         console.error(
           "Failed to delete Cloudinary image on saadhak removal:",
-          e
+          e,
         );
       }
     }
@@ -901,7 +901,7 @@ exports.deleteSaadhak = async (req, res) => {
 exports.getSelfUpdateForm = async (req, res) => {
   try {
     const saadhak = await Saadhak.findById(req.session.user.id).populate(
-      "prant zila ksheter kender"
+      "prant zila ksheter kender",
     );
 
     // Process DOB
@@ -968,7 +968,7 @@ exports.postSelfUpdate = async (req, res) => {
       dob = new Date(
         req.body.dob_year,
         req.body.dob_month - 1,
-        req.body.dob_day
+        req.body.dob_day,
       );
     }
 
@@ -978,7 +978,7 @@ exports.postSelfUpdate = async (req, res) => {
       marriageDate = new Date(
         req.body.dom_year,
         req.body.dom_month - 1,
-        req.body.dom_day
+        req.body.dom_day,
       );
     }
 
@@ -988,7 +988,7 @@ exports.postSelfUpdate = async (req, res) => {
       doj = new Date(
         req.body.doj_year,
         req.body.doj_month - 1,
-        req.body.doj_day
+        req.body.doj_day,
       );
     }
 
@@ -1064,7 +1064,7 @@ exports.uploadPhotoAjax = async (req, res) => {
         console.error(
           "Failed to delete old Cloudinary image:",
           saadhak.photoPublicId,
-          delErr
+          delErr,
         );
       }
     }
@@ -1072,7 +1072,10 @@ exports.uploadPhotoAjax = async (req, res) => {
     // Save new info to DB
     saadhak.photoUrl = newUrl;
     saadhak.photoPublicId = newPublicId;
-    saadhak.photoStatus = "uploaded";
+    if (saadhak.photoStatus !== "printed") {
+      saadhak.photoStatus = "uploaded";
+    }
+    
     saadhak.photoUploadedAt = new Date();
     await saadhak.save();
 
@@ -1221,37 +1224,43 @@ exports.fixPhotoStatus = async (req, res) => {
       {
         $or: [
           { photoUrl: { $exists: true, $ne: "" } },
-          { photoPublicId: { $exists: true, $ne: "" } }
-        ]
+          { photoPublicId: { $exists: true, $ne: "" } },
+        ],
       },
       {
         $set: {
           photoStatus: "uploaded",
-          photoUploadedAt: new Date()
-        }
-      }
+          photoUploadedAt: new Date(),
+        },
+      },
     );
 
     // 2. Set not_uploaded for saadhaks with no photo
     const updatedNotUploaded = await Saadhak.updateMany(
       {
         $and: [
-          { $or: [{ photoUrl: "" }, { photoUrl: null }, { photoUrl: { $exists: false } }] },
+          {
+            $or: [
+              { photoUrl: "" },
+              { photoUrl: null },
+              { photoUrl: { $exists: false } },
+            ],
+          },
           {
             $or: [
               { photoPublicId: "" },
               { photoPublicId: null },
-              { photoPublicId: { $exists: false } }
-            ]
-          }
-        ]
+              { photoPublicId: { $exists: false } },
+            ],
+          },
+        ],
       },
       {
         $set: {
           photoStatus: "not_uploaded",
-          photoUploadedAt: null
-        }
-      }
+          photoUploadedAt: null,
+        },
+      },
     );
 
     res.send(`
@@ -1259,7 +1268,6 @@ exports.fixPhotoStatus = async (req, res) => {
       <p><strong>Uploaded Marked:</strong> ${updatedUploaded.modifiedCount}</p>
       <p><strong>Not Uploaded Marked:</strong> ${updatedNotUploaded.modifiedCount}</p>
     `);
-
   } catch (err) {
     console.error(err);
     res.status(500).send("Error fixing photo statuses");
@@ -1273,7 +1281,7 @@ exports.markPrinted = async (req, res) => {
 
     await Saadhak.updateMany(
       { _id: { $in: userIds } },
-      { $set: { photoStatus: "printed" } }
+      { $set: { photoStatus: "printed" } },
     );
 
     res.json({ success: true });
@@ -1288,7 +1296,7 @@ exports.updatePhotoStatus = async (req, res) => {
     const { ids, status } = req.body;
     await Saadhak.updateMany(
       { _id: { $in: ids } },
-      { $set: { photoStatus: status } }
+      { $set: { photoStatus: status } },
     );
     res.json({ success: true });
   } catch (err) {
@@ -1296,4 +1304,3 @@ exports.updatePhotoStatus = async (req, res) => {
     res.json({ success: false });
   }
 };
-
