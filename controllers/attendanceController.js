@@ -240,12 +240,12 @@ exports.markAttendance = async (req, res) => {
     if (user.roles.includes("Saadhak")) {
       await Attendance.deleteOne({
         saadhak: user.id,
-        kender: req.body.selectedKender,
+        kender: user.kender,
         date: { $gte: start, $lt: end },
       });
     } else {
       await Attendance.deleteMany({
-        kender: req.body.selectedKender,
+        kender: user.kender,
         date: { $gte: start, $lt: end },
       });
     }
@@ -253,7 +253,7 @@ exports.markAttendance = async (req, res) => {
 
     const records = selectedSaadhaks.map((id) => ({
       saadhak: id,
-      kender: req.body.selectedKender,
+      kender: user.kender,
       date: attendanceDate,
       status: "Present", // or whatever your schema requires
     }));
@@ -448,12 +448,13 @@ exports.viewTodayAttendance = async (req, res) => {
 
     // 🔢 Step: Get attendance count per Saadhak for the current month
     const saadhakIds = attendanceRecords.map((r) => r.saadhak._id);
-
+    console.log(user.kender);
     // Count attendance per Saadhak in this month
     const attendanceCounts = await Attendance.aggregate([
       {
         $match: {
           saadhak: { $in: saadhakIds },
+          kender: new mongoose.Types.ObjectId(user.kender),
           status: "Present",
           date: { $gte: startOfMonth, $lte: endOfMonth },
         },
