@@ -29,10 +29,10 @@ exports.teamSummary = async (req, res) => {
 
   const zilas = await Zila.find(query.zila ? { _id: query.zila } : prantFilter);
   const ksheters = await Ksheter.find(
-    query.ksheter ? { _id: query.ksheter } : prantFilter
+    query.ksheter ? { _id: query.ksheter } : prantFilter,
   );
   const kenders = await Kender.find(
-    query.kender ? { _id: query.kender } : prantFilter
+    query.kender ? { _id: query.kender } : prantFilter,
   );
   const saadhaks = await Saadhak.find(query).populate("zila ksheter kender");
 
@@ -278,7 +278,7 @@ exports.attendanceSummary = async (req, res) => {
       ksheterNames.forEach((ksheterName) => {
         const kenderEntries = Object.entries(summary[zilaName][ksheterName]);
         const sortedKenderEntries = kenderEntries.sort((a, b) =>
-          a[0].localeCompare(b[0])
+          a[0].localeCompare(b[0]),
         );
         sortedSummary[zilaName][ksheterName] = {};
         sortedKenderEntries.forEach(([kenderName, value]) => {
@@ -294,14 +294,24 @@ exports.attendanceSummary = async (req, res) => {
   const monthStart = new Date(
     selectedDateObj.getFullYear(),
     selectedDateObj.getMonth(),
-    1
+    1,
   );
+  const monthEnd = new Date(
+    selectedDateObj.getFullYear(),
+    selectedDateObj.getMonth() + 1,
+    0,
+  );
+
+  monthStart.setHours(0, 0, 0, 0);
+  monthEnd.setHours(23, 59, 59, 999);
+
+  // console.log("Month Start: " + monthStart + ", Month End: " + monthEnd);
 
   // 1) Attendance of ONLY that month till selected date
   const tillDateAttendance = await Attendance.aggregate([
     {
       $match: {
-        date: { $gte: monthStart, $lte: selectedDateObj },
+        date: { $gte: monthStart, $lte: monthEnd },
         status: "Present",
         kender: { $in: relevantKenders.map((k) => k._id) },
       },
@@ -342,118 +352,124 @@ exports.attendanceSummary = async (req, res) => {
     topperByName[k.name] = entry ? entry.count : 0;
   });
 
+  // ===== 🖼️ KENDER PRAMUKH + SEH KENDER PRAMUKH PHOTO MAP =====
 
+  // Get all relevant kenders (already filtered)
+  const allRelevantKenders = await Kender.find(kenderFilter).select("_id name");
 
+  // Fetch all Kender Pramukh and Seh Kender Pramukhs for these kenders
+  const kenderLeads = await Saadhak.find({
+    kender: { $in: allRelevantKenders.map((k) => k._id) },
+    role: { $in: ["Kender Pramukh", "Seh Kender Pramukh"] },
+  }).select("kender role photoUrl name");
 
-// ===== 🖼️ KENDER PRAMUKH + SEH KENDER PRAMUKH PHOTO MAP =====
+  // Build a map: Kender Name → array of lead objects
+  const kenderPhotosMap = {}; // { "Kender Name": [ {role, photoUrl, name}, ... ] }
 
-// Get all relevant kenders (already filtered)
-const allRelevantKenders = await Kender.find(kenderFilter).select("_id name");
+  allRelevantKenders.forEach((k) => {
+    const leads = kenderLeads
+      .filter((l) => l.kender && l.kender.toString() === k._id.toString())
+      .sort((a, b) => {
+        const roleOrder = { "Kender Pramukh": 1, "Seh Kender Pramukh": 2 };
 
-// Fetch all Kender Pramukh and Seh Kender Pramukhs for these kenders
-const kenderLeads = await Saadhak.find({
-  kender: { $in: allRelevantKenders.map(k => k._id) },
-  role: { $in: ["Kender Pramukh", "Seh Kender Pramukh"] },
-}).select("kender role photoUrl name");
+        // Pick first relevant role from roles array
+        const getLeadRole = (lead) => {
+          if (Array.isArray(lead.roles)) {
+            if (lead.roles.includes("Kender Pramukh")) return "Kender Pramukh";
+            if (lead.roles.includes("Seh Kender Pramukh"))
+              return "Seh Kender Pramukh";
+            return lead.roles[0]; // fallback
+          }
+          return lead.role || ""; // fallback for legacy data
+        };
 
-// Build a map: Kender Name → array of lead objects
-const kenderPhotosMap = {}; // { "Kender Name": [ {role, photoUrl, name}, ... ] }
+        const roleA = getLeadRole(a);
+        const roleB = getLeadRole(b);
 
-allRelevantKenders.forEach(k => {
-  const leads = kenderLeads
-    .filter(l => l.kender && l.kender.toString() === k._id.toString())
-    .sort((a, b) => {
-      const roleOrder = { "Kender Pramukh": 1, "Seh Kender Pramukh": 2 };
-
-      // Pick first relevant role from roles array
-      const getLeadRole = (lead) => {
-        if (Array.isArray(lead.roles)) {
-          if (lead.roles.includes("Kender Pramukh")) return "Kender Pramukh";
-          if (lead.roles.includes("Seh Kender Pramukh")) return "Seh Kender Pramukh";
-          return lead.roles[0]; // fallback
+        if (roleA !== roleB) {
+          return (roleOrder[roleA] || 99) - (roleOrder[roleB] || 99);
         }
-        return lead.role || ""; // fallback for legacy data
-      };
 
-      const roleA = getLeadRole(a);
-      const roleB = getLeadRole(b);
+        // Sort alphabetically by name (case-insensitive)
+        return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+      });
 
-      if (roleA !== roleB) {
-        return (roleOrder[roleA] || 99) - (roleOrder[roleB] || 99);
-      }
+    kenderPhotosMap[k.name] = leads.map((l) => ({
+      role: Array.isArray(l.roles) ? l.roles.join(", ") : l.role,
+      photoUrl:
+        l.photoUrl && l.photoUrl.trim() !== ""
+          ? l.photoUrl
+          : "/images/default-user.png",
+      name: l.name,
+    }));
+  });
 
-      // Sort alphabetically by name (case-insensitive)
-      return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
-    });
+  // ===== 🖼️ KSHTER PRADHAN + KSHTER MANTRI PHOTO MAP =====
 
-  kenderPhotosMap[k.name] = leads.map(l => ({
-    role: Array.isArray(l.roles) ? l.roles.join(", ") : l.role,
-    photoUrl: l.photoUrl && l.photoUrl.trim() !== "" ? l.photoUrl : "/images/default-user.png",
-    name: l.name,
-  }));
-});
+  // 1️⃣ Get all relevant Ksheter from already filtered Kenders
+  const allRelevantKsheterIds = [
+    ...new Set(
+      allKenders.map((k) => k.ksheter?._id?.toString()).filter(Boolean),
+    ),
+  ];
 
-// ===== 🖼️ KSHTER PRADHAN + KSHTER MANTRI PHOTO MAP =====
+  const allRelevantKsheter = await Ksheter.find({
+    _id: { $in: allRelevantKsheterIds },
+  }).select("_id name");
 
-// 1️⃣ Get all relevant Ksheter from already filtered Kenders
-const allRelevantKsheterIds = [
-  ...new Set(allKenders.map(k => k.ksheter?._id?.toString()).filter(Boolean))
-];
+  // 2️⃣ Fetch Ksheter Pradhan & Ksheter Mantri
+  const ksheterLeads = await Saadhak.find({
+    ksheter: { $in: allRelevantKsheter.map((k) => k._id) },
+    role: { $in: ["Ksheter Pradhan", "Ksheter Mantri"] },
+  }).select("ksheter roles role photoUrl name");
 
-const allRelevantKsheter = await Ksheter.find({
-  _id: { $in: allRelevantKsheterIds }
-}).select("_id name");
+  // 3️⃣ Build map: Ksheter Name → team array
+  const ksheterPhotosMap = {};
+  // { "Phagwara East": [ {role, photoUrl, name}, ... ] }
 
-// 2️⃣ Fetch Ksheter Pradhan & Ksheter Mantri
-const ksheterLeads = await Saadhak.find({
-  ksheter: { $in: allRelevantKsheter.map(k => k._id) },
-  role: { $in: ["Ksheter Pradhan", "Ksheter Mantri"] }
-}).select("ksheter roles role photoUrl name");
+  allRelevantKsheter.forEach((ksheter) => {
+    const team = ksheterLeads
+      .filter(
+        (l) => l.ksheter && l.ksheter.toString() === ksheter._id.toString(),
+      )
+      .sort((a, b) => {
+        const roleOrder = {
+          "Ksheter Pradhan": 1,
+          "Ksheter Mantri": 2,
+        };
 
-// 3️⃣ Build map: Ksheter Name → team array
-const ksheterPhotosMap = {};  
-// { "Phagwara East": [ {role, photoUrl, name}, ... ] }
+        const getLeadRole = (lead) => {
+          if (Array.isArray(lead.roles)) {
+            if (lead.roles.includes("Ksheter Pradhan"))
+              return "Ksheter Pradhan";
+            if (lead.roles.includes("Ksheter Mantri")) return "Ksheter Mantri";
+            return lead.roles[0];
+          }
+          return lead.role || "";
+        };
 
-allRelevantKsheter.forEach(ksheter => {
-  const team = ksheterLeads
-    .filter(l => l.ksheter && l.ksheter.toString() === ksheter._id.toString())
-    .sort((a, b) => {
-      const roleOrder = {
-        "Ksheter Pradhan": 1,
-        "Ksheter Mantri": 2
-      };
+        const roleA = getLeadRole(a);
+        const roleB = getLeadRole(b);
 
-      const getLeadRole = (lead) => {
-        if (Array.isArray(lead.roles)) {
-          if (lead.roles.includes("Ksheter Pradhan")) return "Ksheter Pradhan";
-          if (lead.roles.includes("Ksheter Mantri")) return "Ksheter Mantri";
-          return lead.roles[0];
+        if (roleA !== roleB) {
+          return (roleOrder[roleA] || 99) - (roleOrder[roleB] || 99);
         }
-        return lead.role || "";
-      };
 
-      const roleA = getLeadRole(a);
-      const roleB = getLeadRole(b);
+        // Alphabetical name sort
+        return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+      });
 
-      if (roleA !== roleB) {
-        return (roleOrder[roleA] || 99) - (roleOrder[roleB] || 99);
-      }
+    ksheterPhotosMap[ksheter.name] = team.map((l) => ({
+      role: Array.isArray(l.roles) ? l.roles.join(", ") : l.role,
+      photoUrl:
+        l.photoUrl && l.photoUrl.trim() !== ""
+          ? l.photoUrl
+          : "/images/default-user.png",
+      name: l.name,
+    }));
+  });
 
-      // Alphabetical name sort
-      return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
-    });
-
-  ksheterPhotosMap[ksheter.name] = team.map(l => ({
-    role: Array.isArray(l.roles) ? l.roles.join(", ") : l.role,
-    photoUrl:
-      l.photoUrl && l.photoUrl.trim() !== ""
-        ? l.photoUrl
-        : "/images/default-user.png",
-    name: l.name
-  }));
-});
-
-// console.log(ksheterPhotosMap);
+  // console.log(ksheterPhotosMap);
 
   res.render("report/attendanceSummary", {
     summary: sortedSummary,
@@ -468,9 +484,9 @@ allRelevantKsheter.forEach(ksheter => {
     kenderPhotosMap, // ⭐ added
     ksheterPhotosMap, // ⭐ NEW
 
-  //   // ⭐ NEW
-  // zilaTeamPhotos,
-  // ksheterTeamPhotos,
+    //   // ⭐ NEW
+    // zilaTeamPhotos,
+    // ksheterTeamPhotos,
   });
 };
 

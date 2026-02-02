@@ -7,7 +7,7 @@
 
   <!-- Date Filter -->
   <form method="GET" class="text-center mb-2">
-    <input type="date" name="date" value="<%= selectedDate %>" onchange="this.form.submit()" class="form-control d-inline w-auto fw-semibold" style="padding:3px 6px; font-size:0.9rem;" />
+    <input type="date" name="date" id="date" value="<%= selectedDate %>" class="form-control d-inline w-auto fw-semibold" style="padding:3px 6px; font-size:0.9rem;" />
 
     <% if (user?.prant) { %>
       <input type="hidden" name="prant" value="<%= user.prant %>">
@@ -211,7 +211,16 @@
 <!-- EXPORT SCRIPT -->
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script>
-  document.getElementById('exportSummaryBtn').addEventListener('click', () => {
+  document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('date').addEventListener('change', function() {
+      var spinner = document.getElementById('loadingSpinner');
+      if (spinner) {
+        spinner.style.display = 'block';
+      }
+      this.form.submit();
+    });
+
+    document.getElementById('exportSummaryBtn').addEventListener('click', () => {
     const exportArea = document.getElementById('summaryExportWrapper');
     // const watermarkText = document.getElementById('summaryWatermark');
     // watermarkText.style.display = 'block';
@@ -232,6 +241,10 @@
       });
     }, 300);
   });
+
+  });
+ 
+  
 </script>
 
 <%- include('../partials/footer') %>
