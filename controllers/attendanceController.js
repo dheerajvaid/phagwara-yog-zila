@@ -448,13 +448,13 @@ exports.viewTodayAttendance = async (req, res) => {
 
     // 🔢 Step: Get attendance count per Saadhak for the current month
     const saadhakIds = attendanceRecords.map((r) => r.saadhak._id);
-    console.log(user.kender);
+    // console.log(user.kender);
     // Count attendance per Saadhak in this month
     const attendanceCounts = await Attendance.aggregate([
       {
         $match: {
           saadhak: { $in: saadhakIds },
-          kender: new mongoose.Types.ObjectId(user.kender),
+          // kender: new mongoose.Types.ObjectId(user.kender),
           status: "Present",
           date: { $gte: startOfMonth, $lte: endOfMonth },
         },
