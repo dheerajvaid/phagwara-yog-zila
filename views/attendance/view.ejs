@@ -139,7 +139,7 @@
                   const isPresent = s.attendance.includes(dateStr);
                 %>
                   <td class="<%= isPresent ? 'bg-success text-white' : 'bg-light text-black' %>"
-                      style="width: 30px; min-width: 30px; max-width: 30px; font-size: 0.8rem; padding: 4px;">
+                      style="width: 28px; min-width: 28px; max-width: 28px; font-size: 0.75rem; padding: 3.5px;">
                     <%= day %>
                   </td>
                 <% }) %>
@@ -167,7 +167,7 @@
     cloneContainer.innerHTML = '';
 
     const clone = originalTable.cloneNode(true);
-    clone.style.width = '100%';
+    clone.style.width = '95%';
 
     const wrapper = document.createElement('div');
 
