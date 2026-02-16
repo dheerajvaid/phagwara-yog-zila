@@ -200,9 +200,28 @@
 
             <div>
               <div class="text-center text-primary fw-semibold">
-                <p class="text-danger fw-bold mb-1 mt-0">BHARATIYA YOG SANSTHAN</p>
+                <p class="text-danger fw-bold mb-0 mt-0">BHARATIYA YOG SANSTHAN</p>
               </div>
-              <h5 class="m-0 fw-bold text-success">आज का योग संदेश</h5>
+              <% if (ksheterDetails) { %>
+                <div class="text-center text-success fw-bold mb-0" style="font-size:0.9rem;">
+                  <%= ksheterDetails.name %>
+                </div>  
+              <% } %> 
+              
+              <% if (zilaDetails) { %>
+                <div class="text-center text-success fw-bold mb-0" style="font-size:0.9rem;">
+                  <%= zilaDetails.name %>
+                </div>
+              <% } %> 
+
+              <% if (prantDetails) { %>
+                <div class="text-center text-success fw-bold mb-0" style="font-size:0.9rem;">
+                  <%= prantDetails.name %>
+                </div>  
+              <% } %> 
+
+               <hr style="border-top:2px solid #28a745; margin-bottom:0.5rem;">  
+              <h5 class="m-0 fw-bold text-danger">आज का योग संदेश</h5>
               <div class="small text-dark">
                 <%= new Date().toLocaleDateString('hi-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'long', year: 'numeric' }) %>
               </div>
@@ -226,7 +245,7 @@
 
           <!-- ⭐ TIP TEXT (Display Mode) ⭐ -->
           <div id="tipDisplayArea">
-            <p class="fs-5 mb-2 fst-italic" id="tipText" style="color:black;"><%= tipOfTheDay %></p>
+            <p class="fs-5 mb-2 fst-italic fw-bold" id="tipText" style="color:black;"><%= tipOfTheDay %></p>
           </div>
 
           <!-- ⭐ TIP TEXT (Edit Mode) - Hidden by default ⭐ -->
@@ -257,10 +276,10 @@
           <% if (isKenderUser && kenderDetails) { %>
             <div class="kender-tip-box mt-3 p-3 rounded shadow-sm"
                  style="background:#f8fff4; border-left:5px solid #28a745; line-height:1.35;">
-              <div class="fw-bold"><%= kenderDetails.name %></div>
+              <div class="fw-bold text-danger"><%= kenderDetails.name %></div>
               <div><%= kenderDetails.address %></div>
               <% if (kenderDetails.startTime) { %>
-                <div>Start⏰: <%= kenderDetails.startTime %></div>
+                <div>Kender Time ⏰: <%= kenderDetails.startTime %></div>
               <% } %>
             </div>
           <% } %>

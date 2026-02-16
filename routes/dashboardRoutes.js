@@ -6,6 +6,9 @@ const tips = require("../data/tips.json");
 const Saadhak = require("../models/Saadhak");
 const Paath = require("../paathTracker/models/paath.model"); // <-- add this line
 const Kender = require("../models/Kender");
+const Zila = require("../models/Zila");
+const Ksheter = require("../models/Ksheter");
+const Prant = require("../models/Prant");
 
 router.get("/dashboard", requireLogin, async (req, res) => {
   try {
@@ -44,10 +47,31 @@ router.get("/dashboard", requireLogin, async (req, res) => {
 
     // ✅ Send logged-in user's Kender Details (for Tip-of-Day block)
     let kenderDetails = null;
+    let ksheterDetails = null;
+    let zilaDetails = null;
+    let prantDetails = null;
 
     if (req.session.user && req.session.user.kender) {
       kenderDetails = await Kender.findById(req.session.user.kender).lean();
     }
+
+    if (req.session.user && req.session.user.ksheter) {
+      ksheterDetails = await Ksheter.findById(req.session.user.ksheter).lean();
+    }
+
+    if (req.session.user && req.session.user.zila) {
+      zilaDetails = await Zila.findById(req.session.user.zila).lean();
+    }
+
+    if (req.session.user && req.session.user.prant) {
+      prantDetails = await Prant.findById(req.session.user.prant).lean();
+    }
+
+    if (req.session.user && req.session.user.zila) {
+      zilaDetails = await Zila.findById(req.session.user.zila).lean();
+    }
+    // console.log("Zila Details:", zilaDetails);
+
     // console.log(userId);
     // console.log(kenderDetails);
 
@@ -61,6 +85,9 @@ router.get("/dashboard", requireLogin, async (req, res) => {
       bmiCategory,
       todaySteps, // <-- send to EJS
       kenderDetails,
+      ksheterDetails,
+      zilaDetails,
+      prantDetails,
     });
   } catch (err) {
     console.error(err);
