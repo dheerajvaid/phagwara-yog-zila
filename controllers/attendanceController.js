@@ -4,6 +4,7 @@ const Zila = require("../models/Zila");
 const Ksheter = require("../models/Ksheter");
 const Kender = require("../models/Kender");
 const Attendance = require("../models/Attendance");
+const AllowedDays = require("../models/AllowedDays");
 const messages = require("../utils/motivationalMessages");
 const pdfExport = require("../utils/pdfExport");
 const roleConfig = require("../config/roles");
@@ -187,6 +188,15 @@ exports.showMarkAttendanceForm = async (req, res) => {
 
     // console.log(zilaRoles);
 
+    let allowedDays = await AllowedDays.findOne();
+
+    if (!allowedDays) {
+      // Note: Model.collection.insertOne bypasses schema defaults!
+      // It is better to use Model.create() to keep your default values.
+      allowedDays = await AllowedDays.create({});
+    }
+    // console.log(allowedDays);
+
     // Now render the view with the sorted list
     res.render("attendance/mark", {
       saadhaks: sortedSaadhaks,
@@ -198,6 +208,7 @@ exports.showMarkAttendanceForm = async (req, res) => {
       prantRoles,
       zilaRoles,
       ksheterRoles,
+      allowedDays: allowedDays ? allowedDays.days : 3, // Pass allowed days to the view
       // totalDaysCount: totalDays.length,
     });
   } catch (err) {
@@ -1080,9 +1091,9 @@ exports.viewTop10Attendance = async (req, res) => {
     const attendPer = Math.min(Math.abs(req.query.attendPer), 100) || 65;
     const start = new Date(selectedYear, selectedMonth - prevMonths, 1);
     const end = new Date(selectedYear, selectedMonth, 0, 23, 59, 59);
-    const minDays = parseInt(req.query.minDays) || Math.ceil(
-      ((end - start) / (1000 * 60 * 60 * 24)) * (attendPer / 100),
-    );
+    const minDays =
+      parseInt(req.query.minDays) ||
+      Math.ceil(((end - start) / (1000 * 60 * 60 * 24)) * (attendPer / 100));
 
     let prantName = "";
     try {
@@ -1174,7 +1185,7 @@ exports.viewTop10Attendance = async (req, res) => {
       //   console.log("Start of Month:", start);
       //   console.log("End of Month:", end);
       //  console.log("Days Difference:", Math.ceil((end - start) / (1000 * 60 * 60 * 24)));
-            const daysInMonth =
+      const daysInMonth =
         selectedYear === today.getFullYear() &&
         selectedMonth === today.getMonth() + 1
           ? Math.ceil((today - start) / (1000 * 60 * 60 * 24))

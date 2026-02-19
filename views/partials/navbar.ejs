@@ -235,8 +235,11 @@ const isSaadhakOnly = user?.roles.some(role => saadhakRoles.includes(role));
           <% } %> 
 
         <% if (user) { %>
+           <% if (isAdmin) { %>
+            <li class="nav-item"><a class="nav-link" href="/admin/alloweddays">🔙 Attendance Days</a></li>
+           <% } %>
+
           <% if (isAdmin || isPrantLevel) { %>
-            <li class="nav-item"><a class="nav-link" href="/admin/panel">🛠️ Admin Panel</a></li>
             <%- include('zila') %>
             <%- include('ksheter') %>
             <%- include('kender') %>

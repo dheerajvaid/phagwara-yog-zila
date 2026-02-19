@@ -1,0 +1,35 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<section class="container mt-4 mb-5">
+  
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+          <h5 class="card-title text-center mb-3">Update Allowed Days</h5>
+          
+          <form action="/admin/alloweddays" method="POST">
+            <div class="mb-3">
+              <label for="days" class="form-label">Allowed Days Number</label>
+              <input type="number" 
+                     class="form-control form-control-lg" 
+                     name="days" 
+                     id="days" 
+                     value="<%= daysValue %>" 
+                     min="0" 
+                     required>
+            </div>
+            <div class="d-grid">
+              <button type="submit" class="btn btn-primary">Save Changes</button>
+              <a href="/dashboard" class="btn btn-link btn-sm mt-2 text-decoration-none text-muted">Back to Dashboard</a>
+            </div>
+          </form>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<%- include('../partials/footer') %>

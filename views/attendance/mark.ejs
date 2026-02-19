@@ -85,6 +85,7 @@
       const ksheterRoles = <%- JSON.stringify(ksheterRoles) %>;
       const prantRoles = <%- JSON.stringify(prantRoles) %>;
       const spinner = document.getElementById('loadingSpinner');
+      const allowedDays = <%- allowedDays %>;
 
         const tableBody = document.getElementById("saadhakTableBody");
         const attendanceDateInput = document.getElementById("attendanceDate");
@@ -102,7 +103,7 @@
 
         // Set range
         const fifteenDaysAgo = new Date(istToday);
-        fifteenDaysAgo.setDate(istToday.getDate() - 3);
+        fifteenDaysAgo.setDate(istToday.getDate() - allowedDays); // Use allowedDays from server
 
         attendanceDateInput.max = formatDate(istToday);
         attendanceDateInput.min = formatDate(fifteenDaysAgo);
