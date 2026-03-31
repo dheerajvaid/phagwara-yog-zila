@@ -274,8 +274,18 @@
       </div>
       <!-- Blue Cap (ONLY if top performer) -->
       <% if (attendance.monthlyCount === topCount) { %>
-        <span style="font-size: 0.8rem;">🧢</span>
-      <% } %>
+  <span style="
+    border: 1.5px solid #dc3545;
+    color: #dc3545;
+    padding: 2px 2px;
+    border-radius: 50%;
+    font-size: 1rem;
+    font-weight: 600;
+    display: inline-block;
+  ">
+    🥇
+  </span>
+<% } %>
     </div>
   </td>
   
