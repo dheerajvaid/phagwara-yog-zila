@@ -189,110 +189,265 @@
 
       <div class="modal-body text-center text-dark px-4 py-3">
 
-        <div id="tipImageArea" class="bg-white text-dark"
-             style="padding: 0.5rem; border: 2px solid #28a745; border-radius: 0rem; max-width: 350px; margin: auto; box-shadow: 0 0 12px rgba(0,0,0,0.08);">
-          <!-- <div style="width:60px; padding:5px; border:2px solid #28a745; border-radius:8px; background-color:white; display:flex; align-items:center; justify-content:center;"> -->
-              <img src="/images/logo.jpg" style="width:20%; object-fit:contain;margin:auto;">
-            <!-- </div> -->
-          <!-- ⭐ TOP SECTION WITH BYS LOGO + TITLE ⭐ -->
-          <div class="d-flex align-items-center justify-content-center gap-3 mb-3">
-            
+        <div id="tipImageArea"
+     style="
+        max-width:350px;
+        margin:auto;
+        background:#fff;
+        border-radius:20px;
+        overflow:hidden;
+        border:2px solid #28a745;
+        box-shadow:0 8px 25px rgba(0,0,0,.15);
+     ">
+    <!-- Centered Date -->
+    <div class="text-center mt-0"
+         style="font-size:1rem;color:black;font-weight: bold;">
+        <%= new Date().toLocaleDateString('hi-IN', {
+            timeZone:'Asia/Kolkata',
+            day:'numeric',
+            month:'long',
+            year:'numeric'
+        }) %>
+    </div>
 
-            <div>
-              <div class="text-center text-primary fw-semibold">
-                <p class="text-danger fw-bold mb-0 mt-0">BHARATIYA YOG SANSTHAN</p>
-              </div>
-              <% if (ksheterDetails) { %>
-                <div class="text-center text-success fw-bold mb-0" style="font-size:0.9rem;">
-                  <%= ksheterDetails.name %>
-                </div>  
-              <% } %> 
-              
-              <% if (zilaDetails) { %>
-                <div class="text-center text-success fw-bold mb-0" style="font-size:0.9rem;">
-                  <%= zilaDetails.name %>
+    <!-- TOP HEADER -->
+    <div style="
+        background:linear-gradient(135deg,#28a745,#0d6efd);
+        padding:4px;
+        text-align:center;
+        color:white;
+    ">
+        
+
+        <div class="fw-bold mt-0" style="font-size:0.9rem;">
+            BHARATIYA YOG SANSTHAN
+        </div>
+
+        <!-- <% if (ksheterDetails) { %>
+            <div class="fw-semibold"><%= ksheterDetails.name %></div>
+        <% } %>
+
+        <% if (zilaDetails) { %>
+            <div class="fw-semibold"><%= zilaDetails.name %></div>
+        <% } %>
+
+        <% if (prantDetails) { %>
+            <div class="fw-semibold"><%= prantDetails.name %></div>
+        <% } %> -->
+    </div>
+
+    <!-- TITLE -->
+<div class="py-2 px-3"
+     style="background:#fff8ef;border-bottom:2px solid #eee;">
+
+    <!-- Logo + Title -->
+    <div class="d-flex align-items-center justify-content-center gap-2">
+
+        <img src="/images/logo.jpg"
+             style="
+                width:38px;
+                height:38px;
+                object-fit:contain;
+                background:white;
+                padding:2px;
+                border-radius:50%;
+                border:1px solid #28a745;
+             ">
+
+        <h5 class="fw-bold text-danger mb-0"
+            style="font-size:1.05rem;">
+            आज का योग संदेश
+        </h5>
+
+    </div>
+
+    
+</div>
+
+    <!-- PHOTO + MESSAGE -->
+    <div class="p-3">
+
+        <% if (user.photoUrl) { %>
+
+        <div class="d-flex align-items-center gap-3 mb-3" id="showHidePhoto">
+
+            <div class="text-center" style="width:95px; min-width:95px;">
+
+    <div style="
+        width:85px;
+        height:105px;
+        margin:auto;
+        border-radius:12px;
+        overflow:hidden;
+        border:3px solid #28a745;
+        box-shadow:0 4px 10px rgba(0,0,0,.15);
+    ">
+        <img src="<%= user.photoUrl %>"
+             style="width:100%;height:100%;object-fit:cover;">
+    </div>
+
+    <div class="fw-bold text-danger mt-2"
+         style="
+            font-size:.80rem;
+            line-height:1.15;
+         ">
+        <%= user.name %>
+    </div>
+
+    <span class="badge bg-success mt-1"
+          style="
+             font-size:.60rem;
+             white-space:normal;
+             max-width:90px;
+          ">
+        <%= Array.isArray(user.roles) ? user.roles.join(', ') : user.roles %>
+    </span>
+
+</div>
+
+            <div class="flex-grow-1">
+
+                
+                <div style="
+                    background:#f8fff4;
+                    border-left:4px solid #28a745;
+                    padding:10px;
+                    border-radius:10px;
+                ">
+                    <div id="tipDisplayArea">
+                        <div id="tipText"
+                             class="fw-semibold"
+                             style="
+                                color:#222;
+                                line-height:1.5;
+                                font-size:.95rem;
+                             ">
+                            <%= tipOfTheDay %>
+                        </div>
+                    </div>
+
+                    <div id="tipEditArea" style="display:none;">
+                        <textarea id="tipTextarea"
+                                  class="form-control mb-2"
+                                  rows="4"></textarea>
+
+                        <div class="d-flex justify-content-center gap-2">
+                            <button type="button"
+                                    class="btn btn-success btn-sm"
+                                    id="confirmEditBtn">
+                                ✓ ठीक है
+                            </button>
+
+                            <button type="button"
+                                    class="btn btn-outline-secondary btn-sm"
+                                    id="cancelEditBtn">
+                                ✗ रद्द करें
+                            </button>
+                        </div>
+                    </div>
                 </div>
-              <% } %> 
 
-              <% if (prantDetails) { %>
-                <div class="text-center text-success fw-bold mb-0" style="font-size:0.9rem;">
-                  <%= prantDetails.name %>
-                </div>  
-              <% } %> 
-
-               <hr style="border-top:2px solid #28a745; margin-bottom:0.5rem;">  
-              <h5 class="m-0 fw-bold text-danger">आज का योग संदेश</h5>
-              <div class="small text-dark">
-                <%= new Date().toLocaleDateString('hi-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'long', year: 'numeric' }) %>
-              </div>
             </div>
-          </div>
-
-          <!-- ⭐ USER PHOTO + NAME SECTION ⭐ -->
-          <% if (user.photoUrl) { %>
-            <div class="d-flex flex-column align-items-center mb-3" id="showHidePhoto">
-              <div style="height: 90px; width: 70.87px; border-radius: 8px; overflow: hidden; border: 3px solid #28a745; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-                <img src="<%= user.photoUrl %>" alt="Photo" style="width:100%; height:100%; object-fit:cover;">
-              </div>
-              <div class="d-flex flex-column mt-2 fw-bold text-danger" style="font-size:1.1rem;">
-                <div><%= user.name %></div>
-                <div style="font-size:0.8rem; color:#000;">(<%= user.roles %>)</div>
-              </div>
-            </div>
-          <% } %>
-
-          <hr style="border-top:2px solid #28a745; margin-bottom:0.5rem;">
-
-          <!-- ⭐ TIP TEXT (Display Mode) ⭐ -->
-          <div id="tipDisplayArea">
-            <p class="fs-5 mb-2 fst-italic fw-bold" id="tipText" style="color:black;"><%= tipOfTheDay %></p>
-          </div>
-
-          <!-- ⭐ TIP TEXT (Edit Mode) - Hidden by default ⭐ -->
-          <div id="tipEditArea" style="display: none;">
-            <textarea id="tipTextarea" class="form-control mb-2" rows="4" 
-                      style="border: 2px solid #28a745; border-radius: 8px; font-style: italic;"
-                      placeholder="अपना संदेश यहाँ लिखें..."></textarea>
-            <div class="d-flex justify-content-center gap-2">
-              <button type="button" class="btn btn-success btn-sm" id="confirmEditBtn">
-                ✓ ठीक है
-              </button>
-              <button type="button" class="btn btn-outline-secondary btn-sm" id="cancelEditBtn">
-                ✗ रद्द करें
-              </button>
-            </div>
-          </div>
-
-          <% if (!user.photoUrl) { %>
-            <p class="text-center text-success fw-bold mb-0">- <%= user.name %></p>
-          <% } %>
-
-          <!-- ⭐ KENDER INFO SECTION ⭐ -->
-          <%
-            const kenderRoles = ['Kender Pramukh', 'Seh Kender Pramukh', 'Shikshak', 'Karyakarta', 'Saadhak'];
-            const isKenderUser = user.roles && user.roles.some(r => kenderRoles.includes(r));
-          %>
-
-          <% if (isKenderUser && kenderDetails) { %>
-            <div class="kender-tip-box mt-3 p-3 rounded shadow-sm"
-                 style="background:#f8fff4; border-left:5px solid #28a745; line-height:1.35;">
-              <div class="fw-bold text-danger"><%= kenderDetails.name %></div>
-              <div><%= kenderDetails.address %></div>
-              <% if (kenderDetails.startTime) { %>
-                <div>Kender Time ⏰: <%= kenderDetails.startTime %></div>
-              <% } %>
-            </div>
-          <% } %>
-
-          <!-- FOOTER LINK -->
-          <div class="mt-1 text-center text-primary fw-semibold">
-            <a href="https://www.joinyog.in" target="_blank" class="text-decoration-none text-danger">
-              www.joinyog.in
-            </a>
-          </div>
 
         </div>
 
+        <% } else { %>
+
+        <div class="text-center">
+
+            <div class="fw-bold text-danger mb-2">
+                <%= user.name %>
+            </div>
+
+            <div id="tipDisplayArea">
+                <div id="tipText"
+                     class="fw-semibold"
+                     style="
+                        color:#222;
+                        line-height:1.6;
+                        font-size:1rem;
+                     ">
+                    <%= tipOfTheDay %>
+                </div>
+            </div>
+
+            <div id="tipEditArea" style="display:none;">
+                <textarea id="tipTextarea"
+                          class="form-control mb-2"
+                          rows="4"></textarea>
+
+                <div class="d-flex justify-content-center gap-2">
+                    <button type="button"
+                            class="btn btn-success btn-sm"
+                            id="confirmEditBtn">
+                        ✓ ठीक है
+                    </button>
+
+                    <button type="button"
+                            class="btn btn-outline-secondary btn-sm"
+                            id="cancelEditBtn">
+                        ✗ रद्द करें
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <% } %>
+
+        <!-- KENDER INFO -->
+        <%
+            const kenderRoles = ['Kender Pramukh', 'Seh Kender Pramukh', 'Shikshak', 'Karyakarta', 'Saadhak'];
+            const isKenderUser = user.roles && user.roles.some(r => kenderRoles.includes(r));
+        %>
+
+        <% if (isKenderUser && kenderDetails) { %>
+        <div class="mt-3"
+             style="
+                background:#f8fff4;
+                border-left:5px solid #28a745;
+                border-radius:12px;
+                padding:12px;
+             ">
+
+            <div class="fw-bold text-danger">
+                <%= kenderDetails.name %>
+            </div>
+
+            <div style="font-size:.9rem;">
+                <%= kenderDetails.address %>
+            </div>
+
+            <% if (kenderDetails.startTime) { %>
+            <div class="mt-1">
+                Kender Start Time: <%= kenderDetails.startTime %>
+            </div>
+            <% } %>
+
+        </div>
+        <% } %>
+        <a href="https://www.joinyog.in"
+           target="_blank"
+           class="fw-bold text-danger text-decoration-none">
+            🌐 www.joinyog.in
+        </a>
+    </div>
+
+    <!-- FOOTER -->
+    <!-- <div style="
+        background:#fff8ef;
+        border-top:1px solid #eee;
+        padding:10px;
+        text-align:center;
+    ">
+        <a href="https://www.joinyog.in"
+           target="_blank"
+           class="fw-bold text-danger text-decoration-none">
+            🌐 www.joinyog.in
+        </a>
+    </div> -->
+
+</div>
       </div>
 
       <div class="modal-footer justify-content-center py-2">
