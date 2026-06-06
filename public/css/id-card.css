@@ -1,5 +1,5 @@
 /* -------------------- Themeable CSS Variables -------------------- */
-:root{
+/* :root{
   --primary: #3a120f;
   --light: #fff4e0;
   --panel: #fce5d0;
@@ -11,8 +11,49 @@
   --photo-bg: #fff4e0;
   --tagline-color: #3a120f;
   --shadow-rgba: 0,0,0,0.3;
-}
+} */
 
+/* :root{
+  --primary: #1a1a1a;
+  --light: #ffffff;
+  --panel: #f2f2f2;
+  --text-strong: #101010;
+  --text-muted: #555555;
+  --border: #222222;
+  --org-title-bg: #202020;
+  --org-title-color: #ffffff;
+  --photo-bg: #fafafa;
+  --tagline-color: #222222;
+  --shadow-rgba: 0,0,0,0.20;
+} */
+
+/* :root{
+  --primary: #000000;
+  --light: #ffffff;
+  --panel: #ededed;
+  --text-strong: #000000;
+  --text-muted: #666666;
+  --border: #000000;
+  --org-title-bg: #000000;
+  --org-title-color: #ffffff;
+  --photo-bg: #ffffff;
+  --tagline-color: #000000;
+  --shadow-rgba: 0,0,0,0.18;
+} */
+
+:root{
+  --primary: #000000;
+  --light: #ffffff;
+  --panel: #ffffff;
+  --text-strong: #000000;
+  --text-muted: #000000;
+  --border: #000000;
+  --org-title-bg: #000000;
+  --org-title-color: #ffffff;
+  --photo-bg: #ffffff;
+  --tagline-color: #000000;
+  --shadow-rgba: 0,0,0,0.25;
+}
 /* -------------------- ID CARD MAIN WRAPPER -------------------- */
 .id-card-wrapper {
   display: flex;
