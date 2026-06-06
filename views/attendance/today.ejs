@@ -117,6 +117,7 @@
   }
   </style>
 
+
   <!-- HTML Section -->
   <section class="container mt-4">
     <!-- Date Filter and Export -->
@@ -268,24 +269,31 @@
 
       
 
-      <!-- Name + Count -->
-      <div>
-        <%= attendance.saadhak.name %>-<span class="text-danger fw-bold"><%= attendance.monthlyCount %></span>
-      </div>
-      <!-- Blue Cap (ONLY if top performer) -->
-      <% if (attendance.monthlyCount === topCount) { %>
-  <span style="
-    border: 1.5px solid #dc3545;
-    color: #dc3545;
-    padding: 2px 2px;
-    border-radius: 50%;
-    font-size: 1rem;
-    font-weight: 600;
-    display: inline-block;
-  ">
-    🥇
-  </span>
-<% } %>
+     <!-- Name + Count -->
+<div>
+  <%= attendance.saadhak.name %>-<% if (attendance.monthlyCount === topCount) { %><span style="
+      position:relative;
+      display:inline-block;
+      width:20px;
+      height:20px;
+      vertical-align:middle;
+      margin:0;
+      padding:0;
+      line-height:20px;
+    "><span style="
+        font-size:1.4rem;
+        color:gold;
+      ">⭐</span><span style="
+        position:absolute;
+        top:55%;
+        left:70%;
+        transform:translate(-50%,-50%);
+        font-size:0.72rem;
+        font-weight:700;
+        color:#dc3545;
+        line-height:1;
+      "><%= attendance.monthlyCount %></span></span><% } else { %><span class="text-danger fw-bold"><%= attendance.monthlyCount %></span><% } %>
+</div>
     </div>
   </td>
   

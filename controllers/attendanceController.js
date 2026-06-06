@@ -218,6 +218,99 @@ exports.showMarkAttendanceForm = async (req, res) => {
 };
 
 // Handle attendance submission
+// exports.markAttendance = async (req, res) => {
+//   try {
+//     const user = req.session.user;
+
+//     const today = new Date();
+//     today.setHours(0, 0, 0, 0); // Normalize to start of day
+
+//     let selectedSaadhaks = req.body.selectedSaadhaks;
+//     // const selectedKender = req.body.kenderFilter;
+//     // console.log(selectedKender);
+//     // console.log(selectedSaadhaks);
+
+//     const attendanceDate = new Date(req.body.attendanceDate);
+//     attendanceDate.setHours(10, 0, 0, 0);
+
+//     const start = new Date(attendanceDate);
+//     start.setHours(0, 0, 0, 0); // today at 00:00:00
+
+//     const end = new Date(attendanceDate);
+//     end.setHours(24, 0, 0, 0); // today at 23:59:59.999
+
+//     if (!selectedSaadhaks) {
+//       selectedSaadhaks = []; // No saadhaks selected means delete all attendance for today
+//     }
+
+//     if (!Array.isArray(selectedSaadhaks)) {
+//       selectedSaadhaks = [selectedSaadhaks];
+//     }
+
+//     // console.log(start, " - ", end);
+//     if (user.roles.includes("Saadhak")) {
+//       await Attendance.deleteOne({
+//         saadhak: user.id,
+//         kender: user.kender,
+//         date: { $gte: start, $lt: end },
+//       });
+//     } else {
+//       await Attendance.deleteMany({
+//         kender: user.kender,
+//         date: { $gte: start, $lt: end },
+//       });
+//     }
+//     // console.log("reached at 7");
+
+//     const records = selectedSaadhaks.map((id) => ({
+//       saadhak: id,
+//       kender: user.kender,
+//       date: attendanceDate,
+//       status: "Present", // or whatever your schema requires
+//     }));
+
+//     // console.log("reached at 8 and kender is " + selectedKender);
+
+//     if (records.length > 0) {
+//       await Attendance.insertMany(records);
+//     }
+
+//     // for (let saadhakId of selectedSaadhaks) {
+//     //   const existingAttendance = await Attendance.findOne({
+//     //     saadhak: saadhakId,
+//     //     date: { $gte: start, $lte: end },
+//     //   });
+
+//     //   if (existingAttendance) {
+//     //     existingAttendance.status = "Present";
+//     //     await existingAttendance.save();
+//     //   } else {
+//     //     const attendance = new Attendance({
+//     //       saadhak: saadhakId,
+//     //       date: attendanceDate,
+//     //       status: "Present",
+//     //     });
+//     //     await attendance.save();
+//     //   }
+//     // }
+
+//     // // 2. Remove attendance records for today where saadhak is NOT in selectedSaadhaks
+//     // await Attendance.deleteMany({
+//     //   date: { $gte: start, $lte: end },
+//     //   saadhak: { $nin: selectedSaadhaks },
+//     // });
+
+//     const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+//     req.flash("message", randomMessage);
+
+//     const formattedDate = attendanceDate.toISOString().split("T")[0]; // YYYY-MM-DD format
+//     res.redirect(`/attendance/today?date=${formattedDate}`);
+//   } catch (err) {
+//     console.error("Error marking attendance:", err);
+//     res.status(500).send("Server Error");
+//   }
+// };
+
 exports.markAttendance = async (req, res) => {
   try {
     const user = req.session.user;
@@ -310,7 +403,6 @@ exports.markAttendance = async (req, res) => {
     res.status(500).send("Server Error");
   }
 };
-
 // Show today's attendance
 exports.viewTodayAttendance = async (req, res) => {
   try {
