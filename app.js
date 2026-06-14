@@ -41,8 +41,7 @@ const yatraRoutes = require("./routes/yatraRoutes");
 const wishesRoutes = require("./routes/wishesRoutes");
 const paathRoutes = require("./paathTracker/routes/paath.routes");
 const paathGroupRoutes = require("./paathTracker/routes/paathGroup.routes");
-const gameRoutes = require('./routes/gameRoutes');
-
+const gameRoutes = require("./routes/gameRoutes");
 
 // Middlewares
 const { assignRoleLevel } = require("./middleware/roleMiddleware");
@@ -94,7 +93,6 @@ cleanupOldGreetings();
 // Schedule cleanup every 1 hour
 setInterval(cleanupOldGreetings, 60 * 60 * 1000);
 
-
 // ---------------------------------------------
 // CONNECT MONGO
 // ---------------------------------------------
@@ -124,7 +122,7 @@ mongoose
           httpOnly: true,
           secure: false,
         },
-      })
+      }),
     );
 
     app.use(flash());
@@ -193,8 +191,8 @@ mongoose
     app.use("/wishes", wishesRoutes);
     app.use("/paath", paathRoutes);
     app.use("/paath", paathGroupRoutes);
-    app.use('/idcard', require('./routes/idcard'));
-    app.use('/games', gameRoutes);
+    app.use("/idcard", require("./routes/idcard"));
+    app.use("/games", gameRoutes);
 
     console.log("✅ All middlewares & routes loaded safely");
 

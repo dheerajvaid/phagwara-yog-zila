@@ -2420,71 +2420,287 @@ exports.exportMissingExcel = async (req, res) => {
   }
 };
 
+// exports.monthlyAttendanceSummary = async (req, res) => {
+//   try {
+//     const user = req.session.user;
+
+//     // const selectedKenderData = await Kender.find({ _id: user.kender });
+//     // selectedKenderName = selectedKenderData[0].name || "";
+
+//     const today = new Date();
+
+//     // Last 12 months range
+//     const end = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+//     const start = new Date(today.getFullYear(), today.getMonth() - 11, 1);
+
+//     const summary = await Attendance.aggregate([
+//       {
+//         $match: {
+//           //kender: new mongoose.Types.ObjectId(user.kender),
+//           date: { $gte: start, $lt: end },
+//         },
+//       },
+
+//       // Extract year & month
+//       {
+//         $addFields: {
+//           year: { $year: "$date" },
+//           month: { $month: "$date" },
+//         },
+//       },
+
+//       // Group by saadhak + month
+//       {
+//         $group: {
+//           _id: {
+//             saadhak: "$saadhak",
+//             year: "$year",
+//             month: "$month",
+//           },
+//           count: { $sum: 1 },
+//         },
+//       },
+
+//       // Regroup by saadhak to pivot months
+//       {
+//         $group: {
+//           _id: "$_id.saadhak",
+//           months: {
+//             $push: {
+//               year: "$_id.year",
+//               month: "$_id.month",
+//               count: "$count",
+//             },
+//           },
+//         },
+//       },
+
+//       // Lookup Saadhak details
+//       {
+//         $lookup: {
+//           from: "saadhaks",
+//           localField: "_id",
+//           foreignField: "_id",
+//           as: "saadhak",
+//         },
+//       },
+//       { $unwind: "$saadhak" },
+//     ]);
+
+//     // -------------------------------------------------------
+//     // CREATE 12 MONTH KEYS FIRST (today12)
+//     // -------------------------------------------------------
+//     const today12 = [];
+//     for (let i = 0; i < 12; i++) {
+//       const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+//       today12.push({
+//         key: `${d.getFullYear()}-${d.getMonth() + 1}`,
+//         date: d,
+//       });
+//     }
+
+//     // -------------------------------------------------------
+//     // CONSTRUCT FINAL TABLE ROWS BASED ON 12 FIXED MONTHS
+//     // -------------------------------------------------------
+//     const data = summary.map((s) => {
+//       const row = {
+//         name: s.saadhak.name,
+//         mobile: s.saadhak.mobile,
+//       };
+
+//       // Initialize all 12 months to 0
+//       today12.forEach((m) => {
+//         row[m.key] = 0;
+//       });
+
+//       // Fill real attendance values
+//       s.months.forEach((m) => {
+//         const key = `${m.year}-${m.month}`;
+//         if (row[key] !== undefined) {
+//           row[key] = m.count;
+//         }
+//       });
+
+//       // Calculate total attendance for this saadhak
+//       let total = 0;
+//       today12.forEach((m) => {
+//         total += row[m.key] || 0;
+//       });
+//       row.total = total;
+
+//       return row;
+//     });
+
+//     // -------------------------------------------------------
+//     // FIND MONTHS THAT HAVE ANY ATTENDANCE
+//     // -------------------------------------------------------
+//     const monthTotals = {};
+//     today12.forEach((m) => (monthTotals[m.key] = 0));
+
+//     data.forEach((row) => {
+//       today12.forEach((m) => {
+//         monthTotals[m.key] += row[m.key] || 0;
+//       });
+//     });
+
+//     // Keep only months where total attendance > 0
+//     const filteredMonths = today12.filter((m) => monthTotals[m.key] > 0);
+
+//     // Sort months: oldest → newest
+//     filteredMonths.sort((a, b) => a.date - b.date);
+
+//     // -------------------------------------------------------
+//     // SORT SAADHAKS ALPHABETICALLY
+//     // -------------------------------------------------------
+//     data.sort((a, b) => a.name.localeCompare(b.name));
+
+//     // -------------------------------------------------------
+//     // RENDER
+//     // -------------------------------------------------------
+//     res.render("attendance/monthlySummary", {
+//       data,
+//       months: filteredMonths,
+//       today,
+//       kenderName: ' ' || selectedKenderName || ' ',
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).send("Error generating summary");
+//   }
+// };
+
+// --- FIXED EXCEL EXPORT CONTROLLER ---
+
 exports.monthlyAttendanceSummary = async (req, res) => {
   try {
     const user = req.session.user;
 
-    const selectedKenderData = await Kender.find({ _id: user.kender });
-    selectedKenderName = selectedKenderData[0].name || "";
+    // console.log(user);
+
     const today = new Date();
 
     // Last 12 months range
     const end = new Date(today.getFullYear(), today.getMonth() + 1, 1);
     const start = new Date(today.getFullYear(), today.getMonth() - 11, 1);
 
-    const summary = await Attendance.aggregate([
+    const userRoles = user.roles || [];
+
+    const isZila = userRoles.some((r) => zilaRoles.includes(r));
+    const isKsheter = userRoles.some((r) => ksheterRoles.includes(r));
+    const isKender = userRoles.some((r) =>
+      [...kenderRoles, ...kenderTeamRoles].includes(r)
+    );
+
+    const reportRoles = [
+      ...zilaRoles,
+      ...ksheterRoles,
+      ...kenderRoles,
+      ...kenderTeamRoles,
+    ];
+
+    const zilaReportRoles = [
+      ...zilaRoles,
+      ...ksheterRoles,
+      ...kenderRoles,
+    ];
+
+    const pipeline = [
       {
         $match: {
-          kender: new mongoose.Types.ObjectId(user.kender),
           date: { $gte: start, $lt: end },
         },
       },
 
-      // Extract year & month
-      {
-        $addFields: {
-          year: { $year: "$date" },
-          month: { $month: "$date" },
-        },
-      },
-
-      // Group by saadhak + month
-      {
-        $group: {
-          _id: {
-            saadhak: "$saadhak",
-            year: "$year",
-            month: "$month",
-          },
-          count: { $sum: 1 },
-        },
-      },
-
-      // Regroup by saadhak to pivot months
-      {
-        $group: {
-          _id: "$_id.saadhak",
-          months: {
-            $push: {
-              year: "$_id.year",
-              month: "$_id.month",
-              count: "$count",
-            },
-          },
-        },
-      },
-
-      // Lookup Saadhak details
+      // Lookup Saadhak details FIRST
       {
         $lookup: {
           from: "saadhaks",
-          localField: "_id",
+          localField: "saadhak",
           foreignField: "_id",
           as: "saadhak",
         },
       },
+
       { $unwind: "$saadhak" },
-    ]);
+    ];
+
+    // -------------------------------------------------------
+    // ROLE BASED FILTERING
+    // -------------------------------------------------------
+    // console.log(reportRoles);
+    // console.log(isZila);
+
+  
+    if (isZila) {
+      pipeline.push({
+        $match: {
+          "saadhak.zila": new mongoose.Types.ObjectId(user.zila),
+          "saadhak.role": { $in: zilaReportRoles },
+        },
+      });
+    } else if (isKsheter) {
+      pipeline.push({
+        $match: {
+          "saadhak.ksheter": new mongoose.Types.ObjectId(user.ksheter),
+          "saadhak.role": {
+            $in: [
+              ...ksheterRoles,
+              ...kenderRoles,
+            ],
+          },
+        },
+      });
+    } else if (isKender) {
+      pipeline.push({
+        $match: {
+          kender: new mongoose.Types.ObjectId(user.kender),
+        },
+      });
+    }
+
+    // -------------------------------------------------------
+    // Extract year & month
+    // -------------------------------------------------------
+    pipeline.push({
+      $addFields: {
+        year: { $year: "$date" },
+        month: { $month: "$date" },
+      },
+    });
+
+    // -------------------------------------------------------
+    // Group by saadhak + month
+    // -------------------------------------------------------
+    pipeline.push({
+      $group: {
+        _id: {
+          saadhak: "$saadhak._id",
+          year: "$year",
+          month: "$month",
+        },
+        count: { $sum: 1 },
+        saadhak: { $first: "$saadhak" },
+      },
+    });
+
+    // -------------------------------------------------------
+    // Regroup by saadhak
+    // -------------------------------------------------------
+    pipeline.push({
+      $group: {
+        _id: "$_id.saadhak",
+        saadhak: { $first: "$saadhak" },
+        months: {
+          $push: {
+            year: "$_id.year",
+            month: "$_id.month",
+            count: "$count",
+          },
+        },
+      },
+    });
+
+    const summary = await Attendance.aggregate(pipeline);
 
     // -------------------------------------------------------
     // CREATE 12 MONTH KEYS FIRST (today12)
@@ -2525,6 +2741,7 @@ exports.monthlyAttendanceSummary = async (req, res) => {
       today12.forEach((m) => {
         total += row[m.key] || 0;
       });
+
       row.total = total;
 
       return row;
@@ -2534,7 +2751,10 @@ exports.monthlyAttendanceSummary = async (req, res) => {
     // FIND MONTHS THAT HAVE ANY ATTENDANCE
     // -------------------------------------------------------
     const monthTotals = {};
-    today12.forEach((m) => (monthTotals[m.key] = 0));
+
+    today12.forEach((m) => {
+      monthTotals[m.key] = 0;
+    });
 
     data.forEach((row) => {
       today12.forEach((m) => {
@@ -2543,7 +2763,9 @@ exports.monthlyAttendanceSummary = async (req, res) => {
     });
 
     // Keep only months where total attendance > 0
-    const filteredMonths = today12.filter((m) => monthTotals[m.key] > 0);
+    const filteredMonths = today12.filter(
+      (m) => monthTotals[m.key] > 0
+    );
 
     // Sort months: oldest → newest
     filteredMonths.sort((a, b) => a.date - b.date);
@@ -2560,7 +2782,7 @@ exports.monthlyAttendanceSummary = async (req, res) => {
       data,
       months: filteredMonths,
       today,
-      kenderName: selectedKenderName,
+      kenderName: " ",
     });
   } catch (error) {
     console.error(error);
@@ -2568,7 +2790,7 @@ exports.monthlyAttendanceSummary = async (req, res) => {
   }
 };
 
-// --- FIXED EXCEL EXPORT CONTROLLER ---
+
 exports.exportAttendanceExcel = async (req, res) => {
   try {
     const user = req.session.user;
