@@ -1,0 +1,274 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container py-2">
+
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h5 class="mb-0 fw-semibold">Photo Approval Queue</h5>
+
+        <span id="pendingBadge" class="badge bg-primary rounded-pill px-3 py-2">
+            <%= saadhaks.length %> Pending
+        </span>
+    </div>
+
+    <% if (saadhaks.length === 0) { %>
+
+        <div class="alert alert-success py-2 mb-2">
+            No photos pending approval.
+        </div>
+
+    <% } else { %>
+
+        <% saadhaks.forEach(saadhak => { %>
+
+            <div class="card border-0 shadow-sm mb-2 bg-light"
+                 id="row-<%= saadhak._id %>">
+
+                <div class="card-body py-2 px-2">
+
+                    <div class="d-flex align-items-start">
+
+                        <!-- Photo -->
+                        <div style="width:82px;min-width:82px;" class="text-center">
+
+                            <img
+                                src="<%= saadhak.photoUrl %>"
+                                class="img-thumbnail p-0"
+                                style="width:60px;height:60px;object-fit:cover;border-radius:8px;">
+
+                            <button
+                                class="btn btn-success btn-sm approve-btn mt-2 w-100"
+                                style="font-size:11px;"
+                                data-id="<%= saadhak._id %>">
+
+                                Approve
+
+                            </button>
+
+                            <button
+                                class="btn btn-danger btn-sm reject-btn mt-1 w-100"
+                                style="font-size:11px;"
+                                data-id="<%= saadhak._id %>">
+
+                                Reject
+
+                            </button>
+
+                        </div>
+
+                        <!-- Details -->
+                        <div class="flex-grow-1 ps-2">
+
+                            <div class="fw-bold fs-6 mb-1">
+                                <%= saadhak.name %>
+                            </div>
+
+                            <div style="font-size:13px;line-height:1.35;color:#555;">
+
+                                <div><%= saadhak.mobile %></div>
+
+                                <div><%= saadhak.prant?.name || "" %></div>
+
+                                <div><%= saadhak.zila?.name || "" %></div>
+
+                                <div><%= saadhak.ksheter?.name || "" %></div>
+
+                                <div><%= saadhak.kender?.name || "" %></div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        <% }) %>
+
+    <% } %>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+
+document.querySelectorAll(".approve-btn").forEach(btn => {
+
+    btn.addEventListener("click", async function () {
+
+        const id = this.dataset.id;
+
+        const result = await Swal.fire({
+            title: "Approve Photo?",
+            text: "This photo will become visible to everyone.",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: "#198754",
+            confirmButtonText: "Approve",
+            cancelButtonText: "Cancel"
+        });
+
+        if (!result.isConfirmed) return;
+
+        this.disabled = true;
+        this.innerText = "Approving...";
+
+        try {
+
+            const res = await fetch(`/saadhak/photo-approvals/${id}/approve`, {
+                method: "POST"
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+
+                document.getElementById(`row-${id}`).remove();
+
+                const badge = document.getElementById("pendingBadge");
+
+                let count = parseInt(badge.innerText);
+
+                count = Math.max(0, count - 1);
+
+                badge.innerText = `${count} Pending`;
+
+                Swal.fire({
+                    toast: true,
+                    position: "top-end",
+                    icon: "success",
+                    title: "Photo Approved",
+                    showConfirmButton: false,
+                    timer: 1800,
+                    timerProgressBar: true
+                });
+
+                if(count===0){
+                    setTimeout(()=>location.reload(),700);
+                }
+
+            } else {
+
+                Swal.fire({
+                    icon: "error",
+                    title: "Approval Failed",
+                    text: data.message || "Something went wrong."
+                });
+
+                this.disabled = false;
+                this.innerText = "Approve";
+
+            }
+
+        } catch (err) {
+
+            Swal.fire({
+                icon: "error",
+                title: "Server Error",
+                text: "Please try again."
+            });
+
+            this.disabled = false;
+            this.innerText = "Approve";
+
+        }
+
+    });
+
+});
+
+
+// Reject - to be implemented later
+document.querySelectorAll(".reject-btn").forEach(btn => {
+
+    btn.addEventListener("click", async function () {
+
+        const id = this.dataset.id;
+
+        const result = await Swal.fire({
+            title: "Reject Photo?",
+            text: "The uploaded photo will be permanently deleted.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#dc3545",
+            confirmButtonText: "Reject",
+            cancelButtonText: "Cancel"
+        });
+
+        if (!result.isConfirmed) return;
+
+        this.disabled = true;
+        this.innerText = "Rejecting...";
+
+        try {
+
+            const res = await fetch(`/saadhak/photo-approvals/${id}/reject`, {
+                method: "POST"
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+
+                // Remove card
+                document.getElementById(`row-${id}`).remove();
+
+                // Update badge
+                const badge = document.getElementById("pendingBadge");
+
+                let count = parseInt(badge.innerText);
+
+                count = Math.max(0, count - 1);
+
+                badge.innerText = `${count} Pending`;
+
+                Swal.fire({
+                    toast: true,
+                    position: "top-end",
+                    icon: "success",
+                    title: "Photo Rejected",
+                    showConfirmButton: false,
+                    timer: 1800,
+                    timerProgressBar: true
+                });
+
+                if (count === 0) {
+                    setTimeout(() => location.reload(), 700);
+                }
+
+            } else {
+
+                Swal.fire({
+                    icon: "error",
+                    title: "Reject Failed",
+                    text: data.message || "Something went wrong."
+                });
+
+                this.disabled = false;
+                this.innerText = "Reject";
+
+            }
+
+        } catch (err) {
+
+            Swal.fire({
+                icon: "error",
+                title: "Server Error",
+                text: "Please try again."
+            });
+
+            this.disabled = false;
+            this.innerText = "Reject";
+
+        }
+
+    });
+
+});
+
+</script>
+
+<%- include('../partials/footer') %>

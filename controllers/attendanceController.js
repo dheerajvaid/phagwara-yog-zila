@@ -578,12 +578,26 @@ exports.viewTodayAttendance = async (req, res) => {
 
     // 🧩 Add monthly count to each saadhak record
     attendanceRecords = attendanceRecords.map((r) => {
+      const record = r.toObject();
+
+      if (record.saadhak) {
+        const isPhotoApproved =
+          record.saadhak.photoApprovalStatus === "approved";
+
+        record.saadhak.photoUrl = isPhotoApproved
+          ? record.saadhak.photoUrl || ""
+          : "";
+
+        record.saadhak.photoPublicId = isPhotoApproved
+          ? record.saadhak.photoPublicId || ""
+          : "";
+      }
+
       return {
-        ...r.toObject(),
+        ...record,
         monthlyCount: attendanceMap[r.saadhak._id.toString()] || 0,
       };
     });
-
     res.render("attendance/today", {
       saadhaks: attendanceRecords,
       message:
@@ -2588,7 +2602,7 @@ exports.monthlyAttendanceSummary = async (req, res) => {
     const isZila = userRoles.some((r) => zilaRoles.includes(r));
     const isKsheter = userRoles.some((r) => ksheterRoles.includes(r));
     const isKender = userRoles.some((r) =>
-      [...kenderRoles, ...kenderTeamRoles].includes(r)
+      [...kenderRoles, ...kenderTeamRoles].includes(r),
     );
 
     const reportRoles = [
@@ -2598,11 +2612,7 @@ exports.monthlyAttendanceSummary = async (req, res) => {
       ...kenderTeamRoles,
     ];
 
-    const zilaReportRoles = [
-      ...zilaRoles,
-      ...ksheterRoles,
-      ...kenderRoles,
-    ];
+    const zilaReportRoles = [...zilaRoles, ...ksheterRoles, ...kenderRoles];
 
     const pipeline = [
       {
@@ -2630,7 +2640,6 @@ exports.monthlyAttendanceSummary = async (req, res) => {
     // console.log(reportRoles);
     // console.log(isZila);
 
-  
     if (isZila) {
       pipeline.push({
         $match: {
@@ -2643,10 +2652,7 @@ exports.monthlyAttendanceSummary = async (req, res) => {
         $match: {
           "saadhak.ksheter": new mongoose.Types.ObjectId(user.ksheter),
           "saadhak.role": {
-            $in: [
-              ...ksheterRoles,
-              ...kenderRoles,
-            ],
+            $in: [...ksheterRoles, ...kenderRoles],
           },
         },
       });
@@ -2763,9 +2769,7 @@ exports.monthlyAttendanceSummary = async (req, res) => {
     });
 
     // Keep only months where total attendance > 0
-    const filteredMonths = today12.filter(
-      (m) => monthTotals[m.key] > 0
-    );
+    const filteredMonths = today12.filter((m) => monthTotals[m.key] > 0);
 
     // Sort months: oldest → newest
     filteredMonths.sort((a, b) => a.date - b.date);
@@ -2789,7 +2793,6 @@ exports.monthlyAttendanceSummary = async (req, res) => {
     res.status(500).send("Error generating summary");
   }
 };
-
 
 exports.exportAttendanceExcel = async (req, res) => {
   try {

@@ -11,6 +11,11 @@ exports.showIdCard = async (req, res) => {
       return res.status(401).send("You are not logged in.");
     }
 
+    // console.log("SESSION PHOTO URL:", user.photoUrl);
+    // console.log("SESSION APPROVAL:", user.photoApprovalStatus);
+    // console.log("SESSION PHOTO URL:", req.session.user.photoUrl);
+    // console.log("SESSION APPROVAL:", req.session.user.photoApprovalStatus);
+
     // --- Ensure roles stays an array ---
     const safeUser = {
       id: user.id,
@@ -24,8 +29,10 @@ exports.showIdCard = async (req, res) => {
       roleLevel: user.roleLevel || "",
       photoUrl: user.photoUrl || "",
       photoPublicId: user.photoPublicId || "",
+      photoApprovalStatus: user.photoApprovalStatus || "rejected",
     };
 
+    
     // --- FETCH TITLES BASED ON USER LEVEL ---
     let prantName = "";
     let zilaName = "";
@@ -54,6 +61,8 @@ exports.showIdCard = async (req, res) => {
       if (p) prantName = p.name;
     }
 
+    console.log(user.name);
+    console.log(user.photoApprovalStatus);
     // --- SEND TO VIEW ---
     return res.render("idcard/show", {
       user: safeUser,

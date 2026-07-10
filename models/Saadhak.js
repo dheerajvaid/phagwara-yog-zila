@@ -39,8 +39,14 @@ const saadhakSchema = new mongoose.Schema(
     },
     photoUploadedAt: { type: Date },
     photoPrintedAt: { type: Date },
+
+    photoApprovalStatus: {
+      type: String,
+      enum: ["approved", "pending", "rejected"],
+      default: "rejected",
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 module.exports =

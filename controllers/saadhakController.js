@@ -395,7 +395,10 @@ exports.listSaadhaks = async (req, res) => {
     }
 
     // ✅ Fetch data as before
-    const saadhaks = await Saadhak.find(query)
+    // Decide which fields to fetch
+    const projection = userRoles.includes("Admin") ? "" : "-mobile";
+
+    const saadhaks = await Saadhak.find(query, projection)
       .populate("prant")
       .populate("zila")
       .populate("ksheter")
@@ -408,6 +411,8 @@ exports.listSaadhaks = async (req, res) => {
       Ksheter.find().sort({ name: 1 }),
       Kender.find().sort({ name: 1 }),
     ]);
+
+    //console.log(saadhaks.length);
 
     res.render("saadhak/list", {
       saadhaks,
@@ -1075,12 +1080,18 @@ exports.uploadPhotoAjax = async (req, res) => {
     if (saadhak.photoStatus !== "printed") {
       saadhak.photoStatus = "uploaded";
     }
-    
+
     saadhak.photoUploadedAt = new Date();
     await saadhak.save();
 
-    req.session.user.photoUrl = saadhak.photoUrl;
-    req.session.user.photoPublicId = saadhak.photoPublicId;
+    // Refresh current session according to approval status
+    req.session.user.photoUrl =
+      saadhak.photoApprovalStatus === "approved" ? saadhak.photoUrl : "";
+
+    req.session.user.photoPublicId =
+      saadhak.photoApprovalStatus === "approved" ? saadhak.photoPublicId : "";
+
+    req.session.user.photoApprovalStatus = saadhak.photoApprovalStatus;
 
     return res.json({
       success: true,
@@ -1302,5 +1313,102 @@ exports.updatePhotoStatus = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.json({ success: false });
+  }
+};
+
+exports.photoApprovals = async (req, res) => {
+  try {
+    const user = req.session.user;
+
+    const saadhaks = await Saadhak.find({
+      photoApprovalStatus: { $in: ["pending", "rejected"] },
+      photoUrl: { $nin: ["", null] },
+    })
+      .populate("prant", "name")
+      .populate("zila", "name")
+      .populate("ksheter", "name")
+      .populate("kender", "name")
+      .sort({ updatedAt: -1 });
+
+    res.render("saadhak/photo-approvals", {
+      user,
+      saadhaks,
+    });
+  } catch (err) {
+    console.error("Error loading photo approvals:", err);
+    res.status(500).send("Server Error");
+  }
+};
+
+exports.approvePhoto = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const saadhak = await Saadhak.findById(id);
+
+    if (!saadhak) {
+      return res.status(404).json({
+        success: false,
+        message: "Saadhak not found.",
+      });
+    }
+
+    saadhak.photoApprovalStatus = "approved";
+    await saadhak.save();
+
+    return res.json({
+      success: true,
+      message: "Photo approved successfully.",
+    });
+  } catch (err) {
+    console.error("Photo Approval Error:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
+};
+
+exports.rejectPhoto = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const saadhak = await Saadhak.findById(id);
+
+    if (!saadhak) {
+      return res.status(404).json({
+        success: false,
+        message: "Saadhak not found.",
+      });
+    }
+
+    // Delete photo from Cloudinary
+    if (saadhak.photoPublicId) {
+      try {
+        await cloudinary.uploader.destroy(saadhak.photoPublicId);
+      } catch (err) {
+        console.error("Cloudinary delete failed:", err);
+      }
+    }
+
+    // Clear photo fields
+    saadhak.photoUrl = "";
+    saadhak.photoPublicId = "";
+    saadhak.photoApprovalStatus = "rejected";
+
+    await saadhak.save();
+
+    return res.json({
+      success: true,
+      message: "Photo rejected successfully.",
+    });
+  } catch (err) {
+    console.error("Reject Photo Error:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
   }
 };

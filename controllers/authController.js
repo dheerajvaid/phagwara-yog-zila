@@ -5,6 +5,8 @@ const { validateMobile } = require("../utils/validators");
 // 🔁 Helper: Set session user
 function setSessionUser(req, saadhak) {
   const { password, ...userWithoutPassword } = saadhak.toObject();
+  const isPhotoApproved = saadhak.photoApprovalStatus === "approved";
+
   req.session.user = {
     id: saadhak._id,
     name: saadhak.name,
@@ -14,10 +16,15 @@ function setSessionUser(req, saadhak) {
     zila: saadhak.zila,
     ksheter: saadhak.ksheter,
     kender: saadhak.kender,
-    photoUrl: saadhak.photoUrl,
-    photoPublicId: saadhak.photoPublicId,    
+    // Only expose approved photos
+    photoUrl: isPhotoApproved ? saadhak.photoUrl || "" : "",
+    photoPublicId: isPhotoApproved ? saadhak.photoPublicId || "" : "",
+
+    photoApprovalStatus: saadhak.photoApprovalStatus || "rejected",
   };
 }
+
+
 
 // 🔁 Helper: Validate and set password
 async function handlePasswordMatch(res, inputPassword, saadhak) {
@@ -139,15 +146,21 @@ exports.changePassword = async (req, res) => {
     const { newPassword, confirmPassword } = req.body || {};
 
     if (!newPassword || !confirmPassword) {
-      return res.render("auth/change-password", { message: "Please fill in all fields." });
+      return res.render("auth/change-password", {
+        message: "Please fill in all fields.",
+      });
     }
 
     if (newPassword.length < 1) {
-      return res.render("auth/change-password", { message: "Password must be at least 1 characters." });
+      return res.render("auth/change-password", {
+        message: "Password must be at least 1 characters.",
+      });
     }
 
     if (newPassword !== confirmPassword) {
-      return res.render("auth/change-password", { message: "Passwords do not match." });
+      return res.render("auth/change-password", {
+        message: "Passwords do not match.",
+      });
     }
 
     const user = await Saadhak.findById(req.session.user.id);
@@ -166,7 +179,9 @@ exports.changePassword = async (req, res) => {
     user.password = hashed;
     await user.save();
 
-    return res.render("auth/change-password", { message: "✅ Password changed successfully." });
+    return res.render("auth/change-password", {
+      message: "✅ Password changed successfully.",
+    });
   } catch (err) {
     console.error("Error changing password:", err);
     return res.render("auth/change-password", {

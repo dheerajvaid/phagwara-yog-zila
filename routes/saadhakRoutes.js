@@ -5,7 +5,7 @@ const saadhakController = require("../controllers/saadhakController");
 const { requireLogin } = require("../middleware/authMiddleware");
 const { canManage } = require("../middleware/roleMiddleware");
 const { checkSaadhakOwnership } = require("../middleware/ownershipMiddleware");
-const uploadSaadhakPhoto = require('../middleware/saadhakUpload'); // now this is a function
+const uploadSaadhakPhoto = require("../middleware/saadhakUpload"); // now this is a function
 
 // ✅ Role groups from config
 const {
@@ -42,7 +42,7 @@ router.get(
   "/saadhak/manage",
   requireLogin,
   canManage(allowedRoles),
-  saadhakController.listSaadhaks
+  saadhakController.listSaadhaks,
 );
 
 // Add New Saadhak
@@ -50,14 +50,14 @@ router.get(
   "/saadhak/add",
   requireLogin,
   canManage(allowedRoles),
-  saadhakController.showAddForm
+  saadhakController.showAddForm,
 );
 
 router.post(
   "/saadhak/add",
   requireLogin,
   canManage(allowedRoles),
-  saadhakController.createSaadhak
+  saadhakController.createSaadhak,
 );
 
 // Edit Saadhak
@@ -66,14 +66,14 @@ router.get(
   requireLogin,
   canManage(allowedRoles),
   checkSaadhakOwnership,
-  saadhakController.showEditForm
+  saadhakController.showEditForm,
 );
 router.post(
   "/saadhak/edit/:id",
   requireLogin,
   canManage(allowedRoles),
   checkSaadhakOwnership,
-  saadhakController.updateSaadhak
+  saadhakController.updateSaadhak,
 );
 
 // Delete Saadhak
@@ -82,7 +82,7 @@ router.get(
   requireLogin,
   canManage(allowedRoles),
   checkSaadhakOwnership,
-  saadhakController.deleteSaadhak
+  saadhakController.deleteSaadhak,
 );
 
 router.get("/saadhak/check-mobile", async (req, res) => {
@@ -104,26 +104,25 @@ router.get(
   "/saadhak/self-update",
   requireLogin,
   canManage(ALL_ROLES),
-  saadhakController.getSelfUpdateForm
+  saadhakController.getSelfUpdateForm,
 );
 router.post(
   "/saadhak/self-update",
   requireLogin,
   canManage(ALL_ROLES),
-  saadhakController.postSelfUpdate
+  saadhakController.postSelfUpdate,
 );
 
-
 router.post(
-  '/saadhak/upload-photo/:id', 
-  requireLogin, 
+  "/saadhak/upload-photo/:id",
+  requireLogin,
   (req, res, next) => {
-    uploadSaadhakPhoto(req, res, function(err) {
+    uploadSaadhakPhoto(req, res, function (err) {
       if (err) {
-        if (err.code === 'LIMIT_FILE_SIZE') {
-          return res.json({ 
-            success: false, 
-            message: 'File too large. Maximum allowed size is 200KB.' 
+        if (err.code === "LIMIT_FILE_SIZE") {
+          return res.json({
+            success: false,
+            message: "File too large. Maximum allowed size is 200KB.",
           });
         }
         return res.json({ success: false, message: err.message });
@@ -131,14 +130,46 @@ router.post(
       next();
     });
   },
-  saadhakController.uploadPhotoAjax
+  saadhakController.uploadPhotoAjax,
 );
 
-router.get("/saadhak/fix-photo-status", requireLogin, saadhakController.fixPhotoStatus);
+router.get(
+  "/saadhak/fix-photo-status",
+  requireLogin,
+  saadhakController.fixPhotoStatus,
+);
 
-router.post("/saadhak/mark-printed", requireLogin, saadhakController.markPrinted);
+router.post(
+  "/saadhak/mark-printed",
+  requireLogin,
+  saadhakController.markPrinted,
+);
 
-router.post("/saadhak/updatePhotoStatus", requireLogin, saadhakController.updatePhotoStatus);
+router.post(
+  "/saadhak/updatePhotoStatus",
+  requireLogin,
+  saadhakController.updatePhotoStatus,
+);
 
+router.get(
+  "/saadhak/photo-approvals",
+  requireLogin,
+  canManage(adminRoles),
+  saadhakController.photoApprovals,
+);
+
+router.post(
+  "/saadhak/photo-approvals/:id/approve",
+  requireLogin,
+  canManage(adminRoles),
+  saadhakController.approvePhoto,
+);
+
+router.post(
+  "/saadhak/photo-approvals/:id/reject",
+  requireLogin,
+  canManage(adminRoles),
+  saadhakController.rejectPhoto
+);
 
 module.exports = router;

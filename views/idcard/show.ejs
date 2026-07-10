@@ -346,14 +346,14 @@ document.getElementById('photoInput').addEventListener('change', async function(
 
     try {
         // --- Live Preview ---
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            document.getElementById('photoPreview').innerHTML = `
-                <img src="${e.target.result}" class="preview-img"
-                     style="width:100%; height:100%; object-fit:cover;
-                            filter:contrast(1.18) brightness(0.95);">`;
-        };
-        reader.readAsDataURL(file);
+        // const reader = new FileReader();
+        // reader.onload = function(e) {
+        //     document.getElementById('photoPreview').innerHTML = `
+        //         <img src="${e.target.result}" class="preview-img"
+        //              style="width:100%; height:100%; object-fit:cover;
+        //                     filter:contrast(1.18) brightness(0.95);">`;
+        // };
+        // reader.readAsDataURL(file);
 
         // --- Auto Upload to Backend ---
         const formData = new FormData();
@@ -369,18 +369,27 @@ document.getElementById('photoInput').addEventListener('change', async function(
         const data = await res.json();
 
         if (data.success) {
-            console.log("Photo uploaded:", data.photoUrl);
-        } else {
-            alert("Photo upload failed.");
-        }
+    alert("✅ Your photo has been uploaded successfully and is pending admin approval. It will be visible after approval.");
 
-    } catch (err) {
-        console.error("Upload error:", err);
-        alert("Photo upload failed due to server error.");
-    } finally {
-        // --- Hide Spinner ---
-        spinner.style.display = 'none';
-    }
+    // Clear file input
+    event.target.value = "";
+
+    // // Reload so latest status is reflected
+    // window.location.reload();
+} else {
+    alert("Photo upload failed.");
+}
+
+} catch (err) {
+
+    console.error(err);
+    alert("Photo upload failed due to server error.");
+
+} finally {
+
+    spinner.style.display = "none";
+
+}
 });
 
   // ------------------ Render Card Canvas (Ultra HD) ------------------
@@ -505,7 +514,7 @@ async function downloadPDF() {
 
 </script>
 
-<script>
+<!-- <script>
 document.getElementById("photoInput").addEventListener("change", function (event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -526,7 +535,7 @@ document.getElementById("photoInput").addEventListener("change", function (event
 
   reader.readAsDataURL(file);
 });
-</script>
+</script> -->
 
 
 
