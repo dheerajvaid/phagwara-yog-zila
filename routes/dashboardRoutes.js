@@ -62,41 +62,34 @@ router.get(
       let prantDetails = null;
 
       if (req.session.user && req.session.user.kender) {
-        kenderDetails = await Kender.findById(
-          req.session.user.kender
-        ).lean();
+        kenderDetails = await Kender.findById(req.session.user.kender).lean();
       }
 
       if (req.session.user && req.session.user.ksheter) {
         ksheterDetails = await Ksheter.findById(
-          req.session.user.ksheter
+          req.session.user.ksheter,
         ).lean();
       }
 
       if (req.session.user && req.session.user.zila) {
-        zilaDetails = await Zila.findById(
-          req.session.user.zila
-        ).lean();
+        zilaDetails = await Zila.findById(req.session.user.zila).lean();
       }
 
       if (req.session.user && req.session.user.prant) {
-        prantDetails = await Prant.findById(
-          req.session.user.prant
-        ).lean();
+        prantDetails = await Prant.findById(req.session.user.prant).lean();
       }
 
       // ---------- Display Role ----------
       let displayRole = user.roles?.[0] || "Saadhak";
 
       if (displayRole.includes("Prant") && prantDetails) {
-        displayRole += ` • ${prantDetails.name} `;
+        displayRole += `<br><span class="text-muted small">${prantDetails.name} Yog Prant</span>`;
       } else if (displayRole.includes("Zila") && zilaDetails) {
-        displayRole += ` • ${zilaDetails.name} `;
+        displayRole += `<br><span class="text-muted small">${zilaDetails.name} Yog District</span>`;
       } else if (displayRole.includes("Ksheter") && ksheterDetails) {
-        displayRole += ` • ${ksheterDetails.name} `;
+        displayRole += `<br><span class="text-muted small">${ksheterDetails.name} Ksheter</span>`;
       }
       // Kender roles remain unchanged
-
       // Render page
       res.render("dashboard", {
         user,
@@ -116,7 +109,7 @@ router.get(
       console.error(err);
       res.redirect("/?error=Unable to load dashboard");
     }
-  }
+  },
 );
 
 module.exports = router;
