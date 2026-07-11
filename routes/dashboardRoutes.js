@@ -83,11 +83,11 @@ router.get(
       let displayRole = user.roles?.[0] || "Saadhak";
 
       if (displayRole.includes("Prant") && prantDetails) {
-        displayRole += `<br><span class="text-muted small">${prantDetails.name} Yog Prant</span>`;
+        displayRole += `<br><span class="small">${prantDetails.name}</span>`;
       } else if (displayRole.includes("Zila") && zilaDetails) {
-        displayRole += `<br><span class="text-muted small">${zilaDetails.name} Yog District</span>`;
+        displayRole += `<br><span class="small">${zilaDetails.name}</span>`;
       } else if (displayRole.includes("Ksheter") && ksheterDetails) {
-        displayRole += `<br><span class="text-muted small">${ksheterDetails.name} Ksheter</span>`;
+        displayRole += `<br><span class="small">${ksheterDetails.name}</span>`;
       }
       // Kender roles remain unchanged
       // Render page
