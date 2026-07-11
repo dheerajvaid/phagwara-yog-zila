@@ -61,9 +61,9 @@ exports.showIdCard = async (req, res) => {
       if (p) prantName = p.name;
     }
 
-    console.log(user.name);
-    console.log(user.photoApprovalStatus);
-    // --- SEND TO VIEW ---
+    // console.log(user.name);
+    // console.log(user.photoApprovalStatus);
+    // // --- SEND TO VIEW ---
     return res.render("idcard/show", {
       user: safeUser,
       prantName,

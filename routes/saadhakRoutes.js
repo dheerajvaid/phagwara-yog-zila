@@ -172,4 +172,9 @@ router.post(
   saadhakController.rejectPhoto
 );
 
+router.post(
+  "/saadhak/remove-photo/:id",requireLogin,
+  saadhakController.removePhotoAjax
+);
+
 module.exports = router;

@@ -2,171 +2,275 @@
 <%- include('./partials/navbar') %>
 
 <style>
-  .dashboard-card {
-    max-width: 420px;
-    margin: 0 auto;
-    background: #ffffff;
-    padding: 2rem 1.5rem;
-    border-radius: 1.5rem;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
-  }
 
-  .dashboard-card h2 {
-    font-size: 1.6rem;
-    font-weight: bold;
-    color: #1e88e5;
-    margin-bottom: 0.5rem;
-  }
+:root{
+  --primary:#0d6efd;
+  --primary-light:#eef6ff;
+  --success:#198754;
+  --success-light:#edf9f1;
+  --warning:#ffc107;
+  --danger:#dc3545;
+  --card-radius:18px;
+}
 
-  .dashboard-card p {
-    font-size: 1rem;
-    color: #6c757d;
-  }
+/* ---------- Dashboard ---------- */
 
-  /* NEW — Compact button grid (2 per row) */
-  .btn-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
+.dashboard-card{
+    max-width:430px;
+    margin:auto;
+    background:#fff;
+    border-radius:22px;
+    padding:18px;
+    box-shadow:0 10px 35px rgba(0,0,0,.08);
+}
 
-  .btn-grid .btn {
-    font-size: 1rem;
-    padding: 0.7rem;
-    border-radius: 0.65rem;
-  }
+/* ---------- Generic Cards ---------- */
 
-  .dashboard-card .badge-calendar {
-    position: absolute;
-    top: 6px;
-    right: 12px;
-    font-size: 0.75rem;
-    background-color: #dc3545;
-    color: white;
-    padding: 0.4em 0.6em;
-    border-radius: 50%;
-  }
+.dashboard-section{
+    background:#fff;
+    border-radius:18px;
+    padding:16px;
+    margin-bottom:14px;
+    border:1px solid #edf1f5;
+    box-shadow:0 4px 14px rgba(0,0,0,.05);
+}
 
-  .progress {
-    background-color: #e9ecef;
-    border-radius: 0.75rem;
-    overflow: hidden;
-  }
+/* ---------- Profile Card ---------- */
 
-  .progress-bar {
-    transition: width 0.6s ease;
-  }
+.profile-card{
+    background:linear-gradient(135deg,#f9fffc,#eef7ff);
+    border:1px solid #d9ecff;
+}
 
-  #notificationBar {
-    max-width: 420px;
-    margin: 1rem auto;
-    background: linear-gradient(135deg, #1e88e5, #42a5f5);
-    color: white;
-    border-radius: 1rem;
-    overflow: hidden;
-    padding: 0.5rem 1rem;
-    font-weight: 500;
-    white-space: nowrap;
-    position: relative;
-  }
+.profile-photo{
+    width:72px;
+    height:92.57px;
+    object-fit:cover;
+    border:3px solid #fff;
+    box-shadow:0 4px 12px rgba(0,0,0,.15);
+}
 
-  #notificationText {
-    display: inline-block;
-    padding-left: 100%;
-    animation: scroll 25s linear infinite;
-  }
+.profile-placeholder{
+    width:72px;
+    height:92.57px;
+    background:#f3f4f6;
+    border:2px solid #ddd;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:30px;
+}
 
-  #downloadTipBtn {
-    background: linear-gradient(135deg, #28a745, #28a745);
-    color: white;
-    font-weight: bold;
-  }
+/* ---------- Status Badge ---------- */
 
-  #tipImageArea {
-    
-    padding: 0.5rem 0.5rem;
-    border-radius: 1rem;
-    background:linear-gradient(180deg,#c1ebb4,#ffffff);
-    border:none;
+.status-pill{
+    display:inline-block;
+    padding:5px 12px;
+    border-radius:40px;
+    font-size:.78rem;
+    font-weight:600;
+}
+
+.status-approved{
+    background:#d1f5df;
+    color:#0f6d38;
+}
+
+.status-pending{
+    background:#fff4cf;
+    color:#8a6800;
+}
+
+.status-none{
+    background:#ececec;
+    color:#666;
+}
+
+/* ---------- Buttons Grid ---------- */
+
+.btn-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:12px;
+}
+
+.btn-grid .btn{
+    height:54px;
+    border-radius:14px;
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:.95rem;
+    box-shadow:0 3px 8px rgba(0,0,0,.08);
+}
+
+/* ---------- Large Buttons ---------- */
+
+.btn-large{
+    height:52px;
+    border-radius:14px;
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+/* ---------- Calendar Badge ---------- */
+
+.badge-calendar{
+    position:absolute;
+    top:6px;
+    right:10px;
+    width:22px;
+    height:22px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:.72rem;
+    background:#dc3545;
+    color:#fff;
+}
+
+/* ---------- Progress ---------- */
+
+.progress{
+    height:12px;
+    border-radius:10px;
+    background:#e9ecef;
+}
+
+.progress-bar{
+    transition:width .5s;
+}
+
+/* ---------- Steps Box ---------- */
+
+.steps-box{
+    background: linear-gradient(135deg,#1e3c72,#2a5298);
+    border-radius:18px;
+    padding:16px 20px !important;
+    color:#fff;
+    font-weight:600;
+    box-shadow:0 8px 18px rgba(30,60,114,.28);
+    position:relative;
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,.12);
+}
+
+/* Soft light overlay */
+.steps-box::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:linear-gradient(
+        to bottom,
+        rgba(255,255,255,.18),
+        rgba(255,255,255,.02)
+    );
+}
+
+/* Soft highlight */
+.steps-box::after{
+    content:"";
+    position:absolute;
+    top:-60%;
+    right:-20%;
+    width:140px;
+    height:140px;
+    background:rgba(255,255,255,.12);
+    border-radius:50%;
+    filter:blur(25px);
+}
+/* ---------- Notification ---------- */
+
+#notificationBar{
+    max-width:430px;
+    margin:12px auto;
+    background:linear-gradient(135deg,#1e88e5,#42a5f5);
+    color:#fff;
+    border-radius:14px;
+    overflow:hidden;
+    padding:8px 14px;
+    font-weight:600;
+    white-space:nowrap;
+}
+
+#notificationText{
+    display:inline-block;
+    padding-left:100%;
+    animation:scroll 25s linear infinite;
+}
+
+/* ---------- Tip Card ---------- */
+
+#tipImageArea{
+    padding:8px;
+    border-radius:18px;
+    background:linear-gradient(180deg,#c1ebb4,#fff);
     box-shadow:0 10px 30px rgba(0,0,0,.12);
-    max-width: 380px;
-    margin: auto;
-  }
-
-  .kender-tip-box {
-  background: #f8fff8;
-  border: 1px solid #28a745;   /* thin border on all sides */
-  border-left: 4px solid #28a745; /* thicker left border */
-  border-radius: 8px;
-  margin-top: 10px;
-  padding: 4px 4px; /* balanced padding (top-bottom & left-right) */
+    max-width:380px;
+    margin:auto;
 }
 
-.kender-tip-box p {
-  font-size: 0.9rem;
-  color: #000;
+/* ---------- Kender ---------- */
+
+.kender-tip-box{
+    background:#f8fff8;
+    border:1px solid #28a745;
+    border-left:4px solid #28a745;
+    border-radius:10px;
+    margin-top:10px;
+    padding:8px;
 }
 
-
-  .steps-box {
-  background: linear-gradient(135deg, #00e3ae, #00b4d8, #0077b6);
-  border-radius: 14px;
-  padding: 14px 18px !important;
-  color: #ffffff;
-  font-weight: 700;
-  box-shadow: 0 6px 14px rgba(0, 200, 180, 0.45);
-  position: relative;
-  overflow: hidden;
+.kender-tip-box p{
+    margin:0;
+    font-size:.9rem;
 }
 
-/* Glossy line */
-.steps-box::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 100%;
-  background: linear-gradient(
-    to bottom right,
-    rgba(255, 255, 255, 0.22),
-    rgba(255, 255, 255, 0.02)
-  );
-  mix-blend-mode: soft-light;
+/* ---------- Download ---------- */
+
+#downloadTipBtn{
+    background:#198754;
+    color:#fff;
+    font-weight:600;
 }
 
-/* Shine streak */
-.steps-box::after {
-  content: "";
-  position: absolute;
-  top: -40%;
-  left: -30%;
-  width: 60%;
-  height: 180%;
-  background: rgba(255, 255, 255, 0.25);
-  transform: rotate(25deg);
-  filter: blur(20px);
+/* ---------- Animation ---------- */
+
+@keyframes scroll{
+    from{
+        transform:translateX(0);
+    }
+    to{
+        transform:translateX(-100%);
+    }
 }
 
-  @keyframes scroll {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-100%); }
-  }
+/* ---------- Mobile ---------- */
 
-  @media(max-width: 480px) {
-    .dashboard-card {
-      padding: 1.5rem 1rem;
-      border-radius: 1rem;
+@media(max-width:480px){
+
+    .dashboard-card{
+        padding:14px;
+        border-radius:18px;
     }
 
-    .dashboard-card h2 {
-      font-size: 1.4rem;
+    .btn-grid .btn{
+        height:50px;
+        font-size:.88rem;
     }
 
-    #notificationBar {
-      font-size: 0.9rem;
+    .profile-photo,
+    .profile-placeholder{
+        width:64px;
+        height:64px;
     }
-  }
+
+}
+
 </style>
 
 <!-- Notifications Bar -->
@@ -475,9 +579,9 @@
         <div class="fw-bold text-danger fst-italic"
              style="font-size:.95rem;">- 
             <%= user.name %>
-            <span class="text-muted"
-             style="font-size:.75rem;">(<%= Array.isArray(user.roles) ? user.roles.join(', ') : user.roles %>)
-      </span>
+            <div class="text-muted"
+             style="font-size:.75rem;">(<%= displayRole %>)
+      </div>
         </div>
 
         
@@ -585,94 +689,355 @@
 </div>
 
 
-<section class="container mt-1 text-center">
-  <div class="dashboard-card">
+<section class="container py-2">
 
-    <h2>🧘🏻 Yogi <%= user.name %></h2>
-    <p class="mb-1">Your mobile: <strong><%= user.mobile %></strong></p>
+    <div class="dashboard-card">
 
-    <% if (typeof bmi !== 'undefined' && bmi) { %>
-      <p class="mb-2">
-        <strong>BMI:</strong> <%= bmi %>
-        (<span class="<%= bmiCategory === 'Normal' ? 'text-success' : 'text-danger' %>"><%= bmiCategory %></span>)
-      </p>
+        <!-- ================= PROFILE ================= -->
 
-      <div class="progress" style="height: 12px; max-width: 300px; margin: 0.5rem auto;">
-        <div class="progress-bar 
-          <% if(bmiCategory === 'Normal'){ %> bg-success <% } else { %> bg-danger <% } %>"
-          role="progressbar"
-          style="width: <%= Math.min((bmi / 40) * 100, 100).toFixed(2) %>%"
-          aria-valuenow="<%= bmi %>" aria-valuemin="0" aria-valuemax="40">
-        </div>
-      </div>
-    <% } %>
+        <div class="dashboard-section profile-card">
 
-    <%
-  // If todaySteps is undefined or null, set it to 0
-  const stepsToday = (typeof todaySteps !== 'undefined' && todaySteps !== null) 
-                      ? todaySteps 
-                      : 0;
-%>
+            <div class="d-flex align-items-center">
 
-<div class="steps-box p-2 mb-2 mt-2 rounded fw-bold text-white">
-  Today's Steps: 
-  <span class="fw-bold"><%= stepsToday.toLocaleString() %> 🚶</span>
-</div>
+                <div class="me-3">
 
+                    <% if(user.photoUrl){ %>
 
-    <!-- NEW: Compact 2-per-row Button Grid -->
-    <div class="btn-grid">
+                        <img src="<%= user.photoUrl %>"
+                             class="profile-photo">
 
-        <!-- NEW BUTTONS -->
-      <a href="/paath/add" class="btn btn-primary shadow-sm">🚶‍♂️ Enter Steps</a>
+                    <% } else { %>
 
-      <% if (user.roles && user.roles.some(r =>
-            ['Kender Pramukh', 'Seh Kender Pramukh', 'Shikshak', 'Karyakarta'].includes(r)) 
-            || user.kender === '68c82ad93cec3c399e196373') { %>
-        <a href="/attendance/mark" class="btn btn-success shadow-sm">✅ Attendance</a>
-      <% } %>
+                        <div class="profile-placeholder">
+                            👤
+                        </div>
 
-      <a href="/attendance/top10" class="btn btn-danger shadow-sm">🔝 Attendance</a>     
+                    <% } %>
 
-      <a href="/calendar/today" class="btn btn-info shadow-sm position-relative">
-        📅 Birthday
-        <% if (typeof eventCount !== 'undefined' && eventCount > 0) { %>
-          <span class="badge-calendar"><%= eventCount %></span>
+                </div>
+
+                <div class="flex-grow-1 text-start text-center">
+                 
+
+                    <div class="fw-bold fs-5 text-danger">
+                        <%= user.name %>
+                    </div>
+
+                    <div class="fw-bold small mb-2">
+                        <%= user.mobile %>
+                    </div>
+
+                    <% if (user.photoApprovalStatus === "approved") { %>
+
+    <!-- <span class="status-pill status-approved">
+        Photo Approved
+    </span> -->
+
+<% } else if (user.photoApprovalStatus === "pending") { %>
+
+    <span class="status-pill status-pending">
+        Awaiting Approval
+    </span>
+
+<% } else { %>
+
+    <span class="status-pill status-none">
+        No Profile Photo
+    </span>
+
+<% } %>
+
+                </div>
+
+            </div>
+
+            <div class="row mt-3 g-2">
+
+    <!-- Upload -->
+    <div class="col-6">
+
+        <% if(user.photoApprovalStatus === "pending"){ %>
+
+            <button
+                class="btn btn-warning btn-large w-100"
+                disabled>
+
+                Approval Pending
+
+            </button>
+
+        <% } else { %>
+
+            <label
+                for="uploadPhotoInput"
+                class="btn btn-warning btn-sm w-100">
+
+                Upload Photo
+
+            </label>
+
+            <input
+                type="file"
+                id="uploadPhotoInput"
+                accept="image/*"
+                style="display:none;">
+
         <% } %>
-      </a>
 
-       <a href="/saadhak/self-update"
-         class="btn text-white shadow-sm fw-bold"
-         style="background: linear-gradient(135deg, #ff6a00, #ee0979); border:none;">
-        ✏️ My Details
-      </a>
-
-      <a href="/auth/change-password" class="btn btn-warning shadow-sm">🔐 Password</a>
-      <a href="/auth/logout" class="btn btn-danger shadow-sm">🚪 Logout</a>
-    
-      
     </div>
 
-    <a href="/idcard/<%= userId %>" class="btn btn-primary w-100 mt-2">
-        Generate My ID Card
-    </a>
+    <!-- Remove -->
+    <div class="col-6">
 
-    
-    <% if (user.roles && user.roles.some(r =>
-            ['Zila Pradhan', 'Zila Mantri', 'Zila Sangathan Mantri', 'Zila Cashier'].includes(r))) { %>
-    <a href="/idcard/zila/<%= user.zila %>" class="btn btn-dark w-100 mt-2">
-      Generate Zila & Ksheter ID Cards
-    </a>
+        <button
+            class="btn btn-outline-danger btn-sm w-100"
+            id="removePhotoBtn"
+            <%= !user.photoUrl && user.photoApprovalStatus !== "pending" ? "disabled" : "" %>>
 
-    <a href="/idcard/zila/<%= user.zila %>?all=1" class="btn btn-success w-100 mt-2">
-      Generate ALL Roles ID Cards
-    </a>
+            Remove Photo
+
+        </button>
+
+    </div>
+
+</div>
+
+<% if(user.photoApprovalStatus === "pending"){ %>
+
+<div
+    class="alert alert-warning mt-3 mb-0 py-2 text-center small rounded-3">
+
+    <strong>⏳ Photo Approval Pending</strong><br>
+
+    Your uploaded photo has been received successfully and is awaiting approval from the administrator. Once approved, it will automatically appear throughout the application.
+
+</div>
+
+<% } %>
+
+        </div>
+
+        <!-- ================= BMI ================= -->
+
+<%
+    const safeBMI =
+        (typeof bmi !== 'undefined' && bmi)
+            ? parseFloat(bmi)
+            : 0;
+
+    const bmiAvailable = safeBMI > 0;
+
+    const progressWidth = bmiAvailable
+        ? Math.min((safeBMI / 40) * 100, 100)
+        : 2;
+%>
+
+<div class="dashboard-section">
+
+    <div class="d-flex justify-content-between align-items-center mb-2">
+
+        <div class="fw-bold">
+            BMI
+        </div>
+
+        <% if(bmiAvailable){ %>
+
+            <span class="fw-semibold
+                <%= bmiCategory === 'Normal'
+                    ? 'text-success'
+                    : 'text-danger' %>">
+
+                <%= safeBMI.toFixed(1) %>
+                (<%= bmiCategory %>)
+
+            </span>
+
+        <% } else { %>
+
+            <a href="/saadhak/self-update"
+               class="text-decoration-none small fw-semibold text-primary">
+
+                Complete Profile →
+
+            </a>
+
+        <% } %>
+
+    </div>
+
+    <div class="progress mb-2">
+
+        <div class="progress-bar
+            <%= bmiAvailable
+                ? (bmiCategory === 'Normal'
+                    ? 'bg-success'
+                    : 'bg-danger')
+                : 'bg-secondary' %>"
+            style="width:<%= progressWidth %>%">
+
+        </div>
+
+    </div>
+
+    <% if(!bmiAvailable){ %>
+
+        <div class="text-muted small">
+
+            Add your height and weight to calculate your BMI.
+
+        </div>
+
     <% } %>
 
-  </div>
+</div>
+
+        <!-- ================= STEPS ================= -->
+
+        <%
+            const stepsToday =
+            (typeof todaySteps !== 'undefined' && todaySteps !== null)
+            ? todaySteps
+            : 0;
+        %>
+
+        <div class="steps-box mb-3 d-flex justify-content-center align-items-center">
+
+    <span class="me-2 fw-semibold">
+        Today's Steps
+    </span>
+
+    <span class="fw-bold"
+          style="
+            font-size:2rem;
+            line-height:1;
+            color:#ffffff;
+            letter-spacing:.5px;
+          ">
+        <%= stepsToday.toLocaleString() %>
+    </span>
+
+    <span class="ms-2" style="font-size:1.2rem;">
+        🚶
+    </span>
+
+</div>
+
+        <!-- ================= QUICK ACTIONS ================= -->
+
+        <div class="dashboard-section">
+
+            
+
+            <div class="btn-grid">
+
+                <a href="/paath/add"
+                   class="btn btn-primary">
+
+                    🚶 Steps
+
+                </a>
+
+                <% if (user.roles && user.roles.some(r =>
+                    ['Kender Pramukh','Seh Kender Pramukh','Shikshak','Karyakarta'].includes(r))
+                    || user.kender==='68c82ad93cec3c399e196373') { %>
+
+                <a href="/attendance/mark"
+                   class="btn btn-success">
+
+                    ✅ Attendance
+
+                </a>
+
+                <% } %>
+
+                <a href="/attendance/top10"
+                   class="btn btn-danger">
+
+                    🔝 Top 10
+
+                </a>
+
+                <a href="/calendar/today"
+                   class="btn btn-info position-relative">
+
+                    📅 Birthday
+
+                    <% if(eventCount>0){ %>
+
+                        <span class="badge-calendar">
+
+                            <%= eventCount %>
+
+                        </span>
+
+                    <% } %>
+
+                </a>
+
+                <a href="/saadhak/self-update"
+                   class="btn text-white"
+                   style="background:linear-gradient(135deg,#ff6a00,#ee0979);">
+
+                    ✏️ My Details
+
+                </a>
+
+                <a href="/auth/change-password"
+                   class="btn btn-warning">
+
+                    🔐 Password
+
+                </a>
+
+                <a href="/auth/logout"
+                   class="btn btn-danger">
+
+                    🚪 Logout
+
+                </a>
+
+            </div>
+
+        </div>
+
+        <!-- ================= ID CARD ================= -->
+
+        <div class="dashboard-section">
+
+            <a href="/idcard/<%= userId %>"
+               class="btn btn-dark btn-large w-100">
+
+                🪪 Generate My ID Card
+
+            </a>
+
+            <% if(user.roles && user.roles.some(r =>
+                ['Zila Pradhan','Zila Mantri','Zila Sangathan Mantri','Zila Cashier'].includes(r))){ %>
+
+            <a href="/idcard/zila/<%= user.zila %>"
+               class="btn btn-primary btn-large w-100 mt-2">
+
+                Generate Zila & Ksheter ID Cards
+
+            </a>
+
+            <a href="/idcard/zila/<%= user.zila %>?all=1"
+               class="btn btn-success btn-large w-100 mt-2">
+
+                Generate All Roles ID Cards
+
+            </a>
+
+            <% } %>
+
+        </div>
+
+    </div>
+
 </section>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -685,6 +1050,8 @@ document.addEventListener('DOMContentLoaded', function () {
   const cancelEditBtn = document.getElementById('cancelEditBtn');
   const showHidePhoto = document.getElementById('showHidePhoto');
   const showHidePhotoBtn = document.getElementById('showHidePhotoBtn');
+  const spinner = document.getElementById("loadingSpinner");
+
 
   // Store original tip
   const originalTip = tipText ? tipText.textContent : '';
@@ -786,6 +1153,133 @@ document.addEventListener('DOMContentLoaded', function () {
       tipDisplayArea.style.display = 'block';
     });
   }
+
+    // ------------------ Photo Preview (kept as-is) ------------------
+document.getElementById('uploadPhotoInput').addEventListener('change', async function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const maxSize = 200 * 1024; // 200KB in bytes
+
+    if (file.size > maxSize) {
+        alert("File is too large! Maximum allowed size is 200KB.");
+        event.target.value = ""; // reset file input
+        return;
+    }
+
+    const spinner = document.getElementById('loadingSpinner'); // your spinner element
+
+    // --- Show Spinner ---
+    spinner.style.display = 'block';
+
+    try {
+        // --- Live Preview ---
+        // const reader = new FileReader();
+        // reader.onload = function(e) {
+        //     document.getElementById('photoPreview').innerHTML = `
+        //         <img src="${e.target.result}" class="preview-img"
+        //              style="width:100%; height:100%; object-fit:cover;
+        //                     filter:contrast(1.18) brightness(0.95);">`;
+        // };
+        // reader.readAsDataURL(file);
+
+        // --- Auto Upload to Backend ---
+        const formData = new FormData();
+        formData.append("photo", file);
+
+        const saadhakId = "<%= user.id %>";
+
+        const res = await fetch(`/saadhak/upload-photo/${saadhakId}`, {
+            method: "POST",
+            body: formData
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+    // alert("✅ Your photo has been uploaded successfully and is pending admin approval. It will be visible after approval.");
+
+    // Clear file input
+    event.target.value = "";
+
+    // // Reload so latest status is reflected
+    window.location.reload();
+} else {
+    alert("Photo upload failed.");
+}
+
+} catch (err) {
+
+    console.error(err);
+    alert("Photo upload failed due to server error.");
+
+} finally {
+
+    spinner.style.display = "none";
+
+}
+});
+
+document
+.getElementById("removePhotoBtn")
+.addEventListener("click", async function () {
+
+    const result = await Swal.fire({
+        title: "Remove Photo?",
+        text: "This will permanently delete your profile photo.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Remove",
+        cancelButtonText: "Cancel",
+        confirmButtonColor: "#dc3545"
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+
+        const saadhakId = "<%= user.id %>";
+
+        const res = await fetch(`/saadhak/remove-photo/${saadhakId}`, {
+            method: "POST"
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+
+            await Swal.fire({
+                icon: "success",
+                title: "Photo Removed",
+                text: "Your profile photo has been removed.",
+                timer: 1500,
+                showConfirmButton: false
+            });
+
+            window.location.reload();
+
+        } else {
+
+            Swal.fire(
+                "Error",
+                data.message || "Unable to remove photo.",
+                "error"
+            );
+
+        }
+
+    } catch (err) {
+
+        Swal.fire(
+            "Error",
+            "Server Error",
+            "error"
+        );
+
+    }
+
+});
+
 });
 </script>
 

@@ -73,10 +73,7 @@
     </div>
   </div>
 
-  <!-- Upload Photo -->
-  <label for="photoInput" class="btn btn-warning btn-sm">Upload Photo</label>
-  <input type="file" accept="image/*" id="photoInput">
-
+  
   <!-- Download Buttons -->
   <div class="download-buttons" style="display:flex; gap:10px; margin-top:5px; flex-wrap:wrap; justify-content:center;">
     <button class="btn btn-success download-btn btn-sm" onclick="downloadPNG()">Download IMG</button>
@@ -326,71 +323,6 @@
     }
   })();
 
-  // ------------------ Photo Preview (kept as-is) ------------------
-document.getElementById('photoInput').addEventListener('change', async function(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const maxSize = 200 * 1024; // 200KB in bytes
-
-    if (file.size > maxSize) {
-        alert("File is too large! Maximum allowed size is 200KB.");
-        event.target.value = ""; // reset file input
-        return;
-    }
-
-    const spinner = document.getElementById('loadingSpinner'); // your spinner element
-
-    // --- Show Spinner ---
-    spinner.style.display = 'block';
-
-    try {
-        // --- Live Preview ---
-        // const reader = new FileReader();
-        // reader.onload = function(e) {
-        //     document.getElementById('photoPreview').innerHTML = `
-        //         <img src="${e.target.result}" class="preview-img"
-        //              style="width:100%; height:100%; object-fit:cover;
-        //                     filter:contrast(1.18) brightness(0.95);">`;
-        // };
-        // reader.readAsDataURL(file);
-
-        // --- Auto Upload to Backend ---
-        const formData = new FormData();
-        formData.append("photo", file);
-
-        const saadhakId = "<%= user.id %>";
-
-        const res = await fetch(`/saadhak/upload-photo/${saadhakId}`, {
-            method: "POST",
-            body: formData
-        });
-
-        const data = await res.json();
-
-        if (data.success) {
-    alert("✅ Your photo has been uploaded successfully and is pending admin approval. It will be visible after approval.");
-
-    // Clear file input
-    event.target.value = "";
-
-    // // Reload so latest status is reflected
-    window.location.reload();
-} else {
-    alert("Photo upload failed.");
-}
-
-} catch (err) {
-
-    console.error(err);
-    alert("Photo upload failed due to server error.");
-
-} finally {
-
-    spinner.style.display = "none";
-
-}
-});
 
   // ------------------ Render Card Canvas (Ultra HD) ------------------
 async function renderCardCanvas() {
@@ -514,28 +446,7 @@ async function downloadPDF() {
 
 </script>
 
-<!-- <script>
-document.getElementById("photoInput").addEventListener("change", function (event) {
-  const file = event.target.files[0];
-  if (!file) return;
 
-  const reader = new FileReader();
-  reader.onload = function (e) {
-    const img = document.createElement("img");
-    img.src = e.target.result;
-    img.style.width = "100%";
-    img.style.height = "100%";
-    img.style.objectFit = "cover";
-    
-
-    const preview = document.getElementById("photoPreview");
-    preview.innerHTML = ""; // remove existing placeholder
-    preview.appendChild(img);
-  };
-
-  reader.readAsDataURL(file);
-});
-</script> -->
 
 
 

@@ -1078,7 +1078,7 @@ exports.uploadPhotoAjax = async (req, res) => {
     saadhak.photoUrl = newUrl;
     saadhak.photoPublicId = newPublicId;
 
-    saadhak.photoApprovalStatus = "rejected";
+    saadhak.photoApprovalStatus = "pending";
 
     if (saadhak.photoStatus !== "printed") {
       saadhak.photoStatus = "uploaded";
@@ -1086,6 +1086,8 @@ exports.uploadPhotoAjax = async (req, res) => {
 
     saadhak.photoUploadedAt = new Date();
     await saadhak.save();
+
+    
 
     // Refresh current session according to approval status
     req.session.user.photoUrl =
@@ -1331,7 +1333,7 @@ exports.photoApprovals = async (req, res) => {
       .populate("zila", "name")
       .populate("ksheter", "name")
       .populate("kender", "name")
-      .sort({ updatedAt: -1 });
+      .sort({ name: 1 });
 
     res.render("saadhak/photo-approvals", {
       user,
@@ -1408,6 +1410,62 @@ exports.rejectPhoto = async (req, res) => {
     });
   } catch (err) {
     console.error("Reject Photo Error:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
+};
+
+exports.removePhotoAjax = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = req.session.user;
+
+    const saadhak = await Saadhak.findById(user.id);
+
+    if (!saadhak) {
+      return res.status(404).json({
+        success: false,
+        message: "Saadhak not found.",
+      });
+    }
+
+    // Delete image from Cloudinary
+    if (saadhak.photoPublicId) {
+      try {
+        await cloudinary.uploader.destroy(saadhak.photoPublicId, {
+          resource_type: "image",
+        });
+      } catch (err) {
+        console.error("Cloudinary delete failed:", err);
+      }
+    }
+
+    // Reset photo fields
+    saadhak.photoUrl = "";
+    saadhak.photoPublicId = "";
+    saadhak.photoApprovalStatus = "rejected";
+    saadhak.photoStatus = "not_uploaded";
+    saadhak.photoUploadedAt = null;
+
+    await saadhak.save();
+
+    // Refresh current session if self
+    if (user.id.toString() === id) {
+      req.session.user.photoUrl = "";
+      req.session.user.photoPublicId = "";
+      req.session.user.photoApprovalStatus = "rejected";
+    }
+
+    return res.json({
+      success: true,
+      message: "Photo removed successfully.",
+    });
+
+  } catch (err) {
+    console.error(err);
 
     return res.status(500).json({
       success: false,
