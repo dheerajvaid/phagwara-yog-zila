@@ -1077,6 +1077,9 @@ exports.uploadPhotoAjax = async (req, res) => {
     // Save new info to DB
     saadhak.photoUrl = newUrl;
     saadhak.photoPublicId = newPublicId;
+
+    saadhak.photoApprovalStatus = "rejected";
+
     if (saadhak.photoStatus !== "printed") {
       saadhak.photoStatus = "uploaded";
     }
