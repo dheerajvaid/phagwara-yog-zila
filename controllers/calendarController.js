@@ -2,12 +2,11 @@ const Saadhak = require("../models/Saadhak");
 const cleanupOldGreetings = require("../utils/cleanupOldGreetings");
 
 exports.viewUpcomingEvents = async (req, res) => {
-  
   try {
     const { prantRoles } = require("../config/roles");
 
-    const user = req.session.user;    
-    
+    const user = req.session.user;
+
     let saadhakQuery = {};
 
     if (!user.roles.includes("Admin")) {
@@ -41,16 +40,22 @@ exports.viewUpcomingEvents = async (req, res) => {
       .populate("kender ksheter zila")
       .lean();
 
+    // Hide photo if not approved
+    allSaadhaks.forEach((s) => {
+      if (s.photoApprovalStatus !== "approved") {
+        s.photoUrl = "";
+      }
+    });
     // Adjust to IST
     const now = new Date();
     const todayIST = new Date(
-      now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
+      now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
     );
 
     const today = new Date(
       todayIST.getFullYear(),
       todayIST.getMonth(),
-      todayIST.getDate()
+      todayIST.getDate(),
     );
     const todayDay = today.getDate();
     const todayMonth = today.getMonth(); // 0-indexed
@@ -67,7 +72,7 @@ exports.viewUpcomingEvents = async (req, res) => {
 
         const birthdayThisYear = new Date(today.getFullYear(), bMonth, bDay);
         const dayDiff = Math.floor(
-          (birthdayThisYear - today) / (1000 * 60 * 60 * 24)
+          (birthdayThisYear - today) / (1000 * 60 * 60 * 24),
         );
 
         if (bDay === todayDay && bMonth === todayMonth) {
@@ -93,7 +98,7 @@ exports.viewUpcomingEvents = async (req, res) => {
 
         const anniversaryThisYear = new Date(today.getFullYear(), mMonth, mDay);
         const dayDiff = Math.floor(
-          (anniversaryThisYear - today) / (1000 * 60 * 60 * 24)
+          (anniversaryThisYear - today) / (1000 * 60 * 60 * 24),
         );
 
         if (mDay === todayDay && mMonth === todayMonth) {
