@@ -1,12 +1,15 @@
 <%- include('../partials/header') %>
+
 <%- include('../partials/navbar') %>
 
 <style>
+
   body {
     background: linear-gradient(135deg, #f4f8f6, #eef6f1);
   }
 
   /* ---------- Grid ---------- */
+
   .category-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -26,6 +29,7 @@
   } */
 
   /* ---------- Category Card ---------- */
+
   .category-box {
     border-radius: 8px;
     padding: 4px 4px;
@@ -72,6 +76,7 @@
   }
 
   /* ---------- Select All ---------- */
+
   .select-all-box {
     display: flex;
     align-items: center;
@@ -85,6 +90,7 @@
   }
 
   /* ---------- Form Card ---------- */
+
   .quiz-card {
     background: #ffffff;
     border-radius: 18px;
@@ -93,6 +99,7 @@
   }
 
   /* ---------- Buttons ---------- */
+
   .btn-success {
     background: linear-gradient(135deg, #198754, #2fbf71);
     border: none;
@@ -112,15 +119,23 @@
   .hidden-checkbox {
     display: none;
   }
+
 </style>
 
 <div class="container mt-5 mb-5" style="max-width: 920px;">
+
   <div class="text-center mb-4">
-    <h2 class="fw-bold text-success">🧘‍♀️ योग प्रश्नोत्तरी प्रारंभ करें</h2>
+
+    <h2 class="fw-bold text-success">
+      🧘‍♀️ योग प्रश्नोत्तरी प्रारंभ करें
+    </h2>
+
     <p class="text-muted fs-6">
       श्रेणियाँ चुनें • अभ्यास करें • ज्ञान को गहराएँ
     </p>
+
   </div>
+
 
   <form
     action="/quiz/start"
@@ -130,13 +145,22 @@
     novalidate
   >
 
-    <input type="hidden" name="actionType" id="actionType" value="start">
+    <input
+      type="hidden"
+      name="actionType"
+      id="actionType"
+      value="start"
+    >
+
 
     <!-- Question Count -->
+
     <div class="mb-4">
+
       <label class="form-label fw-semibold fs-5">
         प्रश्नों की संख्या (5–20)
       </label>
+
       <input
         type="number"
         inputmode="numeric"
@@ -147,30 +171,53 @@
         value="5"
         required
       >
+
     </div>
 
+
     <!-- Categories -->
+
     <div class="mb-4">
+
       <label class="form-label fw-semibold fs-5">
         श्रेणियाँ चुनें
       </label>
 
+
       <div class="select-all-box mb-3">
-        <input type="checkbox" class="form-check-input" id="selectAll">
-        <label for="selectAll">✔️ सभी श्रेणियाँ चुनें / हटाएँ</label>
+
+        <input
+          type="checkbox"
+          class="form-check-input"
+          id="selectAll"
+        >
+
+        <label for="selectAll">
+          ✔️ सभी श्रेणियाँ चुनें / हटाएँ
+        </label>
+
       </div>
 
+
       <div class="category-grid">
+
         <% categories.forEach(c => { %>
 
-          <div class="category-box" data-category="<%= c._id %>">
+          <div
+            class="category-box"
+            data-category="<%= c._id %>"
+          >
+
             <div class="category-title">
               <%= c._id %>
             </div>
+
             <span class="category-count">
               <%= c.count %> प्रश्न
             </span>
+
           </div>
+
 
           <input
             type="checkbox"
@@ -181,11 +228,16 @@
           >
 
         <% }) %>
+
       </div>
+
     </div>
 
+
     <!-- Buttons -->
+
     <div class="d-grid mt-4">
+
       <button
         type="submit"
         class="btn btn-success btn-lg py-3"
@@ -193,9 +245,12 @@
       >
         🚀 क्विज़ प्रारंभ करें
       </button>
+
     </div>
 
+
     <div class="d-grid mt-3">
+
       <button
         type="submit"
         formaction="/quiz/print"
@@ -205,64 +260,223 @@
       >
         🖨️ प्रिंट क्विज़ (PDF)
       </button>
+
     </div>
 
   </form>
+
 </div>
 
+
 <script>
-  const printBtn = document.querySelector('button[formaction="/quiz/print"]');
+
+  /* =========================================================
+     PRINT QUIZ
+     ========================================================= */
+
+  const printBtn = document.querySelector(
+    'button[formaction="/quiz/print"]'
+  );
 
   printBtn.addEventListener("click", function (e) {
+
     e.preventDefault();
 
     const form = printBtn.closest("form");
-    const selected = document.querySelectorAll('.category-checkbox:checked');
 
-    if (selected.length === 0) {
-      bootstrap.Modal.getOrCreateInstance(
-        document.getElementById('categoryModal')
-      ).show();
-      return;
-    }
+    const numQ = parseInt(
+      document.querySelector('input[name="numQuestions"]').value
+    );
 
-    const numQ = document.querySelector('input[name="numQuestions"]').value;
-    if (numQ < 5) {
+
+    /*
+     * No category selected is ALLOWED.
+     *
+     * In that case the controller will use all categories.
+     */
+
+
+    if (isNaN(numQ) || numQ < 5) {
+
       bootstrap.Modal.getOrCreateInstance(
         document.getElementById('questionModal')
       ).show();
+
       return;
+
     }
+
+
+    /*
+     * Maximum question limit
+     */
+
+    if (numQ > 20) {
+
+      document.querySelector(
+        'input[name="numQuestions"]'
+      ).value = 20;
+
+    }
+
 
     form.action = printBtn.getAttribute("formaction");
+
     form.method = "POST";
+
     form.submit();
+
   });
+
+
+  /* =========================================================
+     CATEGORY CARD CLICK
+     ========================================================= */
 
   document.querySelectorAll('.category-box').forEach(box => {
+
     box.addEventListener('click', () => {
+
       const val = box.dataset.category;
-      const checkbox = document.querySelector('#cb_' + CSS.escape(val));
+
+      const checkbox = document.querySelector(
+        '#cb_' + CSS.escape(val)
+      );
+
       checkbox.checked = !checkbox.checked;
-      box.classList.toggle('active');
+
+      box.classList.toggle(
+        'active',
+        checkbox.checked
+      );
+
+
+      /*
+       * Update Select All checkbox automatically
+       * when all individual categories are selected.
+       */
+
+      const allCheckboxes =
+        document.querySelectorAll('.category-checkbox');
+
+      const checkedCheckboxes =
+        document.querySelectorAll('.category-checkbox:checked');
+
+      const selectAll =
+        document.getElementById('selectAll');
+
+      selectAll.checked =
+        allCheckboxes.length > 0 &&
+        checkedCheckboxes.length === allCheckboxes.length;
+
     });
+
   });
 
-  document.getElementById('selectAll').addEventListener('change', function () {
-    document.querySelectorAll('.category-checkbox').forEach(cb => cb.checked = this.checked);
-    document.querySelectorAll('.category-box').forEach(box => {
-      box.classList.toggle('active', this.checked);
-    });
-  });
 
-  document.getElementById('quizStartForm').addEventListener('submit', function (e) {
-    if (!document.querySelector('.category-checkbox:checked')) {
-      e.preventDefault();
-      bootstrap.Modal.getOrCreateInstance(
-        document.getElementById('categoryModal')
-      ).show();
+  /* =========================================================
+     SELECT ALL
+     ========================================================= */
+
+  document.getElementById('selectAll').addEventListener(
+    'change',
+    function () {
+
+      document
+        .querySelectorAll('.category-checkbox')
+        .forEach(cb => {
+
+          cb.checked = this.checked;
+
+        });
+
+
+      document
+        .querySelectorAll('.category-box')
+        .forEach(box => {
+
+          box.classList.toggle(
+            'active',
+            this.checked
+          );
+
+        });
+
     }
-  });
+  );
+
+
+  /* =========================================================
+     START QUIZ FORM SUBMISSION
+     ========================================================= */
+
+  document.getElementById('quizStartForm').addEventListener(
+    'submit',
+    function (e) {
+
+      /*
+       * IMPORTANT:
+       *
+       * We intentionally DO NOT require a category.
+       *
+       * No category selected means:
+       *
+       *     ALL CATEGORIES
+       *
+       * The controller handles this by using:
+       *
+       *     filter = {}
+       *
+       * Therefore the form must be allowed to submit.
+       */
+
+
+      /*
+       * Validate question count.
+       */
+
+      const numInput =
+        document.querySelector(
+          'input[name="numQuestions"]'
+        );
+
+      const numQ = parseInt(numInput.value);
+
+
+      if (isNaN(numQ) || numQ < 5) {
+
+        e.preventDefault();
+
+        bootstrap.Modal.getOrCreateInstance(
+          document.getElementById('questionModal')
+        ).show();
+
+        return;
+
+      }
+
+
+      /*
+       * Keep maximum at 20.
+       */
+
+      if (numQ > 20) {
+
+        numInput.value = 20;
+
+      }
+
+      /*
+       * DO NOT prevent submission when no category
+       * is selected.
+       *
+       * No category = all categories.
+       */
+
+    }
+  );
+
 </script>
+
 
 <%- include('../partials/footer') %>

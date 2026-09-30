@@ -1042,6 +1042,7 @@ exports.viewKenderWiseAttendance = async (req, res) => {
       .populate("ksheter")
       .sort("name");
 
+    
     let attendanceData = [];
     let activeDaysArray = [];
     let kenderDateCountMap = {};
@@ -1123,7 +1124,7 @@ exports.viewKenderWiseAttendance = async (req, res) => {
     // -------------------------------
     const groupedByKsheter = {};
     const ksheterDayTotals = {};
-
+    
     attendanceData.forEach((k) => {
       const ksheterName = k.ksheter?.name || "Unknown";
 
