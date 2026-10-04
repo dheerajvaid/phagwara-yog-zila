@@ -1375,9 +1375,10 @@ exports.viewTop10Attendance = async (req, res) => {
         : 0;
 
       let maxOperationalDays = Math.max(
-        ...Object.values(kenderOperationalDaysMap).map((s) => s.size || 0),
-        daysInMonth,
+        ...Object.values(kenderOperationalDaysMap).map((s) => s.size || 0)//,daysInMonth,
       );
+
+      //console.log(kenderOperationalDaysMap);
 
       const adhikariList = saadhaks
         .map((s) => {
